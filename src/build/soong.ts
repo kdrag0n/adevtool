@@ -224,6 +224,7 @@ export function blobToSoongModule(
     ...(entry.partition == 'system_ext' && { system_ext_specific: true }),
     ...(entry.partition == 'product' && { product_specific: true }),
     ...(entry.partition == 'vendor' && { soc_specific: true }),
+    ...(entry.partition == 'odm' && { device_specific: true }),
   } as SoongModule
 }
 
