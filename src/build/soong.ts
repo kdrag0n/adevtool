@@ -1,4 +1,3 @@
-import * as path from 'path'
 import * as util from 'util'
 
 import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
@@ -43,6 +42,11 @@ export interface ApkModule {
   }
 }
 
+export interface ApexModule {
+  src: string
+  prefer: boolean
+}
+
 export interface JarModule {
   jars: Array<string>
 }
@@ -66,6 +70,7 @@ export type SoongModuleSpecific = {
   ExecutableModule |
   ScriptModule |
   ApkModule |
+  ApexModule |
   JarModule |
   EtcXmlModule |
   DspModule
@@ -210,6 +215,12 @@ export function blobToSoongModule(
       src: moduleSrcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
+    }
+  } else if (ext == '.apex') {
+    moduleSpecific = {
+      _type: 'prebuilt_apex',
+      src: moduleSrcPath,
+      prefer: true,
     }
   } else {
     throw new Error(`File ${entry.srcPath} has unknown extension ${ext}`)
