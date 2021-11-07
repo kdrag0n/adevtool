@@ -6,3 +6,6 @@
 /package-lock.json
 /tmp
 node_modules
+
+# Vendor output
+/vendor/
