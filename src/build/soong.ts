@@ -100,8 +100,6 @@ export function blobToSoongModule(
   entry: BlobEntry,
   entrySrcPaths: Set<string>,
 ) {
-  // Module name = file name
-  let moduleSrcPath = `proprietary/${entry.srcPath}`
   let pathParts = entry.path.split('/')
 
   // Type and info is based on file extension
@@ -112,7 +110,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'sh_binary',
-      src: moduleSrcPath,
+      src: entry.srcPath,
       ...(relPath && { relative_install_path: relPath }),
     }
   // Then special paths
@@ -121,7 +119,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'cc_prebuilt_binary',
-      srcs: [moduleSrcPath],
+      srcs: [entry.srcPath],
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
       prefer: true,
@@ -131,7 +129,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_dsp',
-      src: moduleSrcPath,
+      src: entry.srcPath,
       ...(relPath && { sub_dir: relPath }),
     }
   // Then other extension-based types
@@ -163,7 +161,7 @@ export function blobToSoongModule(
 
     // For single-arch
     let targetSrcs = {
-      srcs: [moduleSrcPath],
+      srcs: [entry.srcPath],
     } as TargetSrcs
 
     // For multi-arch
@@ -195,7 +193,7 @@ export function blobToSoongModule(
   } else if (ext == '.apk') {
     moduleSpecific = {
       _type: 'android_app_import',
-      apk: moduleSrcPath,
+      apk: entry.srcPath,
       ...(entry.isPresigned && { presigned: true } || { certificate: 'platform' }),
       ...(entry.path.startsWith('priv-app/') && { privileged: true }),
       dex_preopt: {
@@ -205,21 +203,21 @@ export function blobToSoongModule(
   } else if (ext == '.jar') {
     moduleSpecific = {
       _type: 'dex_import',
-      jars: [moduleSrcPath],
+      jars: [entry.srcPath],
     }
   } else if (ext == '.xml') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
 
     moduleSpecific = {
       _type: 'prebuilt_etc_xml',
-      src: moduleSrcPath,
+      src: entry.srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
   } else if (ext == '.apex') {
     moduleSpecific = {
       _type: 'prebuilt_apex',
-      src: moduleSrcPath,
+      src: entry.srcPath,
       prefer: true,
     }
   } else {

@@ -7,7 +7,7 @@ import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongModule
 import { BlobEntry, blobNeedsSoong } from '../blobs/entry'
 import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
-import { blobToFileCopy, serializeProductMakefile } from '../build/make'
+import { blobToFileCopy, serializeBoardMakefile, serializeProductMakefile } from '../build/make'
 
 function nameDepKey(entry: BlobEntry) {
   return `${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
@@ -16,8 +16,6 @@ function nameDepKey(entry: BlobEntry) {
 async function generateBuild(
   entries: Array<BlobEntry>,
   vendor: string,
-  device: string,
-  outDir: string,
   proprietaryDir: string,
 ) {
   // Re-sort entries to give priority to explicit named dependencies in name
@@ -67,15 +65,19 @@ async function generateBuild(
 
   // Serialize Soong blueprint
   let blueprint = serializeBlueprint(namedModules.values())
-  fs.writeFile(`${outDir}/Android.bp`, blueprint)
+  fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
 
   // Serialize product makefile
-  let makefile = serializeProductMakefile({
-    namespaces: [outDir],
+  let productMakefile = serializeProductMakefile({
+    namespaces: [proprietaryDir],
     packages: Array.from(namedModules.keys()),
     copyFiles: copyFiles,
   })
-  fs.writeFile(`${outDir}/${device}-vendor.mk`, makefile)
+  fs.writeFile(`${proprietaryDir}/device-vendor.mk`, productMakefile)
+
+  // Serialize board makefile
+  let boardMakefile = serializeBoardMakefile({})
+  fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
 }
 
 export default class Extract extends Command {
@@ -113,6 +115,6 @@ export default class Extract extends Command {
 
     // Generate build files
     this.log(chalk.bold(chalk.greenBright('Generating build files')))
-    await generateBuild(entries, vendor, device, outDir, proprietaryDir)
+    await generateBuild(entries, vendor, proprietaryDir)
   }
 }
