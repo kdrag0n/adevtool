@@ -23,7 +23,8 @@ const IGNORE_EXTS = new Set([
 // Prefixes for files to ignore
 const IGNORE_PREFIXES = paths([
   // GMS
-  `product/usr/srec
+  `system/etc/permissions/privapp-permissions-google.xml
+product/usr/srec
 product/app/arcore/arcore.apk
 product/app/CalculatorGooglePrebuilt/CalculatorGooglePrebuilt.apk
 product/app/CalendarGooglePrebuilt/CalendarGooglePrebuilt.apk
@@ -71,6 +72,16 @@ product/priv-app/SetupWizardPrebuilt/SetupWizardPrebuilt.apk
 product/priv-app/Velvet/Velvet.apk
 product/priv-app/WellbeingPrebuilt/WellbeingPrebuilt.apk
 system_ext/priv-app/GoogleServicesFramework/GoogleServicesFramework.apk`,
+
+  // Mainline system
+  `system/apex/com.google.android.
+system/app/GoogleExtShared/GoogleExtShared.apk
+system/app/GooglePrintRecommendationService/GooglePrintRecommendationService.apk
+system/priv-app/DocumentsUIGoogle/DocumentsUIGoogle.apk
+system/priv-app/GooglePackageInstaller/GooglePackageInstaller.apk
+system/priv-app/NetworkPermissionConfigGoogle/NetworkPermissionConfigGoogle.apk
+system/priv-app/NetworkStackGoogle/NetworkStackGoogle.apk
+system/priv-app/TagGoogle/TagGoogle.apk`,
 
   // Google Dialer
 `product/etc/permissions/com.google.android.dialer.support.xml`,
