@@ -10,7 +10,8 @@ import { copyBlobs } from '../blobs/copy'
 import { blobToFileCopy, serializeBoardMakefile, serializeProductMakefile } from '../build/make'
 
 function nameDepKey(entry: BlobEntry) {
-  return `${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
+  let ext = path.extname(entry.path)
+  return `${ext == '.xml' ? 1 : 0}${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
 }
 
 async function generateBuild(
@@ -19,7 +20,8 @@ async function generateBuild(
   proprietaryDir: string,
 ) {
   // Re-sort entries to give priority to explicit named dependencies in name
-  // conflict resolution
+  // conflict resolution. XMLs are also de-prioritized because they have
+  // filename_from_src.
   entries = Array.from(entries).sort((a, b) => nameDepKey(a).localeCompare(nameDepKey(b)))
 
   // Fast lookup for other arch libs
