@@ -70,6 +70,7 @@ export interface EtcXmlModule {
 
 export interface DspModule {
   src: string
+  filename_from_src: boolean
   sub_dir?: string
 }
 
@@ -145,6 +146,7 @@ export function blobToSoongModule(
     moduleSpecific = {
       _type: 'prebuilt_dsp',
       src: entry.srcPath,
+      filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
   // Then other extension-based types

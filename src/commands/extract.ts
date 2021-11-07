@@ -39,7 +39,7 @@ async function generateBuild(
       // Named dependencies -> Soong blueprint
 
       // Module name = file name, excluding extension if it was used
-      let baseExt = (SPECIAL_FILE_EXTENSIONS.has(ext) && pathParts[0] != 'dsp') ? ext : undefined
+      let baseExt = SPECIAL_FILE_EXTENSIONS.has(ext) ? ext : undefined
       let name = path.basename(entry.path, baseExt)
 
       // If already exists: skip if it's the other arch variant of a library in
