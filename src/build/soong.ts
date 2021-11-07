@@ -32,6 +32,7 @@ export interface SharedLibraryModule {
 
 export interface ExecutableModule {
   srcs: Array<string>
+  stem: string
   relative_install_path?: string
   check_elf_files: boolean
   prefer: boolean
@@ -133,6 +134,7 @@ export function blobToSoongModule(
     moduleSpecific = {
       _type: 'cc_prebuilt_binary',
       srcs: [entry.srcPath],
+      stem: path.basename(entry.path),
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
       prefer: true,
