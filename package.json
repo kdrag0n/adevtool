@@ -12,6 +12,7 @@
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^3",
     "chalk": "^4.1.2",
+    "ora": "5.4.1",
     "tslib": "^1",
     "zx": "^4.2.0"
   },
