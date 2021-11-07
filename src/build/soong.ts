@@ -249,8 +249,10 @@ export function serializeModule(module: SoongModule) {
     serialized = `${type} ${serialized}`
     // Add trailing comma to last prop
     let serialLines = serialized.split('\n')
-    serialLines[serialLines.length - 2] = serialLines.at(-2) + ','
-    serialized = serialLines.join('\n')
+    if (serialLines.length > 1) {
+      serialLines[serialLines.length - 2] = serialLines.at(-2) + ','
+      serialized = serialLines.join('\n')
+    }
 
     return serialized
 }
