@@ -3,7 +3,6 @@ import * as util from 'util'
 import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
 
 export const SPECIAL_FILE_EXTENSIONS = new Set([
-  '.sh',
   '.so',
   '.apk',
   '.jar',

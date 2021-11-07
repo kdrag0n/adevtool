@@ -33,12 +33,13 @@ async function generateBuild(
   let conflictCounters = new Map<string, number>()
   for (let entry of entries) {
     let ext = path.extname(entry.path)
+    let pathParts = entry.path.split('/')
 
     if (blobNeedsSoong(entry, ext)) {
       // Named dependencies -> Soong blueprint
 
       // Module name = file name, excluding extension if it was used
-      let baseExt = SPECIAL_FILE_EXTENSIONS.has(ext) ? ext : undefined
+      let baseExt = (SPECIAL_FILE_EXTENSIONS.has(ext) && pathParts[0] != 'dsp') ? ext : undefined
       let name = path.basename(entry.path, baseExt)
 
       // If already exists: skip if it's the other arch variant of a library in
