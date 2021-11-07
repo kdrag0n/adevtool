@@ -16,7 +16,7 @@ export interface TargetSrcs {
 }
 
 export interface SharedLibraryModule {
-  stem: string
+  stem?: string
   relative_install_path?: string
   strip: {
     none: boolean
@@ -32,7 +32,7 @@ export interface SharedLibraryModule {
 
 export interface ExecutableModule {
   srcs: Array<string>
-  stem: string
+  stem?: string
   relative_install_path?: string
   check_elf_files: boolean
   prefer: boolean
@@ -134,7 +134,7 @@ export function blobToSoongModule(
     moduleSpecific = {
       _type: 'cc_prebuilt_binary',
       srcs: [entry.srcPath],
-      stem: path.basename(entry.path),
+      ...(name != pathParts.at(-1) && { stem: pathParts.at(-1) }),
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
       prefer: true,
@@ -187,9 +187,10 @@ export function blobToSoongModule(
       srcs: [otherSrcPath],
     } as TargetSrcs
 
+    let origFileName = pathParts.at(-1)?.replace(/\.so$/, '')
     moduleSpecific = {
       _type: 'cc_prebuilt_library_shared',
-      stem: path.basename(entry.path, '.so'),
+      ...(name != origFileName && { stem: origFileName }),
       ...(relPath && { relative_install_path: relPath }),
       strip: {
         none: true,
