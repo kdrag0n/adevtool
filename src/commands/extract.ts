@@ -9,6 +9,10 @@ import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
 import { blobToFileCopy, serializeProductMakefile } from '../build/make'
 
+function nameDepKey(entry: BlobEntry) {
+  return `${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
+}
+
 async function generateBuild(
   entries: Array<BlobEntry>,
   vendor: string,
@@ -16,6 +20,10 @@ async function generateBuild(
   outDir: string,
   proprietaryDir: string,
 ) {
+  // Re-sort entries to give priority to explicit named dependencies in name
+  // conflict resolution
+  entries = Array.from(entries).sort((a, b) => nameDepKey(a).localeCompare(nameDepKey(b)))
+
   // Fast lookup for other arch libs
   let entrySrcPaths = new Set(entries.map(e => e.srcPath))
 
