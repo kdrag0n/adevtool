@@ -23,10 +23,13 @@ export function parseFileList(list: string) {
     // Split path into partition and sub-partition path
     let pathParts = srcPath.split('/')
     let partition = pathParts[0]
-    if (!EXT_PARTITIONS.has(partition)) {
+    let path: string
+    if (EXT_PARTITIONS.has(partition)) {
+      path = pathParts.slice(1).join('/')
+    } else {
       partition = 'system'
+      path = srcPath
     }
-    let path = pathParts.slice(1).join('/')
 
     entries.push({
       partition: partition,
