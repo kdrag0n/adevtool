@@ -68,12 +68,13 @@ export default class Extract extends Command {
     vendor: flags.string({char: 'v', description: 'device vendor/OEM name', required: true}),
     device: flags.string({char: 'd', description: 'device codename', required: true}),
     source: flags.string({char: 's', description: 'path to mounted factory images', required: true}),
+    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
 
   static args = [{name: 'listPath'}]
 
   async run() {
-    let {args: {listPath}, flags: {vendor, device, source}} = this.parse(Extract)
+    let {args: {listPath}, flags: {vendor, device, source, skipCopy}} = this.parse(Extract)
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))
@@ -88,7 +89,9 @@ export default class Extract extends Command {
     await fs.mkdir(proprietaryDir, {recursive: true})
 
     // Copy blobs
-    await copyBlobs(entries, source, proprietaryDir)
+    if (!skipCopy) {
+      await copyBlobs(entries, source, proprietaryDir)
+    }
 
     // Generate build files
     this.log(chalk.bold(chalk.greenBright('Generating build files')))
