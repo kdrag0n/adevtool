@@ -175,10 +175,10 @@ export function blobToSoongModule(
 
     // For multi-arch
     let targetSrcs32 = (curArch == '32') ? targetSrcs : {
-      srcs: [`proprietary/${otherSrcPath}`],
+      srcs: [otherSrcPath],
     } as TargetSrcs
     let targetSrcs64 = (curArch == '64') ? targetSrcs : {
-      srcs: [`proprietary/${otherSrcPath}`],
+      srcs: [otherSrcPath],
     } as TargetSrcs
 
     moduleSpecific = {
