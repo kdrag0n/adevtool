@@ -72,7 +72,7 @@ export interface DspModule {
 }
 
 export type SoongModuleSpecific = {
-  // Type is mandatory initially, but this is deleted for serialization
+  // This is used initially, but deleted before serialization
   _type?: string
 } & (
   SharedLibraryModule |
@@ -91,6 +91,9 @@ export type SoongModule = {
   system_ext_specific?: boolean
   product_specific?: boolean
   soc_specific?: boolean
+
+  // This is used initially, but deleted before serialization
+  _entry?: BlobEntry
 } & SoongModuleSpecific
 
 function getRelativeInstallPath(entry: BlobEntry, pathParts: Array<string>, installDir: string) {
@@ -237,6 +240,7 @@ export function blobToSoongModule(
     name: name,
     owner: vendor,
     ...moduleSpecific,
+    _entry: entry,
 
     // Partition flag
     ...(entry.partition == 'system_ext' && { system_ext_specific: true }),
@@ -247,9 +251,12 @@ export function blobToSoongModule(
 }
 
 export function serializeModule(module: SoongModule) {
-    // Type prepended to Soong module props, so remove it from the object
-    let type = module._type;
-    delete module._type;
+    // Type is prepended to Soong module props, so remove it from the object
+    let type = module._type
+    delete module._type
+
+    // Delete internal blob entry reference as well
+    delete module._entry
 
     // Initial serialization pass. Node.js util.inspect happens to be identical to Soong format.
     let serialized = util.inspect(module, {

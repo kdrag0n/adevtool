@@ -41,12 +41,13 @@ async function generateBuild(
       let baseExt = SPECIAL_FILE_EXTENSIONS.has(ext) ? ext : undefined
       let name = path.basename(entry.path, baseExt)
 
-      // If already exists: skip if it's the other arch variant of a library,
-      // otherwise rename the module to avoid conflict
+      // If already exists: skip if it's the other arch variant of a library in
+      // the same partition, otherwise rename the module to avoid conflict
       if (namedModules.has(name)) {
         let conflictModule = namedModules.get(name)!
         if (conflictModule._type == 'cc_prebuilt_library_shared' &&
-              (conflictModule as SharedLibraryModule).compile_multilib == 'both') {
+              (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
+              conflictModule._entry?.partition == entry.partition) {
           continue
         }
 
