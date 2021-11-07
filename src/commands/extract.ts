@@ -43,12 +43,14 @@ async function generateBuild(
       let name = path.basename(entry.path, baseExt)
 
       // If already exists: skip if it's the other arch variant of a library in
-      // the same partition, otherwise rename the module to avoid conflict
+      // the same partition AND has the same name (incl. ext), otherwise rename the
+      // module to avoid conflict
       if (namedModules.has(name)) {
         let conflictModule = namedModules.get(name)!
         if (conflictModule._type == 'cc_prebuilt_library_shared' &&
               (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
-              conflictModule._entry?.partition == entry.partition) {
+              conflictModule._entry?.partition == entry.partition &&
+              conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)) {
           continue
         }
 
