@@ -1,3 +1,4 @@
+import * as path from 'path'
 import * as util from 'util'
 
 import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
@@ -15,6 +16,7 @@ export interface TargetSrcs {
 }
 
 export interface SharedLibraryModule {
+  stem: string
   relative_install_path?: string
   strip: {
     none: boolean
@@ -185,6 +187,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'cc_prebuilt_library_shared',
+      stem: path.basename(entry.path, '.so'),
       ...(relPath && { relative_install_path: relPath }),
       strip: {
         none: true,
