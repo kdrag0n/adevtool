@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as chalk from 'chalk'
 
 import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongModule } from '../build/soong'
-import { BlobEntry } from '../blobs/entry'
+import { BlobEntry, blobNeedsSoong } from '../blobs/entry'
 import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
 import { blobToFileCopy, serializeProductMakefile } from '../build/make'
@@ -26,8 +26,7 @@ async function generateBuild(
   for (let entry of entries) {
     let ext = path.extname(entry.path)
 
-    // On Android 12, Soong is required for ELF files (executables and libraries)
-    if (entry.isNamedDependency || entry.path.startsWith('bin/') || ext == '.so') {
+    if (blobNeedsSoong(entry, ext)) {
       // Named dependencies -> Soong blueprint
 
       // Module name = file name
