@@ -23,11 +23,13 @@ async function generateBuild(
   let copyFiles = []
   let namedModules = new Map<string, SoongModule>()
   for (let entry of entries) {
-    if (entry.isNamedDependency) {
+    let ext = path.extname(entry.path)
+
+    // On Android 12, Soong is required for ELF files (executables and libraries)
+    if (entry.isNamedDependency || entry.path.startsWith('bin/') || ext == '.so') {
       // Named dependencies -> Soong blueprint
 
       // Module name = file name
-      let ext = path.extname(entry.path)
       let name = path.basename(entry.path, ext)
 
       // Skip if already done (e.g. other lib arch)

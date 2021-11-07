@@ -1,7 +1,5 @@
+import { EXT_PARTITIONS } from '../partitions'
 import { BlobEntry } from './entry'
-
-// Excluding system
-const PARTITIONS = new Set(['system_ext', 'product', 'vendor'])
 
 export function parseFileList(list: string) {
   let entries = []
@@ -25,7 +23,7 @@ export function parseFileList(list: string) {
     // Split path into partition and sub-partition path
     let pathParts = srcPath.split('/')
     let partition = pathParts[0]
-    if (!PARTITIONS.has(partition)) {
+    if (!EXT_PARTITIONS.has(partition)) {
       partition = 'system'
     }
     let path = pathParts.slice(1).join('/')

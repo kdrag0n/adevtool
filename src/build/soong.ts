@@ -1,12 +1,14 @@
+import * as path from 'path'
 import * as util from 'util'
 
-import { BlobEntry } from '../blobs/entry'
+import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
 
 export interface TargetSrcs {
   srcs: Array<string>
 }
 
 export interface SharedLibraryModule {
+  relative_install_path?: string
   strip: {
     none: boolean
   }
@@ -17,6 +19,18 @@ export interface SharedLibraryModule {
   compile_multilib: string
   check_elf_files: boolean
   prefer: boolean
+}
+
+export interface ExecutableModule {
+  srcs: Array<string>
+  relative_install_path?: string
+  check_elf_files: boolean
+  prefer: boolean
+}
+
+export interface ScriptModule {
+  src: string
+  relative_install_path?: string
 }
 
 export interface ApkModule {
@@ -36,7 +50,12 @@ export interface JarModule {
 export interface EtcXmlModule {
   src: string
   filename_from_src: boolean
-  sub_dir: string
+  sub_dir?: string
+}
+
+export interface DspModule {
+  src: string
+  sub_dir?: string
 }
 
 export type SoongModuleSpecific = {
@@ -44,9 +63,12 @@ export type SoongModuleSpecific = {
   _type?: string
 } & (
   SharedLibraryModule |
+  ExecutableModule |
+  ScriptModule |
   ApkModule |
   JarModule |
-  EtcXmlModule
+  EtcXmlModule |
+  DspModule
 )
 
 export type SoongModule = {
@@ -57,6 +79,15 @@ export type SoongModule = {
   soc_specific?: boolean
 } & SoongModuleSpecific
 
+function getRelativeInstallPath(entry: BlobEntry, pathParts: Array<string>, installDir: string) {
+  if (pathParts[0] != installDir) {
+    throw new Error(`File ${entry.srcPath} is not in ${installDir}`)
+  }
+
+  let subpath = pathParts.slice(1, -1).join('/')
+  return subpath.length == 0 ? null : subpath;
+}
+
 export function blobToSoongModule(
   name: string,
   ext: string,
@@ -66,32 +97,60 @@ export function blobToSoongModule(
 ) {
   // Module name = file name
   let moduleSrcPath = `proprietary/${entry.srcPath}`
+  let pathParts = entry.path.split('/')
 
   // Type and info is based on file extension
   let moduleSpecific: SoongModuleSpecific
-  if (ext == '.so') {
+  // High-precedence extension-based types first
+  if (ext == '.sh') { // check before bin/ to catch .sh files in bin
+    let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
+
+    moduleSpecific = {
+      _type: 'sh_binary',
+      src: moduleSrcPath,
+      ...(relPath && { relative_install_path: relPath }),
+    }
+  // Then special paths
+  } else if (pathParts[0] == 'bin') {
+    let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
+
+    moduleSpecific = {
+      _type: 'cc_prebuilt_binary',
+      srcs: [moduleSrcPath],
+      ...(relPath && { relative_install_path: relPath }),
+      check_elf_files: false,
+      prefer: true,
+    }
+  } else if (pathParts[0] == 'dsp') {
+    let relPath = getRelativeInstallPath(entry, pathParts, 'dsp')
+
+    moduleSpecific = {
+      _type: 'prebuilt_dsp',
+      src: moduleSrcPath,
+      ...(relPath && { sub_dir: relPath }),
+    }
+  // Then other extension-based types
+  } else if (ext == '.so') {
     // Extract architecture from lib dir
-    let pathParts = entry.srcPath.split('/')
-    let libDir = pathParts.at(-2)
+    let libDir = pathParts.at(0)!
     let curArch: string
     if (libDir == 'lib') {
       curArch = '32'
-    } else {
-      // Assume 64-bit native if not lib/lib64
+    } else if (libDir == 'lib64') {
       curArch = '64'
+    } else {
+      throw new Error(`File ${entry.srcPath} is in unknown lib dir ${libDir}`)
     }
+    // Save current lib arch before changing to 'both' for multilib
     let arch = curArch
+
+    // Get install path relative to lib dir
+    let relPath = getRelativeInstallPath(entry, pathParts, libDir)
 
     // Check for the other arch
     let otherLibDir = arch == '32' ? 'lib64' : 'lib'
-    let otherSrcPath = [
-      // Preceding parts
-      ...pathParts.slice(0, -2),
-      // lib / lib64
-      otherLibDir,
-      // Trailing part (file name)
-      pathParts.at(-1),
-    ].join('/')
+    let otherPartPath = [otherLibDir, ...pathParts.slice(1)].join('/')
+    let otherSrcPath = partPathToSrcPath(entry.partition, otherPartPath)
     if (entrySrcPaths.has(otherSrcPath)) {
       // Both archs are present
       arch = 'both'
@@ -112,6 +171,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'cc_prebuilt_library_shared',
+      ...(relPath && { relative_install_path: relPath }),
       strip: {
         none: true,
       },
@@ -143,17 +203,13 @@ export function blobToSoongModule(
       jars: [moduleSrcPath],
     }
   } else if (ext == '.xml') {
-    // Only etc/ XMLs are supported for now
-    let pathParts = entry.path.split('/')
-    if (pathParts[0] != 'etc') {
-      throw new Error(`XML file ${entry.srcPath} is not in etc/`)
-    }
+    let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
 
     moduleSpecific = {
       _type: 'prebuilt_etc_xml',
       src: moduleSrcPath,
       filename_from_src: true,
-      sub_dir: pathParts.slice(1).join('/'),
+      ...(relPath && { sub_dir: relPath }),
     }
   } else {
     throw new Error(`File ${entry.srcPath} has unknown extension ${ext}`)
@@ -181,6 +237,7 @@ export function serializeModule(module: SoongModule) {
       depth: Infinity,
       maxArrayLength: Infinity,
       maxStringLength: Infinity,
+      breakLength: 100,
     })
 
     // ' -> "
