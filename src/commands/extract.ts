@@ -3,7 +3,7 @@ import {promises as fs} from 'fs'
 import * as path from 'path'
 import * as chalk from 'chalk'
 
-import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongModule } from '../build/soong'
+import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongModule, SPECIAL_FILE_EXTENSIONS } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from '../blobs/entry'
 import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
@@ -35,8 +35,9 @@ async function generateBuild(
     if (blobNeedsSoong(entry, ext)) {
       // Named dependencies -> Soong blueprint
 
-      // Module name = file name
-      let name = path.basename(entry.path, ext)
+      // Module name = file name, excluding extension if it was used
+      let baseExt = SPECIAL_FILE_EXTENSIONS.has(ext) ? ext : undefined
+      let name = path.basename(entry.path, baseExt)
 
       // If already exists: skip if it's the other arch variant of a library,
       // otherwise rename the module to avoid conflict
