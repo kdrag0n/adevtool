@@ -75,6 +75,8 @@ system_ext/priv-app/GoogleServicesFramework/GoogleServicesFramework.apk`,
 
   // Mainline system
   `system/apex/com.google.android.
+system/apex/com.google.mainline.primary.libs.apex
+system/app/CaptivePortalLoginGoogle/CaptivePortalLoginGoogle.apk
 system/app/GoogleExtShared/GoogleExtShared.apk
 system/app/GooglePrintRecommendationService/GooglePrintRecommendationService.apk
 system/priv-app/DocumentsUIGoogle/DocumentsUIGoogle.apk
