@@ -1,10 +1,10 @@
-import { promises as fs } from 'fs'
 import * as path from 'path'
 import * as chalk from 'chalk'
 import * as ora from 'ora'
 
 import { EXT_PARTITIONS } from '../partitions'
 import { BlobEntry } from './entry'
+import { exists, listFilesRecursive } from '../util/fs'
 
 // Sub-partition directories to ignore
 const IGNORE_DIRS = new Set([
@@ -152,6 +152,10 @@ system_ext/priv-app/FactoryOta/FactoryOta.apk`,
 product/wallpaper/`,
 ])
 
+function paths(blocks: Array<string>) {
+  return blocks.flatMap(b => b.split('\n'))
+}
+
 export function parseFileList(list: string) {
   let entries = []
 
@@ -193,33 +197,6 @@ export function parseFileList(list: string) {
 
   // Sort by source path
   return entries.sort((a, b) => a.srcPath.localeCompare(b.srcPath))
-}
-
-function paths(blocks: Array<string>) {
-  return blocks.flatMap(b => b.split('\n'))
-}
-
-// https://stackoverflow.com/a/45130990
-async function* listFilesRecursive(dir: string): AsyncGenerator<string> {
-  const dirents = await fs.readdir(dir, { withFileTypes: true })
-  for (const dirent of dirents) {
-    const res = path.resolve(dir, dirent.name)
-    if (dirent.isDirectory()) {
-      yield* listFilesRecursive(res)
-    } else if (dirent.isFile() || dirent.isSymbolicLink()) {
-      yield res
-    }
-  }
-}
-
-async function exists(path: string) {
-  try {
-    await fs.access(path)
-    return true
-  } catch {
-    // Doesn't exist or can't read
-    return false
-  }
 }
 
 export async function listPart(partition: string, systemRoot: string) {
