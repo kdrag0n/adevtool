@@ -1,9 +1,9 @@
-import {Command, flags} from '@oclif/command'
-import {createWriteStream, promises as fs} from 'fs'
+import { Command, flags } from '@oclif/command'
+import { createWriteStream, promises as fs } from 'fs'
 import * as chalk from 'chalk'
 import * as cliProgress from 'cli-progress'
 import fetch from 'node-fetch'
-import {promises as stream} from 'stream'
+import { promises as stream } from 'stream'
 import * as path from 'path'
 
 const VENDOR_INDEX_URL = 'https://developers.google.com/android/drivers'

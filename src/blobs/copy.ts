@@ -1,4 +1,4 @@
-import {promises as fs} from 'fs'
+import { promises as fs } from 'fs'
 import * as path from 'path'
 import * as chalk from 'chalk'
 import * as ora from 'ora'

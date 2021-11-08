@@ -1,5 +1,5 @@
-import {Command, flags} from '@oclif/command'
-import {promises as fs} from 'fs'
+import { Command, flags } from '@oclif/command'
+import { promises as fs } from 'fs'
 import * as chalk from 'chalk'
 
 import { serializeBlueprint } from '../build/soong'

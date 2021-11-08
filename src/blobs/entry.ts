@@ -1,5 +1,3 @@
-import * as path from 'path'
-
 import { EXT_PARTITIONS } from '../partitions';
 
 export interface BlobEntry {

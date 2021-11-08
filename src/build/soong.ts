@@ -1,4 +1,3 @@
-import * as path from 'path'
 import * as util from 'util'
 
 import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
