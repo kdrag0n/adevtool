@@ -9,7 +9,7 @@ export default class DiffFiles extends Command {
 
   static flags = {
     help: flags.help({char: 'h'}),
-    all: flags.boolean({char: 'a', description: 'show all differences, not only missing/removed files', defualt: false})
+    all: flags.boolean({char: 'a', description: 'show all differences, not only missing/removed files', default: false})
   }
 
   static args = [
