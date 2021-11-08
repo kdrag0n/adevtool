@@ -152,6 +152,12 @@ system_ext/priv-app/FactoryOta/FactoryOta.apk`,
   // Pixel 6
   `product/tts/google/
 product/wallpaper/`,
+
+  // Overlays should be dealt with, but they should never be copied as-is.
+  `system/overlay/
+system_ext/overlay/
+product/overlay/
+vendor/overlay/`,
 ])
 
 function paths(blocks: Array<string>) {
