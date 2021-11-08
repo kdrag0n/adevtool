@@ -1,11 +1,13 @@
 import * as path from 'path'
+import { promises as fs } from 'fs'
 
-import { blobToFileCopy, BoardMakefile, ProductMakefile } from '../build/make'
+import { blobToFileCopy, BoardMakefile, ModulesMakefile, ProductMakefile, sanitizeBasename, Symlink } from '../build/make'
 import { blobToSoongModule, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
 
 export interface BuildFiles {
-  blueprint: SoongBlueprint,
+  blueprint: SoongBlueprint
+  modulesMakefile: ModulesMakefile
   productMakefile: ProductMakefile
   boardMakefile: BoardMakefile
 }
@@ -17,7 +19,9 @@ function nameDepKey(entry: BlobEntry) {
 
 export async function generateBuild(
   entries: Array<BlobEntry>,
+  device: string,
   vendor: string,
+  source: string,
   proprietaryDir: string,
 ) {
   // Re-sort entries to give priority to explicit named dependencies in name
@@ -28,15 +32,38 @@ export async function generateBuild(
   // Fast lookup for other arch libs
   let entrySrcPaths = new Set(entries.map(e => e.srcPath))
 
-  // Create Soong modules and Make rules
+  // Create Soong modules, Make rules, and symlink modules
   let copyFiles = []
+  let symlinks = []
   let namedModules = new Map<string, SoongModule>()
   let conflictCounters = new Map<string, number>()
   for (let entry of entries) {
     let ext = path.extname(entry.path)
     let pathParts = entry.path.split('/')
+    let srcPath = `${source}/${entry.srcPath}`
+    let stat = await fs.lstat(srcPath)
 
-    if (blobNeedsSoong(entry, ext)) {
+    if (stat.isSymbolicLink()) {
+      // Symlink -> Make module, regardless of file extension
+
+      let targetPath = await fs.readlink(srcPath)
+      let moduleName = `symlink__${sanitizeBasename(entry.path)}__${sanitizeBasename(targetPath)}`
+
+      // Resolve conflicts
+      if (namedModules.has(moduleName)) {
+        let conflictNum = (conflictCounters.get(moduleName) ?? 1) + 1
+        conflictCounters.set(moduleName, conflictNum)
+        moduleName += `__${conflictNum}`
+      }
+
+      // Create link info
+      symlinks.push({
+        moduleName: moduleName,
+        linkPartition: entry.partition,
+        linkSubpath: entry.path,
+        targetPath: targetPath,
+      } as Symlink)
+    } else if (blobNeedsSoong(entry, ext)) {
       // Named dependencies -> Soong blueprint
 
       // Module name = file name, excluding extension if it was used
@@ -71,14 +98,22 @@ export async function generateBuild(
     }
   }
 
+  let buildPackages = Array.from(namedModules.keys())
+  buildPackages.push(...symlinks.map(l => l.moduleName))
+
   return {
     blueprint: {
       imports: [],
       modules: namedModules.values(),
     },
+    modulesMakefile: {
+      device: device,
+      vendor: vendor,
+      symlinks: symlinks,
+    },
     productMakefile: {
       namespaces: [proprietaryDir],
-      packages: Array.from(namedModules.keys()),
+      packages: buildPackages,
       copyFiles: copyFiles,
     },
     boardMakefile: {},

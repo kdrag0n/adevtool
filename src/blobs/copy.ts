@@ -12,13 +12,20 @@ export async function copyBlobs(entries: Array<BlobEntry>, srcDir: string, outDi
   }).start()
 
   for (let entry of entries) {
+    let outPath = `${outDir}/${entry.srcPath}`
+    let srcPath = `${srcDir}/${entry.srcPath}`
     spinner.text = entry.srcPath
 
-    let outPath = `${outDir}/${entry.srcPath}`
+    // Symlinks are created at build time, not copied
+    let stat = await fs.lstat(srcPath)
+    if (stat.isSymbolicLink()) {
+      continue
+    }
+
+    // Create directory structure
     await fs.mkdir(path.dirname(outPath), {recursive: true})
 
     // Some files need patching
-    let srcPath = `${srcDir}/${entry.srcPath}`
     if (entry.path.endsWith('.xml')) {
       let xml = await fs.readFile(srcPath, {encoding: 'utf8'})
       // Fix Qualcomm "version 2.0" XMLs

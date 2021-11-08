@@ -5,13 +5,17 @@ import * as chalk from 'chalk'
 import { serializeBlueprint } from '../build/soong'
 import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
-import { serializeBoardMakefile, serializeProductMakefile } from '../build/make'
+import { serializeBoardMakefile, serializeModulesMakefile, serializeProductMakefile } from '../build/make'
 import { BuildFiles, generateBuild } from '../blobs/build'
 
 async function writeBuild(build: BuildFiles, proprietaryDir: string) {
   // Serialize Soong blueprint
   let blueprint = serializeBlueprint(build.blueprint)
   fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
+
+  // Serialize modules makefile
+  let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
+  fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
 
   // Serialize product makefile
   let productMakefile = serializeProductMakefile(build.productMakefile)
@@ -59,7 +63,7 @@ export default class Extract extends Command {
 
     // Generate build files
     this.log(chalk.bold(chalk.greenBright('Generating build files')))
-    let build = await generateBuild(entries, vendor, proprietaryDir)
+    let build = await generateBuild(entries, device, vendor, source, proprietaryDir)
     await writeBuild(build, proprietaryDir)
   }
 }
