@@ -199,7 +199,7 @@ export function parseFileList(list: string) {
   return entries.sort((a, b) => a.srcPath.localeCompare(b.srcPath))
 }
 
-export async function listPart(partition: string, systemRoot: string) {
+export async function listPart(partition: string, systemRoot: string, showSpinner: boolean = false) {
   let partRoot = `${systemRoot}/${partition}`
   if (!await exists(partRoot)) {
     return null
@@ -214,13 +214,18 @@ export async function listPart(partition: string, systemRoot: string) {
   let spinner = ora({
     prefixText: chalk.bold(chalk.greenBright(`Listing ${partition}`)),
     color: 'green',
-  }).start()
+  })
+  if (showSpinner) {
+    spinner.start()
+  }
 
   let files = []
   for await (let file of listFilesRecursive(partRoot)) {
     // Remove root prefix
     file = path.relative(refRoot, file)
-    spinner.text = file
+    if (showSpinner) {
+      spinner.text = file
+    }
 
     files.push(file)
   }
@@ -233,7 +238,10 @@ export async function listPart(partition: string, systemRoot: string) {
         IGNORE_PREFIXES.find((p) => file.startsWith(p)) != undefined)
   })
 
+  if (showSpinner) {
+    spinner.stopAndPersist()
+  }
+
   // Sort and return raw path list
-  spinner.stopAndPersist()
   return files.sort((a, b) => a.localeCompare(b))
 }
