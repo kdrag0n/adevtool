@@ -24,9 +24,10 @@ export function blobNeedsSoong(entry: BlobEntry, ext: string) {
   }
 
   // On Android 12, Soong is required for ELF files (executables and libraries)
-  if (entry.path.startsWith('bin/') || ext == '.so') {
+  // TODO: re-enable this after fixing cross-partition conflict resolution
+  /*if (entry.path.startsWith('bin/') || ext == '.so') {
     return true
-  }
+  }*/
 
   // Soong is also required for APKs, framework JARs, and vintf XMLs
   if (ext == '.apk' || ext == '.jar' ||
