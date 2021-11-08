@@ -278,7 +278,7 @@ export function serializeModule(module: SoongModule) {
     // Delete internal blob entry reference as well
     delete module._entry
 
-    // Initial serialization pass. Node.js util.inspect happens to be identical to Soong format.
+    // Initial serialization pass. Node.js util.inspect happens to be very similar to Soong format.
     let serialized = util.inspect(module, {
       depth: Infinity,
       maxArrayLength: Infinity,
