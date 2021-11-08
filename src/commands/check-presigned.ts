@@ -6,7 +6,7 @@ import { $ } from 'zx'
 
 import { parseFileList } from '../blobs/file_list'
 import { listFilesRecursive } from '../util/fs'
-import { parseSeappContexts } from '../sepolicy/parse_seapp'
+import { parseSeappContexts } from '../sepolicy/seapp'
 
 export default class CheckPresigned extends Command {
   static description = 'check for APKs that should be presigned'
