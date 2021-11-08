@@ -8,8 +8,6 @@ import { parseFileList } from '../blobs/file_list'
 import { listFilesRecursive } from '../util/fs'
 import { parseSeappContexts } from '../sepolicy/parse_seapp'
 
-$.verbose = false
-
 export default class CheckPresigned extends Command {
   static description = 'check for APKs that should be presigned'
 
