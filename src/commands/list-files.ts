@@ -230,7 +230,10 @@ export default class ListFiles extends Command {
     help: flags.help({char: 'h'}),
   }
 
-  static args = [{name: 'systemRoot'}, {name: 'out'}]
+  static args = [
+    {name: 'systemRoot', description: 'path to root of mounted system images (./system_ext, ./product, etc.)', required: true},
+    {name: 'out', description: 'directory to write partition file lists to', required: true},
+  ]
 
   async run() {
     let {args: {systemRoot, out}} = this.parse(ListFiles)

@@ -98,7 +98,9 @@ export default class Extract extends Command {
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
 
-  static args = [{name: 'listPath'}]
+  static args = [
+    {name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list', required: true},
+  ]
 
   async run() {
     let {args: {listPath}, flags: {vendor, device, source, skipCopy}} = this.parse(Extract)
