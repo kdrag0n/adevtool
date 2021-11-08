@@ -13,6 +13,7 @@
     "@oclif/plugin-help": "^3",
     "chalk": "^4.1.2",
     "cli-progress": "^3.9.1",
+    "node-fetch": "2",
     "ora": "5.4.1",
     "tslib": "^1",
     "zx": "^4.2.0"
