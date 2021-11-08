@@ -21,7 +21,7 @@ export default class CheckPresigned extends Command {
 
   static args = [
     {name: 'source', description: 'path to mounted factory images', required: true},
-    {name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list', required: true},
+    {name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list'},
   ]
 
   async run() {
@@ -29,8 +29,8 @@ export default class CheckPresigned extends Command {
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))
-    let list = await fs.readFile(listPath, {encoding: 'utf8'})
-    let entries = parseFileList(list)
+    let list = listPath != null ? await fs.readFile(listPath, {encoding: 'utf8'}) : null
+    let entries = list != null ? parseFileList(list) : null
 
     // Find and parse sepolicy seapp_contexts
     let contexts = []
@@ -47,20 +47,35 @@ export default class CheckPresigned extends Command {
     let presignedPkgs = new Set(contexts.filter(c => c.seinfo != 'platform')
       .map(c => c.name))
 
-    // Process APKs
-    for (let entry of entries) {
-      if (path.extname(entry.path) != '.apk') {
-        continue
+    if (entries != null) {
+      // Get APKs from blob entries
+      for (let entry of entries) {
+        if (path.extname(entry.path) != '.apk') {
+          continue
+        }
+
+        let procOut = await $`${aapt2} dump packagename ${source}/${entry.srcPath}`
+        let pkgName = procOut.stdout.trim()
+        if (presignedPkgs.has(pkgName)) {
+          entry.isPresigned = true
+          this.log(entry.srcPath)
+        }
       }
 
-      let procOut = await $`${aapt2} dump packagename ${source}/${entry.srcPath}`
-      let pkgName = procOut.stdout.trim()
-      if (presignedPkgs.has(pkgName)) {
-        entry.isPresigned = true
-        this.log(entry.srcPath)
+      // TODO: write new list
+    } else {
+      // Find APKs
+      for await (let file of listFilesRecursive(source)) {
+        if (path.extname(file) != '.apk') {
+          continue
+        }
+
+        let procOut = await $`${aapt2} dump packagename ${file}`
+        let pkgName = procOut.stdout.trim()
+        if (presignedPkgs.has(pkgName)) {
+          this.log(file)
+        }
       }
     }
-
-    // TODO: write new list
   }
 }
