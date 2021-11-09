@@ -47,14 +47,7 @@ export async function generateBuild(
       // Symlink -> Make module, regardless of file extension
 
       let targetPath = await fs.readlink(srcPath)
-      let moduleName = `symlink__${sanitizeBasename(entry.path)}__${sanitizeBasename(targetPath)}`
-
-      // Resolve conflicts
-      if (namedModules.has(moduleName)) {
-        let conflictNum = (conflictCounters.get(moduleName) ?? 1) + 1
-        conflictCounters.set(moduleName, conflictNum)
-        moduleName += `__${conflictNum}`
-      }
+      let moduleName = `symlink__${sanitizeBasename(entry.srcPath)}`
 
       // Create link info
       symlinks.push({
