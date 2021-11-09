@@ -11,19 +11,19 @@ import { BuildFiles, generateBuild } from '../blobs/build'
 async function writeBuild(build: BuildFiles, proprietaryDir: string) {
   // Serialize Soong blueprint
   let blueprint = serializeBlueprint(build.blueprint)
-  fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
+  await fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
 
   // Serialize modules makefile
   let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
-  fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
+  await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
 
   // Serialize product makefile
   let productMakefile = serializeProductMakefile(build.productMakefile)
-  fs.writeFile(`${proprietaryDir}/device-vendor.mk`, productMakefile)
+  await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, productMakefile)
 
   // Serialize board makefile
   let boardMakefile = serializeBoardMakefile(build.boardMakefile)
-  fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
+  await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
 }
 
 export default class Extract extends Command {

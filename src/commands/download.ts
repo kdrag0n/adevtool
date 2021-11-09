@@ -69,7 +69,7 @@ export default class Download extends Command {
   async run() {
     let {flags, args: {out}} = this.parse(Download)
 
-    fs.mkdir(out, { recursive: true })
+    await fs.mkdir(out, { recursive: true })
 
     let buildId = flags.buildId.toUpperCase()
 

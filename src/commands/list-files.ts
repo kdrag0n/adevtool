@@ -19,7 +19,7 @@ export default class ListFiles extends Command {
   async run() {
     let {args: {systemRoot, out}} = this.parse(ListFiles)
 
-    fs.mkdir(out, { recursive: true })
+    await fs.mkdir(out, { recursive: true })
 
     for (let partition of ALL_PARTITIONS) {
       let files = await listPart(partition, systemRoot, true)
@@ -29,7 +29,7 @@ export default class ListFiles extends Command {
 
       // Save results
       let outPath = `${out}/${partition}.list`
-      fs.writeFile(outPath, files.join('\n') + '\n')
+      await fs.writeFile(outPath, files.join('\n') + '\n')
     }
   }
 }
