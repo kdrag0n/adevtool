@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as chalk from 'chalk'
 import * as ora from 'ora'
 
-import { EXT_PARTITIONS } from '../partitions'
+import { EXT_PARTITIONS } from '../util/partitions'
 import { BlobEntry } from './entry'
 import { exists, listFilesRecursive } from '../util/fs'
 

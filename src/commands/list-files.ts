@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import { listPart } from '../blobs/file_list'
 
-import { ALL_PARTITIONS } from '../partitions'
+import { ALL_PARTITIONS } from '../util/partitions'
 
 export default class ListFiles extends Command {
   static description = 'list system files and symlinks important for blobs'

@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import * as chalk from 'chalk'
 
 import { listPart } from '../blobs/file_list'
-import { ALL_PARTITIONS } from '../partitions'
+import { ALL_PARTITIONS } from '../util/partitions'
 
 export default class DiffFiles extends Command {
   static description = 'find missing system files compared to a reference system'
