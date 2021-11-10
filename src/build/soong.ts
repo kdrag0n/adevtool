@@ -101,6 +101,7 @@ export type SoongModule = {
   system_ext_specific?: boolean
   product_specific?: boolean
   soc_specific?: boolean
+  device_specific?: boolean
 
   // This is used initially, but deleted before serialization
   _entry?: BlobEntry
