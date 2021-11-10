@@ -75,7 +75,8 @@ product/priv-app/WellbeingPrebuilt/WellbeingPrebuilt.apk
 system_ext/priv-app/GoogleServicesFramework/GoogleServicesFramework.apk`,
 
   // Mainline system
-  `system/apex/com.google.android.
+  `system/apex/com.android.
+system/apex/com.google.android.
 system/apex/com.google.mainline.primary.libs.apex
 system/app/CaptivePortalLoginGoogle/CaptivePortalLoginGoogle.apk
 system/app/GoogleExtShared/GoogleExtShared.apk
@@ -106,6 +107,7 @@ product/app/SoundAmplifierPrebuilt/SoundAmplifierPrebuilt.apk
 product/app/SoundPickerPrebuilt/SoundPickerPrebuilt.apk
 product/etc/permissions/com.google.android.hardwareinfo.xml
 product/etc/security/
+product/framework/libhwinfo.jar
 product/priv-app/AmbientSensePrebuilt/AmbientSensePrebuilt.apk
 product/priv-app/BetterBug/BetterBug.apk
 product/priv-app/CarrierMetrics/CarrierMetrics.apk
@@ -152,7 +154,9 @@ system_ext/priv-app/FactoryOta/FactoryOta.apk`,
 
   // Pixel 6
   `product/tts/google/
-product/wallpaper/`,
+product/wallpaper/
+product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
+product/etc/permissions/com.google.android.odad.xml`,
 
   // Overlays should be dealt with, but they should never be copied as-is.
   `system/overlay/
