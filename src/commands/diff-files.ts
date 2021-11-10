@@ -21,7 +21,7 @@ export default class DiffFiles extends Command {
     let {flags: {all}, args: {sourceRef, sourceNew}} = this.parse(DiffFiles)
 
     for (let partition of ALL_PARTITIONS) {
-      this.log(chalk.bold(chalk.blueBright(partition)))
+      this.log(chalk.bold(partition))
 
       let filesRef = await listPart(partition, sourceRef)
       if (filesRef == null) {
