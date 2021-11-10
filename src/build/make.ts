@@ -16,6 +16,9 @@ export interface Symlink {
 export interface ModulesMakefile {
   device: string
   vendor: string
+
+  radioFiles?: Array<string>
+
   symlinks: Array<Symlink>
 }
 
@@ -30,6 +33,7 @@ export interface ProductMakefile {
 
 export interface BoardMakefile {
   abOtaPartitions?: Array<string>
+  boardInfo?: string
 }
 
 export function sanitizeBasename(path: string) {
@@ -53,6 +57,10 @@ export function serializeModulesMakefile(mk: ModulesMakefile) {
     `ifeq ($(TARGET_DEVICE),${mk.device})`,
   ]
 
+  if (mk.radioFiles != undefined) {
+    blocks.push(mk.radioFiles.map(img => `$(call add-radio-file,${img})`).join('\n'))
+  }
+
   for (let link of mk.symlinks) {
     let destPath = partPathToMakePath(link.linkPartition, link.linkSubpath)
 
@@ -65,10 +73,10 @@ include $(BUILD_SYSTEM)/base_rules.mk
 $(LOCAL_BUILT_MODULE): TARGET := ${link.targetPath}
 $(LOCAL_BUILT_MODULE): SYMLINK := ${destPath}
 $(LOCAL_BUILT_MODULE):
-\t@mkdir -p $(dir $@)
-\t@mkdir -p $(dir $(SYMLINK))
-\t@rm -rf $@
-\t@rm -rf $(SYMLINK)
+\t$(hide) mkdir -p $(dir $@)
+\t$(hide) mkdir -p $(dir $(SYMLINK))
+\t$(hide) rm -rf $@
+\t$(hide) rm -rf $(SYMLINK)
 \t$(hide) ln -sf $(TARGET) $(SYMLINK)
 \t$(hide) touch $@`)
   }
@@ -111,6 +119,10 @@ export function serializeBoardMakefile(mk: BoardMakefile) {
   let blocks = [MAKEFILE_HEADER]
 
   addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
+
+  if (mk.boardInfo != undefined) {
+    blocks.push(`TARGET_BOARD_INFO_FILE := ${mk.boardInfo}`)
+  }
 
   return blocks.join('\n\n')
 }
