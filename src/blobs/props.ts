@@ -12,6 +12,11 @@ export interface PropChanges {
   removed: Map<string, string>
 }
 
+export interface PropFilters {
+  keys?: Array<string>
+  prefixes?: Array<string>
+}
+
 export function parseProps(file: string) {
   let props = new Map<string, string>()
   for (let line of parseLines(file)) {
@@ -81,4 +86,19 @@ export function diffPartitionProps(partPropsRef: PartitionProps, partPropsNew: P
   }
 
   return partChanges
+}
+
+export function filterPropKeys(props: Map<string, string>, filters: PropFilters) {
+  let excludeKeys = new Set(filters.keys)
+  for (let key of props.keys()) {
+    if (excludeKeys.has(key) || filters.prefixes?.find(p => key.startsWith(p)) != undefined) {
+      props.delete(key)
+    }
+  }
+}
+
+export function filterPartPropKeys(partProps: PartitionProps, filters: PropFilters) {
+  for (let props of partProps.values()) {
+    filterPropKeys(props, filters)
+  }
 }
