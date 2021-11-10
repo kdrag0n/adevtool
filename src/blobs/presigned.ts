@@ -6,6 +6,8 @@ import { parseSeappContexts } from '../sepolicy/seapp'
 import { listFilesRecursive } from '../util/fs'
 import { BlobEntry } from './entry'
 
+$.verbose = false
+
 export async function parsePresignedRecursive(sepolicyDirs: Array<string>) {
   let contexts = []
   for (let dir of sepolicyDirs) {
