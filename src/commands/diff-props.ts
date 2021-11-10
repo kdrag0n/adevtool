@@ -3,7 +3,7 @@ import * as chalk from 'chalk'
 
 import { diffPartitionProps, loadPartitionProps, PartitionProps } from '../blobs/props'
 
-const BUILD_KEY_PATTERN = /^ro(?:system_ext|product|vendor)?\.build\./
+const BUILD_KEY_PATTERN = /^ro(?:\.(?:system|system_ext|product|vendor))?\.build\..+$/
 
 function removeBuildProps(partProps: PartitionProps) {
   for (let props of partProps.values()) {
