@@ -1,10 +1,10 @@
 import * as path from 'path'
-import * as chalk from 'chalk'
-import * as ora from 'ora'
 
 import { EXT_PARTITIONS } from '../util/partitions'
-import { BlobEntry } from './entry'
+import { BlobEntry, partPathToSrcPath, srcPathToPartPath } from './entry'
 import { exists, listFilesRecursive } from '../util/fs'
+import { MAKEFILE_HEADER } from '../build/make'
+import { createActionSpinner, stopActionSpinner } from '../util/cli'
 import { parseLines } from '../util/parse'
 
 // Sub-partition directories to ignore
@@ -184,15 +184,7 @@ export function parseFileList(list: string) {
     }
 
     // Split path into partition and sub-partition path
-    let pathParts = srcPath.split('/')
-    let partition = pathParts[0]
-    let path: string
-    if (EXT_PARTITIONS.has(partition)) {
-      path = pathParts.slice(1).join('/')
-    } else {
-      partition = 'system'
-      path = srcPath
-    }
+    let [partition, path] = srcPathToPartPath(srcPath)
 
     entries.push({
       partition: partition,
@@ -219,10 +211,7 @@ export async function listPart(partition: string, systemRoot: string, showSpinne
   }
   let refRoot = path.dirname(partRoot)
 
-  let spinner = ora({
-    prefixText: chalk.bold(chalk.greenBright(`Listing ${partition}`)),
-    color: 'green',
-  })
+  let spinner = createActionSpinner(`Listing ${partition}`)
   if (showSpinner) {
     spinner.start()
   }
@@ -247,9 +236,44 @@ export async function listPart(partition: string, systemRoot: string, showSpinne
   })
 
   if (showSpinner) {
-    spinner.stopAndPersist()
+    stopActionSpinner(spinner)
   }
 
   // Sort and return raw path list
   return files.sort((a, b) => a.localeCompare(b))
+}
+
+export function serializeBlobList(entries: Iterable<BlobEntry>) {
+  let lines = []
+  for (let entry of entries) {
+    let depFlag = entry.isNamedDependency ? '-' : ''
+    let suffixFlags = entry.isPresigned ? ';PRESIGNED' : ''
+    lines.push(depFlag + entry.srcPath + suffixFlags)
+  }
+
+  return `${MAKEFILE_HEADER}
+
+${lines.join('\n')}`
+}
+
+export function diffLists(filesRef: Array<string>, filesNew: Array<string>) {
+  let setRef = new Set(filesRef)
+  return filesNew.filter(f => !setRef.has(f)).sort((a, b) => a.localeCompare(b))
+}
+
+export function combinedPartPathToEntry(partition: string, combinedPartPath: string) {
+  // Decompose into 2-part partition path
+  let partPath = combinedPartPath.split('/').slice(1).join('/')
+
+  // Convert to source path
+  let srcPath = partPathToSrcPath(partition, partPath)
+
+  return {
+    partition: partition,
+    path: partPath,
+    srcPath: srcPath,
+    isPresigned: false,
+    // TODO
+    isNamedDependency: false,
+  }
 }
