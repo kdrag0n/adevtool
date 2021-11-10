@@ -17,6 +17,20 @@ export function partPathToSrcPath(partition: string, path: string) {
   }
 }
 
+export function srcPathToPartPath(srcPath: string) {
+  let pathParts = srcPath.split('/')
+  let partition = pathParts[0]
+  let path: string
+  if (EXT_PARTITIONS.has(partition)) {
+    path = pathParts.slice(1).join('/')
+  } else {
+    partition = 'system'
+    path = srcPath
+  }
+
+  return [partition, path]
+}
+
 export function blobNeedsSoong(entry: BlobEntry, ext: string) {
   // Explicit named dependency = Soong
   if (entry.isNamedDependency) {
