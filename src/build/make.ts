@@ -24,6 +24,7 @@ export interface ProductMakefile {
   copyFiles?: Array<string>
   packages?: Array<string>
   props?: PartitionProps
+  fingerprint?: string
 }
 
 export interface BoardMakefile {
@@ -99,6 +100,10 @@ export function serializeProductMakefile(makefile: ProductMakefile) {
       blocks.push(`PRODUCT_${partition.toUpperCase()}_PROPERTIES += \\
     ${propLines.join(CONT_SEPARATOR)}`)
     }
+  }
+
+  if (makefile.fingerprint != undefined) {
+    blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT += ${makefile.fingerprint}`)
   }
 
   return blocks.join('\n\n')
