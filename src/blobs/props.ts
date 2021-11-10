@@ -44,7 +44,7 @@ export async function loadPartitionProps(sourceRoot: string) {
       continue
     }
 
-    let props = parseProps(await fs.readFile(propPath, { encoding: 'utf8' }));
+    let props = parseProps(await fs.readFile(propPath, { encoding: 'utf8' }))
     partProps.set(partition, props)
   }
 

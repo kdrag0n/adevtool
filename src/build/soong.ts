@@ -118,7 +118,7 @@ function getRelativeInstallPath(entry: BlobEntry, pathParts: Array<string>, inst
   }
 
   let subpath = pathParts.slice(1, -1).join('/')
-  return subpath.length == 0 ? null : subpath;
+  return subpath.length == 0 ? null : subpath
 }
 
 export function blobToSoongModule(

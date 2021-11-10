@@ -1,4 +1,4 @@
-import { EXT_PARTITIONS } from '../util/partitions';
+import { EXT_PARTITIONS } from '../util/partitions'
 
 export interface BlobEntry {
   partition: string
