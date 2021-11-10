@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import * as chalk from 'chalk'
 
-import { listPart } from '../blobs/file_list'
+import { diffLists, listPart } from '../blobs/file_list'
 import { ALL_PARTITIONS } from '../util/partitions'
 
 export default class DiffFiles extends Command {
@@ -33,10 +33,8 @@ export default class DiffFiles extends Command {
         continue
       }
 
-      let setRef = new Set(filesRef)
-      let setNew = new Set(filesNew)
-      let newAdded = filesNew.filter(f => !setRef.has(f)).sort((a, b) => a.localeCompare(b))
-      let newRemoved = filesRef.filter(f => !setNew.has(f)).sort((a, b) => a.localeCompare(b))
+      let newAdded = diffLists(filesRef, filesNew)
+      let newRemoved = diffLists(filesNew, filesRef)
 
       newRemoved.forEach(f => this.log(chalk.red(`    ${f}`)))
       if (all) {
