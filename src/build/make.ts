@@ -36,6 +36,14 @@ export interface BoardMakefile {
   boardInfo?: string
 }
 
+function startBlocks() {
+  return [MAKEFILE_HEADER]
+}
+
+function finishBlocks(blocks: Array<string>) {
+  return blocks.join('\n\n') + '\n'
+}
+
 export function sanitizeBasename(path: string) {
   return basename(path).replaceAll(/[^a-z0-9_\-.]/g, '_')
 }
@@ -51,11 +59,11 @@ export function blobToFileCopy(entry: BlobEntry, proprietaryDir: string) {
 }
 
 export function serializeModulesMakefile(mk: ModulesMakefile) {
-  let blocks = [
-    MAKEFILE_HEADER,
+  let blocks = startBlocks()
+  blocks.push(
     'LOCAL_PATH := $(call my-dir)',
     `ifeq ($(TARGET_DEVICE),${mk.device})`,
-  ]
+  )
 
   if (mk.radioFiles != undefined) {
     blocks.push(mk.radioFiles.map(img => `$(call add-radio-file,${img})`).join('\n'))
@@ -82,7 +90,7 @@ $(LOCAL_BUILT_MODULE):
   }
 
   blocks.push('endif')
-  return blocks.join('\n\n')
+  return finishBlocks(blocks)
 }
 
 function addContBlock(blocks: Array<string>, variable: String, items: Array<string> | undefined) {
@@ -93,7 +101,7 @@ function addContBlock(blocks: Array<string>, variable: String, items: Array<stri
 }
 
 export function serializeProductMakefile(mk: ProductMakefile) {
-  let blocks = [MAKEFILE_HEADER]
+  let blocks = startBlocks()
 
   addContBlock(blocks, 'PRODUCT_SOONG_NAMESPACES', mk.namespaces)
   addContBlock(blocks, 'PRODUCT_COPY_FILES', mk.copyFiles)
@@ -113,14 +121,14 @@ export function serializeProductMakefile(mk: ProductMakefile) {
   }
 
   if (mk.fingerprint != undefined) {
-    blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT += ${mk.fingerprint}`)
+    blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT := ${mk.fingerprint}`)
   }
 
-  return blocks.join('\n\n')
+  return finishBlocks(blocks)
 }
 
 export function serializeBoardMakefile(mk: BoardMakefile) {
-  let blocks = [MAKEFILE_HEADER]
+  let blocks = startBlocks()
 
   addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
 
@@ -128,5 +136,5 @@ export function serializeBoardMakefile(mk: BoardMakefile) {
     blocks.push(`TARGET_BOARD_INFO_FILE := ${mk.boardInfo}`)
   }
 
-  return blocks.join('\n\n')
+  return finishBlocks(blocks)
 }
