@@ -47,10 +47,16 @@ export function blobToFileCopy(entry: BlobEntry, proprietaryDir: string) {
 }
 
 export function serializeModulesMakefile(mk: ModulesMakefile) {
-  let symlinkModules = mk.symlinks.map(link => {
+  let blocks = [
+    MAKEFILE_HEADER,
+    'LOCAL_PATH := $(call my-dir)',
+    `ifeq ($(TARGET_DEVICE),${mk.device})`,
+  ]
+
+  for (let link of mk.symlinks) {
     let destPath = partPathToMakePath(link.linkPartition, link.linkSubpath)
 
-    return `include $(CLEAR_VARS)
+    blocks.push(`include $(CLEAR_VARS)
 LOCAL_MODULE := ${link.moduleName}
 LOCAL_MODULE_CLASS := FAKE
 LOCAL_MODULE_TAGS := optional
@@ -64,17 +70,11 @@ $(LOCAL_BUILT_MODULE):
 \t@rm -rf $@
 \t@rm -rf $(SYMLINK)
 \t$(hide) ln -sf $(TARGET) $(SYMLINK)
-\t$(hide) touch $@`
-  })
+\t$(hide) touch $@`)
+  }
 
-  return `${MAKEFILE_HEADER}
-
-ifeq ($(TARGET_DEVICE),${mk.device})
-
-${symlinkModules.join('\n\n')}
-
-endif
-`
+  blocks.push('endif')
+  return blocks.join('\n\n')
 }
 
 function addContBlock(blocks: Array<string>, variable: String, items: Array<string> | undefined) {
