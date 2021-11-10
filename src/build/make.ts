@@ -101,6 +101,10 @@ export function serializeProductMakefile(mk: ProductMakefile) {
 
   if (mk.props != undefined) {
     for (let [partition, props] of mk.props.entries()) {
+      if (props.size == 0) {
+        continue
+      }
+
       let propLines = Array.from(props.entries()).map(([k, v]) => `${k}=${v}`)
 
       blocks.push(`PRODUCT_${partition.toUpperCase()}_PROPERTIES += \\
