@@ -1,4 +1,5 @@
 import * as YAML from 'yaml'
+import { PropFilters } from '../blobs/props'
 
 export interface DeviceInfo {
   name: string
@@ -9,8 +10,11 @@ export interface DeviceConfig {
   device: DeviceInfo
   namespaces?: Array<string>
   sepolicy_dirs: Array<string>
+
+  prop_filters?: PropFilters
+
   includes: Array<string>
-  filters: { [name: string]: Array<string> }
+  file_filters: { [name: string]: Array<string> }
 }
 
 export function parseDeviceConfig(config: string) {
