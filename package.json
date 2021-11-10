@@ -16,6 +16,7 @@
     "node-fetch": "2",
     "ora": "5.4.1",
     "tslib": "^1",
+    "yaml": "^1.10.2",
     "zx": "^4.2.0"
   },
   "devDependencies": {
