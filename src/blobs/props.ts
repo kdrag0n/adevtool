@@ -56,7 +56,9 @@ export function diffPartitionProps(partPropsRef: PartitionProps, partPropsNew: P
     for (let [newKey, newValue] of propsNew.entries()) {
       if (propsRef?.has(newKey)) {
         let refValue = propsRef.get(newKey)!
-        changes.modified.set(newKey, [refValue, newValue])
+        if (newValue != refValue) {
+          changes.modified.set(newKey, [refValue, newValue])
+        }
       } else {
         changes.added.set(newKey, newValue)
       }
