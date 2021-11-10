@@ -1,15 +1,11 @@
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import * as chalk from 'chalk'
-import * as ora from 'ora'
 
 import { BlobEntry } from './entry'
+import { startActionSpinner, stopActionSpinner } from '../util/cli'
 
-export async function copyBlobs(entries: Array<BlobEntry>, srcDir: string, outDir: string) {
-  let spinner = ora({
-    prefixText: chalk.bold(chalk.greenBright('Copying blobs')),
-    color: 'green',
-  }).start()
+export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, outDir: string) {
+  let spinner = startActionSpinner('Copying files')
 
   for (let entry of entries) {
     let outPath = `${outDir}/${entry.srcPath}`
@@ -39,5 +35,5 @@ export async function copyBlobs(entries: Array<BlobEntry>, srcDir: string, outDi
     await fs.copyFile(srcPath, outPath)
   }
 
-  spinner.stopAndPersist()
+  stopActionSpinner(spinner)
 }
