@@ -23,11 +23,13 @@ export interface ProductMakefile {
   namespaces?: Array<string>
   copyFiles?: Array<string>
   packages?: Array<string>
+
   props?: PartitionProps
   fingerprint?: string
 }
 
 export interface BoardMakefile {
+  abOtaPartitions?: Array<string>
 }
 
 export function sanitizeBasename(path: string) {
@@ -44,15 +46,15 @@ export function blobToFileCopy(entry: BlobEntry, proprietaryDir: string) {
   return `${proprietaryDir}/${entry.srcPath}:${destPath}`
 }
 
-export function serializeModulesMakefile(makefile: ModulesMakefile) {
-  let symlinkModules = makefile.symlinks.map(link => {
+export function serializeModulesMakefile(mk: ModulesMakefile) {
+  let symlinkModules = mk.symlinks.map(link => {
     let destPath = partPathToMakePath(link.linkPartition, link.linkSubpath)
 
     return `include $(CLEAR_VARS)
 LOCAL_MODULE := ${link.moduleName}
 LOCAL_MODULE_CLASS := FAKE
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE_OWNER := ${makefile.vendor}
+LOCAL_MODULE_OWNER := ${mk.vendor}
 include $(BUILD_SYSTEM)/base_rules.mk
 $(LOCAL_BUILT_MODULE): TARGET := ${link.targetPath}
 $(LOCAL_BUILT_MODULE): SYMLINK := ${destPath}
@@ -67,7 +69,7 @@ $(LOCAL_BUILT_MODULE):
 
   return `${MAKEFILE_HEADER}
 
-ifeq ($(TARGET_DEVICE),${makefile.device})
+ifeq ($(TARGET_DEVICE),${mk.device})
 
 ${symlinkModules.join('\n\n')}
 
@@ -75,26 +77,22 @@ endif
 `
 }
 
-export function serializeProductMakefile(makefile: ProductMakefile) {
+function addContBlock(blocks: Array<string>, variable: String, items: Array<string> | undefined) {
+  if (items != undefined) {
+    blocks.push(`${variable} += \\
+    ${items.join(CONT_SEPARATOR)}`)
+  }
+}
+
+export function serializeProductMakefile(mk: ProductMakefile) {
   let blocks = [MAKEFILE_HEADER]
 
-  if (makefile.namespaces != undefined) {
-    blocks.push(`PRODUCT_SOONG_NAMESPACES += \\
-    ${makefile.namespaces.join(CONT_SEPARATOR)}`)
-  }
+  addContBlock(blocks, 'PRODUCT_SOONG_NAMESPACES', mk.namespaces)
+  addContBlock(blocks, 'PRODUCT_COPY_FILES', mk.copyFiles)
+  addContBlock(blocks, 'PRODUCT_PACKAGES', mk.packages)
 
-  if (makefile.copyFiles != undefined) {
-    blocks.push(`PRODUCT_COPY_FILES += \\
-    ${makefile.copyFiles.join(CONT_SEPARATOR)}`)
-  }
-
-  if (makefile.packages != undefined) {
-    blocks.push(`PRODUCT_PACKAGES += \\
-    ${makefile.packages.join(CONT_SEPARATOR)}`)
-  }
-
-  if (makefile.props != undefined) {
-    for (let [partition, props] of makefile.props.entries()) {
+  if (mk.props != undefined) {
+    for (let [partition, props] of mk.props.entries()) {
       let propLines = Array.from(props.entries()).map(([k, v]) => `${k}=${v}`)
 
       blocks.push(`PRODUCT_${partition.toUpperCase()}_PROPERTIES += \\
@@ -102,14 +100,17 @@ export function serializeProductMakefile(makefile: ProductMakefile) {
     }
   }
 
-  if (makefile.fingerprint != undefined) {
-    blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT += ${makefile.fingerprint}`)
+  if (mk.fingerprint != undefined) {
+    blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT += ${mk.fingerprint}`)
   }
 
   return blocks.join('\n\n')
 }
 
-export function serializeBoardMakefile(makefile: BoardMakefile) {
-  return `${MAKEFILE_HEADER}
-`
+export function serializeBoardMakefile(mk: BoardMakefile) {
+  let blocks = [MAKEFILE_HEADER]
+
+  addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
+
+  return blocks.join('\n\n')
 }
