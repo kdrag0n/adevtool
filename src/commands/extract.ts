@@ -2,32 +2,12 @@ import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import * as chalk from 'chalk'
 
-import { serializeBlueprint } from '../build/soong'
 import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
-import { serializeBoardMakefile, serializeModulesMakefile, serializeProductMakefile } from '../build/make'
-import { BuildFiles, generateBuild } from '../blobs/build'
-
-async function writeBuild(build: BuildFiles, proprietaryDir: string) {
-  // Serialize Soong blueprint
-  let blueprint = serializeBlueprint(build.blueprint)
-  await fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
-
-  // Serialize modules makefile
-  let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
-  await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
-
-  // Serialize product makefile
-  let productMakefile = serializeProductMakefile(build.productMakefile)
-  await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, productMakefile)
-
-  // Serialize board makefile
-  let boardMakefile = serializeBoardMakefile(build.boardMakefile)
-  await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
-}
+import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
 
 export default class Extract extends Command {
-  static description = 'extract proprietary blobs'
+  static description = 'extract proprietary files'
 
   static flags = {
     help: flags.help({char: 'h'}),
@@ -50,11 +30,7 @@ export default class Extract extends Command {
     let entries = parseFileList(list)
 
     // Prepare output directories
-    let outDir = `vendor/${vendor}/${device}`
-    await fs.rm(outDir, {force: true, recursive: true})
-    await fs.mkdir(outDir, {recursive: true})
-    let proprietaryDir = `${outDir}/proprietary`
-    await fs.mkdir(proprietaryDir, {recursive: true})
+    let {proprietaryDir} = await createVendorDirs(vendor, device)
 
     // Copy blobs
     if (!skipCopy) {
@@ -64,6 +40,6 @@ export default class Extract extends Command {
     // Generate build files
     this.log(chalk.bold(chalk.greenBright('Generating build files')))
     let build = await generateBuild(entries, device, vendor, source, proprietaryDir)
-    await writeBuild(build, proprietaryDir)
+    await writeBuildFiles(build, proprietaryDir)
   }
 }

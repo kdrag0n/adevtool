@@ -1,8 +1,8 @@
 import * as path from 'path'
 import { promises as fs } from 'fs'
 
-import { blobToFileCopy, BoardMakefile, ModulesMakefile, ProductMakefile, sanitizeBasename, Symlink } from '../build/make'
-import { blobToSoongModule, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS } from '../build/soong'
+import { blobToFileCopy, BoardMakefile, ModulesMakefile, ProductMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeProductMakefile, Symlink } from '../build/make'
+import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
 
 export interface BuildFiles {
@@ -12,13 +12,18 @@ export interface BuildFiles {
   boardMakefile: BoardMakefile
 }
 
+export interface VendorDirectories {
+  outDir: string
+  proprietaryDir: string
+}
+
 function nameDepKey(entry: BlobEntry) {
   let ext = path.extname(entry.path)
   return `${ext == '.xml' ? 1 : 0}${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
 }
 
 export async function generateBuild(
-  entries: Array<BlobEntry>,
+  iterEntries: Iterable<BlobEntry>,
   device: string,
   vendor: string,
   source: string,
@@ -27,7 +32,7 @@ export async function generateBuild(
   // Re-sort entries to give priority to explicit named dependencies in name
   // conflict resolution. XMLs are also de-prioritized because they have
   // filename_from_src.
-  entries = Array.from(entries).sort((a, b) => nameDepKey(a).localeCompare(nameDepKey(b)))
+  let entries = Array.from(iterEntries).sort((a, b) => nameDepKey(a).localeCompare(nameDepKey(b)))
 
   // Fast lookup for other arch libs
   let entrySrcPaths = new Set(entries.map(e => e.srcPath))
@@ -111,4 +116,32 @@ export async function generateBuild(
     },
     boardMakefile: {},
   } as BuildFiles
+}
+
+export async function createVendorDirs(vendor: string, device: string) {
+  let outDir = `vendor/${vendor}/${device}`
+  await fs.rm(outDir, {force: true, recursive: true})
+  await fs.mkdir(outDir, {recursive: true})
+
+  let proprietaryDir = `${outDir}/proprietary`
+  await fs.mkdir(proprietaryDir, {recursive: true})
+
+  return {
+    outDir: outDir,
+    proprietaryDir: proprietaryDir,
+  } as VendorDirectories
+}
+
+export async function writeBuildFiles(build: BuildFiles, proprietaryDir: string) {
+  let blueprint = serializeBlueprint(build.blueprint)
+  await fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
+
+  let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
+  await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
+
+  let productMakefile = serializeProductMakefile(build.productMakefile)
+  await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, productMakefile)
+
+  let boardMakefile = serializeBoardMakefile(build.boardMakefile)
+  await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
 }
