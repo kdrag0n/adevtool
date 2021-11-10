@@ -1,6 +1,5 @@
 import * as path from 'path'
 
-import { EXT_PARTITIONS } from '../util/partitions'
 import { BlobEntry, partPathToSrcPath, srcPathToPartPath } from './entry'
 import { exists, listFilesRecursive } from '../util/fs'
 import { MAKEFILE_HEADER } from '../build/make'
