@@ -1,3 +1,5 @@
+import { parseLines } from '../util/parse'
+
 export interface SeappContext {
   user: string
   seinfo?: string
@@ -10,12 +12,7 @@ export interface SeappContext {
 
 export function parseSeappContexts(seappContexts: string) {
   let contexts = []
-  for (let line of seappContexts.split('\n')) {
-    // Ignore comments and empty/blank lines
-    if (line.length == 0 || line.startsWith('#') || line.match(/^\s*$/)) {
-      continue
-    }
-
+  for (let line of parseLines(seappContexts)) {
     // Parse key-value fields
     let rawContext: { [key: string]: string } = {}
     for (let kv of line.trim().split(/\s+/)) {

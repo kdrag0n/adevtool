@@ -5,6 +5,7 @@ import * as ora from 'ora'
 import { EXT_PARTITIONS } from '../util/partitions'
 import { BlobEntry } from './entry'
 import { exists, listFilesRecursive } from '../util/fs'
+import { parseLines } from '../util/parse'
 
 // Sub-partition directories to ignore
 const IGNORE_DIRS = new Set([
@@ -167,12 +168,7 @@ function paths(blocks: Array<string>) {
 export function parseFileList(list: string) {
   let entries = []
 
-  for (let line of list.split('\n')) {
-    // Ignore comments and empty/blank lines
-    if (line.length == 0 || line.startsWith('#') || line.match(/^\s*$/)) {
-      continue
-    }
-
+  for (let line of parseLines(list)) {
     // Split into path and flags first, ignoring whitespace
     let [srcPath, postModifiers] = line.trim().split(';')
     let modifiers = (postModifiers ?? '').split('|')
