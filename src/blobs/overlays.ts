@@ -14,6 +14,7 @@ const EXCLUDE_LOCALES = new Set(['ar', 'iw'])
 export type ResValue = number | boolean | string | Array<ResValue>
 
 export interface ResKey {
+  targetPkg: targetPkg
   type: string
   key: string
   flags: string | null
@@ -24,7 +25,7 @@ export type ResValues = Map<string, ResValue>
 export type PartResValues = { [part: string]: ResValues }
 
 function encodeResKey(key: ResKey) {
-  return `${key.type}/${key.key}${key.flags?.length ? `:${key.flags}` : ''}`
+  return `${key.targetPkg}:${key.type}/${key.key}${key.flags?.length ? `|${key.flags}` : ''}`
 }
 
 export function decodeResKey(encoded: string) {
@@ -38,8 +39,14 @@ export function decodeResKey(encoded: string) {
   } as ResKey
 }
 
-function toResKey(type: string | null, key: string | null, flags: string | null) {
+function toResKey(
+  targetPkg: string,
+  type: string | null,
+  key: string | null,
+  flags: string | null,
+) {
   return encodeResKey({
+    targetPkg: targetPkg,
     type: type!,
     key: key!,
     flags: flags!,
@@ -48,6 +55,7 @@ function toResKey(type: string | null, key: string | null, flags: string | null)
 
 function finishArray(
   values: Map<string, ResValue>,
+  targetPkg: string,
   type: string | null,
   key: string | null,
   flags: string | null,
@@ -82,7 +90,7 @@ function parseAaptJson(value: string) {
   return JSON.parse(value)
 }
 
-function parseRsrcLines(rsrc: string) {
+function parseRsrcLines(rsrc: string, targetPkg: string) {
   // Finished values with encoded res keys
   let values: ResValues = new Map<string, ResValue>()
 
@@ -99,7 +107,7 @@ function parseRsrcLines(rsrc: string) {
     if (resStart) {
       // Finish last array?
       if (curArray != null) {
-        finishArray(values, curType, curKey, curFlags, curArray)
+        finishArray(values, targetPkg, curType, curKey, curFlags, curArray)
       }
 
       let keyParts = resStart[1]!.split('/')
@@ -115,7 +123,7 @@ function parseRsrcLines(rsrc: string) {
     if (arrayLine) {
       // Finish last array?
       if (curArray != null) {
-        finishArray(values, curType, curKey, curFlags, curArray)
+        finishArray(values, targetPkg, curType, curKey, curFlags, curArray)
       }
 
       // Start new array
@@ -158,7 +166,7 @@ function parseRsrcLines(rsrc: string) {
         value = parseAaptJson(rawValue)
       }
 
-      values.set(toResKey(curType, curKey, curFlags), value)
+      values.set(toResKey(targetPkg, curType, curKey, curFlags), value)
     }
 
     // New type section
@@ -177,7 +185,7 @@ function parseRsrcLines(rsrc: string) {
 
   // Finish remaining array?
   if (curArray != null) {
-    finishArray(values, curType, curKey, curFlags, curArray)
+    finishArray(values, targetPkg, curType, curKey, curFlags, curArray)
   }
 
   return values
@@ -217,7 +225,7 @@ async function parseOverlayApksRecursive(
 
     // Overlay is eligible, now read the resource table
     let rsrc = await aapt2(aapt2Path, 'dump', 'resources', apkPath)
-    let apkValues = parseRsrcLines(rsrc)
+    let apkValues = parseRsrcLines(rsrc, targetPkg)
 
     // Merge overlayed values
     for (let [key, value] of apkValues) {
