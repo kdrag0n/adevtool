@@ -143,6 +143,11 @@ export function serializeBoardMakefile(mk: BoardMakefile) {
   // TODO: remove when all ELF prebuilts work with Soong
   blocks.push('BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true')
 
+  // Build vendor?
+  if (mk.abOtaPartitions?.includes('vendor')) {
+    blocks.push('BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4')
+  }
+
   addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
 
   if (mk.boardInfo != undefined) {
