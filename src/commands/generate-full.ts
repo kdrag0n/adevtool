@@ -109,7 +109,7 @@ export default class GenerateFull extends Command {
     let fingerprint = stockProps.get('system')!.get('ro.system.build.fingerprint')!
     // A/B OTA partitions
     let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
-    let customOtaParts = new Set(stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
+    let customOtaParts = new Set(customProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
     let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p))
     stopActionSpinner(spinner)
 
