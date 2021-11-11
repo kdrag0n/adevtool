@@ -1,12 +1,10 @@
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { $ } from 'zx'
 
 import { parseSeappContexts } from '../sepolicy/seapp'
+import { aapt2 } from '../util/aapt2'
 import { listFilesRecursive } from '../util/fs'
 import { BlobEntry } from './entry'
-
-$.verbose = false
 
 export async function parsePresignedRecursive(sepolicyDirs: Array<string>) {
   let contexts = []
@@ -42,8 +40,7 @@ export async function updatePresignedBlobs(
       entryCallback(entry)
     }
 
-    let procOut = await $`${aapt2Path} dump packagename ${source}/${entry.srcPath}`
-    let pkgName = procOut.stdout.trim()
+    let pkgName = await aapt2(aapt2Path, 'dump', 'packagename', `${source}/${entry.srcPath}`)
     if (presignedPkgs.has(pkgName)) {
       entry.isPresigned = true
       updatedEntries.push(entry)
@@ -64,8 +61,7 @@ export async function enumeratePresignedBlobs(
       continue
     }
 
-    let procOut = await $`${aapt2Path} dump packagename ${file}`
-    let pkgName = procOut.stdout.trim()
+    let pkgName = await aapt2(aapt2Path, 'dump', 'packagename', file)
     if (presignedPkgs.has(pkgName)) {
       presignedPaths.push(file)
     }
