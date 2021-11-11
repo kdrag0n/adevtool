@@ -63,6 +63,12 @@ export interface JarModule {
   jars: Array<string>
 }
 
+export interface EtcModule {
+  src: string
+  filename_from_src: boolean
+  sub_dir?: string
+}
+
 export interface EtcXmlModule {
   src: string
   filename_from_src: boolean
@@ -89,6 +95,7 @@ export type SoongModuleSpecific = {
   ApkModule |
   ApexModule |
   JarModule |
+  EtcModule |
   EtcXmlModule |
   DspModule |
   SoongNamespace
@@ -143,6 +150,15 @@ export function blobToSoongModule(
       src: entry.srcPath,
       ...(relPath && { relative_install_path: relPath }),
     }
+  } else if (ext == '.xml') {
+    let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
+
+    moduleSpecific = {
+      _type: 'prebuilt_etc_xml',
+      src: entry.srcPath,
+      filename_from_src: true,
+      ...(relPath && { sub_dir: relPath }),
+    }
   // Then special paths
   } else if (pathParts[0] == 'bin') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
@@ -160,6 +176,15 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_dsp',
+      src: entry.srcPath,
+      filename_from_src: true,
+      ...(relPath && { sub_dir: relPath }),
+    }
+  } else if (pathParts[0] == 'etc') {
+    let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
+
+    moduleSpecific = {
+      _type: 'prebuilt_etc',
       src: entry.srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
@@ -238,15 +263,6 @@ export function blobToSoongModule(
     moduleSpecific = {
       _type: 'dex_import',
       jars: [entry.srcPath],
-    }
-  } else if (ext == '.xml') {
-    let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
-
-    moduleSpecific = {
-      _type: 'prebuilt_etc_xml',
-      src: entry.srcPath,
-      filename_from_src: true,
-      ...(relPath && { sub_dir: relPath }),
     }
   } else if (ext == '.apex') {
     moduleSpecific = {
