@@ -70,7 +70,7 @@ function finishArray(
   let array = parseAaptJson(rawValue) as Array<ResValue>
 
   // Change to typed array?
-  if (array[0] instanceof String) {
+  if (typeof array[0] == 'string') {
     type = 'string-array'
   } else if (typeof array[0] == 'number') {
     // Float arrays are just <array>, so check for integers
