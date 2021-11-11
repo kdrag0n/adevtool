@@ -5,6 +5,6 @@ export function* parseLines(lines: string) {
       continue
     }
 
-    yield line
+    yield line.trim()
   }
 }
