@@ -23,6 +23,7 @@ export default class GenerateFull extends Command {
     stockRoot: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
     customRoot: flags.string({char: 'c', description: 'path to root of custom compiled system (out/target/product/$device)', required: true}),
     factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware)'}),
+    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
 
   static args = [
@@ -30,7 +31,7 @@ export default class GenerateFull extends Command {
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, stockRoot, customRoot, factoryZip}, args: {config: configPath}} = this.parse(GenerateFull)
+    let {flags: {aapt2: aapt2Path, stockRoot, customRoot, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
 
     let config = parseDeviceConfig(await fs.readFile(configPath, { encoding: 'utf8' }))
 
@@ -87,7 +88,9 @@ export default class GenerateFull extends Command {
     // Prepare output directories
     let {proprietaryDir} = await createVendorDirs(config.device.vendor, config.device.name)
     // Copy blobs (this has its own spinner)
-    await copyBlobs(entries, stockRoot, proprietaryDir)
+    if (!skipCopy) {
+      await copyBlobs(entries, stockRoot, proprietaryDir)
+    }
 
     // 5. Props
     spinner = startActionSpinner('Extracting properties')
