@@ -14,7 +14,7 @@ const EXCLUDE_LOCALES = new Set(['ar', 'iw'])
 export type ResValue = number | boolean | string | Array<ResValue>
 
 export interface ResKey {
-  targetPkg: targetPkg
+  targetPkg: string
   type: string
   key: string
   flags: string | null
@@ -61,11 +61,13 @@ function finishArray(
   flags: string | null,
   arrayLines: Array<string> | null,
 ) {
-  if (EXCLUDE_LOCALES.has(flags!)) {
+  // Exclude problematic locales and types (ID references)
+  let rawValue = arrayLines!.join('\n')
+  if (EXCLUDE_LOCALES.has(flags!) || rawValue.startsWith('[@0x')) {
     return
   }
 
-  let array = parseAaptJson(arrayLines!.join('\n')) as Array<ResValue>
+  let array = parseAaptJson(rawValue) as Array<ResValue>
 
   // Change to typed array?
   if (array[0] instanceof String) {
@@ -77,7 +79,7 @@ function finishArray(
     }
   }
 
-  values.set(toResKey(type, key, flags), array)
+  values.set(toResKey(targetPkg, type, key, flags), array)
 }
 
 function parseAaptJson(value: string) {
