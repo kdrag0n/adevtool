@@ -24,7 +24,7 @@ export type ResValues = Map<string, ResValue>
 export type PartResValues = { [part: string]: ResValues }
 
 function encodeResKey(key: ResKey) {
-  return `${key.type}/${key.key}${key.flags != null ? `:${key.flags}` : ''}`
+  return `${key.type}/${key.key}${key.flags?.length ? `:${key.flags}` : ''}`
 }
 
 export function decodeResKey(encoded: string) {
@@ -99,13 +99,6 @@ function parseRsrcLines(rsrc: string) {
     if (resStart) {
       // Finish last array?
       if (curArray != null) {
-        console.log({
-          type: curType,
-          key: curKey,
-          flags: curFlags,
-          curArray: curArray,
-          arrayJson: curArray!.join('\n'),
-        })
         finishArray(values, curType, curKey, curFlags, curArray)
       }
 
@@ -122,13 +115,6 @@ function parseRsrcLines(rsrc: string) {
     if (arrayLine) {
       // Finish last array?
       if (curArray != null) {
-        console.log({
-          type: curType,
-          key: curKey,
-          flags: curFlags,
-          curArray: curArray,
-          arrayJson: curArray!.join('\n').replaceAll(/\\/g, '\\\\'),
-        })
         finishArray(values, curType, curKey, curFlags, curArray)
       }
 
@@ -150,12 +136,6 @@ function parseRsrcLines(rsrc: string) {
 
       let value: ResValue
       let rawValue = valueLine![2]
-      console.log({
-        type: curType,
-        key: curKey,
-        flags: curFlags,
-        rawValue: rawValue,
-      })
       if (curType == 'dimen') {
         // Keep dimensions as strings to preserve unit
         value = rawValue

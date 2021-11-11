@@ -1,3 +1,4 @@
+import { PartResValues } from "../blobs/overlays"
 import { PartitionProps } from "../blobs/props"
 import { SelinuxPartContexts } from "../sepolicy/contexts"
 
@@ -7,6 +8,7 @@ export interface SystemState {
   partitionFiles: { [part: string]: Array<string> }
   partitionProps: PartitionProps
   partitionSecontexts: SelinuxPartContexts
+  partitionOverlays: PartResValues
 }
 
 type SerializedSystemState = {
