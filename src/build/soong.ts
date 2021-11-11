@@ -10,6 +10,8 @@ export const SPECIAL_FILE_EXTENSIONS = new Set([
   '.apex',
 ])
 
+export const TYPE_SHARED_LIBRARY = 'cc_prebuilt_library_shared'
+
 export interface TargetSrcs {
   srcs: Array<string>
 }
@@ -204,7 +206,7 @@ export function blobToSoongModule(
 
     let origFileName = pathParts.at(-1)?.replace(/\.so$/, '')
     moduleSpecific = {
-      _type: 'cc_prebuilt_library_shared',
+      _type: TYPE_SHARED_LIBRARY,
       ...(name != origFileName && { stem: origFileName }),
       ...(relPath && { relative_install_path: relPath }),
       strip: {

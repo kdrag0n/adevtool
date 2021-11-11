@@ -2,7 +2,7 @@ import * as path from 'path'
 import { promises as fs } from 'fs'
 
 import { blobToFileCopy, BoardMakefile, ModulesMakefile, ProductMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeProductMakefile, Symlink } from '../build/make'
-import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS } from '../build/soong'
+import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS, TYPE_SHARED_LIBRARY } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
 
 export interface BuildFiles {
@@ -71,13 +71,21 @@ export async function generateBuild(
       // If already exists: skip if it's the other arch variant of a library in
       // the same partition AND has the same name (incl. ext), otherwise rename the
       // module to avoid conflict
+      let needsMakeFallback = false
       if (namedModules.has(name)) {
         let conflictModule = namedModules.get(name)!
-        if (conflictModule._type == 'cc_prebuilt_library_shared' &&
+        if (conflictModule._type == TYPE_SHARED_LIBRARY &&
               (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
               conflictModule._entry?.partition == entry.partition &&
               conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)) {
-          continue
+          // Same partition = skip arch variant
+          if (conflictModule._entry?.partition == entry.partition) {
+            continue
+          } else {
+            // Fall back to PRODUCT_COPY_FILES for cross-partition conflicts.
+            // TODO: resolve cross-platform conflicts without overrides
+            needsMakeFallback = true
+          }
         }
 
         // Increment conflict counter and append to name
@@ -86,14 +94,17 @@ export async function generateBuild(
         name += `__${conflictNum}`
       }
 
-      let module = blobToSoongModule(name, ext, vendor, entry, entrySrcPaths)
-      namedModules.set(name, module)
-    } else {
-      // Other files -> Kati Makefile
-
-      // Simple PRODUCT_COPY_FILES line
-      copyFiles.push(blobToFileCopy(entry, proprietaryDir))
+      if (!needsMakeFallback) {
+        let module = blobToSoongModule(name, ext, vendor, entry, entrySrcPaths)
+        namedModules.set(name, module)
+        continue
+      }
     }
+
+    // Other files (and failed Soong files) -> Kati Makefile
+
+    // Simple PRODUCT_COPY_FILES line
+    copyFiles.push(blobToFileCopy(entry, proprietaryDir))
   }
 
   let buildPackages = Array.from(namedModules.keys())
