@@ -12,6 +12,7 @@ import { parseModuleInfo } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFirmware, FactoryFirmware, writeFirmware } from '../factory/firmware'
+import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../sepolicy/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { ALL_PARTITIONS } from '../util/partitions'
 
@@ -122,7 +123,27 @@ export default class GenerateFull extends Command {
     let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p))
     stopActionSpinner(spinner)
 
-    // 6. Firmware
+    // 6. SELinux policies
+    spinner = startActionSpinner('Adding missing SELinux policies')
+    // Built contexts
+    let stockContexts = await parsePartContexts(stockRoot)
+    let customContexts = customState != null ? customState.partitionSecontexts :
+      await parsePartContexts(customRoot)
+    // Contexts from AOSP
+    let sourceContexts: SelinuxContexts = new Map<string, string>()
+    for (let dir of config.sepolicy_dirs) {
+      // TODO: support alternate ROM root
+      let contexts = await parseContextsRecursive(dir, '.')
+      for (let [ctx, source] of contexts.entries()) {
+        sourceContexts.set(ctx, source)
+      }
+    }
+    // Diff; reversed custom->stock order to get *missing* contexts
+    let ctxDiffs = diffPartContexts(customContexts, stockContexts)
+    let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts)
+    stopActionSpinner(spinner)
+
+    // 7. Firmware
     let firmware: FactoryFirmware | null = null
     if (factoryZip != undefined) {
       spinner = startActionSpinner('Extracting firmware')
@@ -131,7 +152,7 @@ export default class GenerateFull extends Command {
       stopActionSpinner(spinner)
     }
 
-    // 7. Build files
+    // 8. Build files
     spinner = startActionSpinner('Generating build files')
     let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, proprietaryDir)
 
@@ -145,6 +166,9 @@ export default class GenerateFull extends Command {
     if (missingOtaParts.length > 0) {
       build.boardMakefile.abOtaPartitions = missingOtaParts
     }
+
+    // Add SELinux policies
+    build.boardMakefile.secontextResolutions = ctxResolutions
 
     // Add firmware
     if (firmware != null) {
