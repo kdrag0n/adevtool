@@ -4,6 +4,7 @@ import { promises as fs } from 'fs'
 import { listPart } from '../blobs/file_list'
 import { loadPartitionProps } from '../blobs/props'
 import { serializeSystemState, SystemState } from '../config/system-state'
+import { parsePartContexts } from '../sepolicy/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { ALL_PARTITIONS } from '../util/partitions'
 
@@ -41,6 +42,11 @@ export default class CollectState extends Command {
     // Props
     spinner = startActionSpinner('Extracting properties')
     state.partitionProps = await loadPartitionProps(customRoot)
+    stopActionSpinner(spinner)
+
+    // SELinux contexts
+    spinner = startActionSpinner('Extracting SELinux contexts')
+    state.partitionSecontexts = await parsePartContexts(customRoot)
     stopActionSpinner(spinner)
 
     // Write

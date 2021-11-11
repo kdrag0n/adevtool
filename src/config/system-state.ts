@@ -1,18 +1,17 @@
 import { PartitionProps } from "../blobs/props"
+import { SelinuxPartContexts } from "../sepolicy/contexts"
 
 const STATE_VERSION = 1
-
-interface SerializedSystemState {
-  version: number
-
-  partitionFiles: { [part: string]: Array<string> }
-  partitionProps: PartitionProps
-}
 
 export interface SystemState {
   partitionFiles: { [part: string]: Array<string> }
   partitionProps: PartitionProps
+  partitionSecontexts: SelinuxPartContexts
 }
+
+type SerializedSystemState = {
+  version: number
+} & SystemState
 
 export function serializeSystemState(state: SystemState) {
   let diskState = {
@@ -45,8 +44,5 @@ export function parseSystemState(json: string) {
     throw new Error(`Outdated state v${diskState.version}; expected v${STATE_VERSION}`)
   }
 
-  return {
-    partitionFiles: diskState.partitionFiles,
-    partitionProps: diskState.partitionProps,
-  } as SystemState
+  return diskState as SystemState
 }
