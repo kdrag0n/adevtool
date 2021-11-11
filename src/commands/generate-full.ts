@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
+import * as path from 'path'
 
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
@@ -11,7 +12,7 @@ import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
-import { ANDROID_INFO, extractFirmware, FactoryFirmware, writeFirmware } from '../factory/firmware'
+import { ANDROID_INFO, extractFactoryFirmware, writeFirmwareImages } from '../factory/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../sepolicy/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { ALL_PARTITIONS } from '../util/partitions'
@@ -144,11 +145,11 @@ export default class GenerateFull extends Command {
     stopActionSpinner(spinner)
 
     // 7. Firmware
-    let firmware: FactoryFirmware | null = null
+    let fwPaths: Array<string> | null = null
     if (factoryZip != undefined) {
       spinner = startActionSpinner('Extracting firmware')
-      firmware = await extractFirmware(factoryZip)
-      await writeFirmware(firmware, proprietaryDir)
+      let fwImages = await extractFactoryFirmware(factoryZip)
+      fwPaths = await writeFirmwareImages(fwImages, proprietaryDir)
       stopActionSpinner(spinner)
     }
 
@@ -171,9 +172,10 @@ export default class GenerateFull extends Command {
     build.boardMakefile.secontextResolutions = ctxResolutions
 
     // Add firmware
-    if (firmware != null) {
-      build.boardMakefile.boardInfo = `${proprietaryDir}/${ANDROID_INFO}`
-      build.modulesMakefile.radioFiles = ['bootloader.img', 'radio.img']
+    if (fwPaths != null) {
+      build.boardMakefile.boardInfo = fwPaths.find(p => p.includes(ANDROID_INFO))
+      build.modulesMakefile.radioFiles = fwPaths.map(p => path.relative(proprietaryDir, p))
+        .filter(p => !p.includes(ANDROID_INFO))
     }
 
     // Dump list

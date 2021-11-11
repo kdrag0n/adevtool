@@ -5,44 +5,50 @@ import { NodeFileReader } from '../util/zip'
 
 export const ANDROID_INFO = 'android-info.txt'
 
-export interface FactoryFirmware {
-  androidInfo: string
-  bootloaderImage: ArrayBuffer
-  radioImage: ArrayBuffer
+export type FirmwareImages = Map<string, ArrayBuffer>
+
+async function extractNestedImages(images: FirmwareImages, nestedZip: ArrayBuffer) {
+  let { entries } = await unzipit.unzip(nestedZip)
+  if (ANDROID_INFO in entries) {
+    images.set(ANDROID_INFO, await entries[ANDROID_INFO].arrayBuffer())
+  }
 }
 
-export async function extractFirmware(zipPath: string) {
+export async function extractFactoryFirmware(zipPath: string) {
   let reader = new NodeFileReader(zipPath)
+  let images: FirmwareImages = new Map<string, ArrayBuffer>()
+
   try {
     let { entries } = await unzipit.unzip(reader)
 
-    // Find bootloader and radio
-    let androidInfo: string
-    let bootloaderImage: ArrayBuffer
-    let radioImage: ArrayBuffer
+    // Find images
     for (let [name, entry] of Object.entries(entries)) {
-      if (name.endsWith(`/${ANDROID_INFO}`)) {
-        androidInfo = await entries[ANDROID_INFO].text()
+      if (name.includes('/image-')) {
+        // Extract nested zip to get android-info.txt
+        await extractNestedImages(images, await entry.arrayBuffer())
       } else if (name.includes('/bootloader-')) {
-        bootloaderImage = await entry.arrayBuffer()
+        images.set('bootloader.img', await entry.arrayBuffer())
       } else if (name.includes('/radio-')) {
-        radioImage = await entry.arrayBuffer()
+        images.set('radio.img', await entry.arrayBuffer())
       }
     }
 
-    return {
-      androidInfo: androidInfo!,
-      bootloaderImage: bootloaderImage!,
-      radioImage: radioImage!,
-    } as FactoryFirmware
+    return images
   } finally {
     await reader.close()
   }
 }
 
-export async function writeFirmware(fw: FactoryFirmware, proprietaryDir: string) {
-  //TODO
-  //await fs.writeFile(`${proprietaryDir}/${ANDROID_INFO}`, fw.androidInfo)
-  await fs.writeFile(`${proprietaryDir}/bootloader.img`, new DataView(fw.bootloaderImage))
-  await fs.writeFile(`${proprietaryDir}/radio.img`, new DataView(fw.radioImage))
+export async function writeFirmwareImages(images: FirmwareImages, proprietaryDir: string) {
+  let fwDir = `${proprietaryDir}/firmware`
+  await fs.mkdir(fwDir, { recursive: true })
+
+  let paths = []
+  for (let [name, buffer] of images.entries()) {
+    let path = `${fwDir}/${name}`
+    paths.push(path)
+    await fs.writeFile(path, new DataView(buffer))
+  }
+
+  return paths
 }
