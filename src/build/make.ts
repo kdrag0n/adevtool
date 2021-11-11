@@ -140,6 +140,9 @@ export function serializeProductMakefile(mk: ProductMakefile) {
 export function serializeBoardMakefile(mk: BoardMakefile) {
   let blocks = startBlocks()
 
+  // TODO: remove when all ELF prebuilts work with Soong
+  blocks.push('BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true')
+
   addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
 
   if (mk.boardInfo != undefined) {
