@@ -15,6 +15,7 @@ export interface BuildFiles {
 export interface VendorDirectories {
   outDir: string
   proprietaryDir: string
+  fwDir: string
 }
 
 function nameDepKey(entry: BlobEntry) {
@@ -131,15 +132,19 @@ export async function generateBuild(
 
 export async function createVendorDirs(vendor: string, device: string) {
   let outDir = `vendor/${vendor}/${device}`
-  await fs.rm(outDir, {force: true, recursive: true})
-  await fs.mkdir(outDir, {recursive: true})
+  await fs.rm(outDir, { force: true, recursive: true })
+  await fs.mkdir(outDir, { recursive: true })
 
   let proprietaryDir = `${outDir}/proprietary`
-  await fs.mkdir(proprietaryDir, {recursive: true})
+  await fs.mkdir(proprietaryDir, { recursive: true })
+
+  let fwDir = `${proprietaryDir}/firmware`
+  await fs.mkdir(fwDir, { recursive: true })
 
   return {
     outDir: outDir,
     proprietaryDir: proprietaryDir,
+    fwDir: fwDir,
   } as VendorDirectories
 }
 

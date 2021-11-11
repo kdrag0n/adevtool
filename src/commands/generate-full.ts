@@ -12,7 +12,7 @@ import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
-import { ANDROID_INFO, extractFactoryFirmware, writeFirmwareImages } from '../factory/firmware'
+import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../factory/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../sepolicy/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { ALL_PARTITIONS } from '../util/partitions'
@@ -96,7 +96,7 @@ export default class GenerateFull extends Command {
 
     // 4. Extract
     // Prepare output directories
-    let {proprietaryDir} = await createVendorDirs(config.device.vendor, config.device.name)
+    let {proprietaryDir, fwDir} = await createVendorDirs(config.device.vendor, config.device.name)
     // Copy blobs (this has its own spinner)
     if (!skipCopy) {
       await copyBlobs(entries, stockRoot, proprietaryDir)
@@ -149,7 +149,16 @@ export default class GenerateFull extends Command {
     if (factoryZip != undefined) {
       spinner = startActionSpinner('Extracting firmware')
       let fwImages = await extractFactoryFirmware(factoryZip)
-      fwPaths = await writeFirmwareImages(fwImages, proprietaryDir)
+      fwPaths = await writeFirmwareImages(fwImages, fwDir)
+
+      // Generate android-info.txt from device and versions
+      let androidInfo = generateAndroidInfo(
+        config.device.name,
+        stockProps.get('vendor')!.get('ro.build.expect.bootloader')!,
+        stockProps.get('vendor')!.get('ro.build.expect.baseband')!,
+      )
+      await fs.writeFile(`${fwDir}/${ANDROID_INFO}`, androidInfo)
+
       stopActionSpinner(spinner)
     }
 
@@ -173,9 +182,8 @@ export default class GenerateFull extends Command {
 
     // Add firmware
     if (fwPaths != null) {
-      build.boardMakefile.boardInfo = fwPaths.find(p => p.includes(ANDROID_INFO))
+      build.boardMakefile.boardInfo = `${fwDir}/${ANDROID_INFO}`
       build.modulesMakefile.radioFiles = fwPaths.map(p => path.relative(proprietaryDir, p))
-        .filter(p => !p.includes(ANDROID_INFO))
     }
 
     // Dump list
