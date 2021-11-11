@@ -6,10 +6,11 @@ import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { combinedPartPathToEntry, diffLists, listPart, serializeBlobList } from '../blobs/file_list'
 import { parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
-import { diffPartitionProps, filterPartPropKeys, filterPropKeys, loadPartitionProps } from '../blobs/props'
+import { diffPartitionProps, filterPartPropKeys, loadPartitionProps } from '../blobs/props'
 import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
+import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFirmware, FactoryFirmware, writeFirmware } from '../factory/firmware'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { ALL_PARTITIONS } from '../util/partitions'
@@ -21,7 +22,7 @@ export default class GenerateFull extends Command {
     help: flags.help({char: 'h'}),
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
     stockRoot: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
-    customRoot: flags.string({char: 'c', description: 'path to root of custom compiled system (out/target/product/$device)', required: true}),
+    customRoot: flags.string({char: 'c', description: 'path to root of custom compiled system (out/target/product/$device) or JSON state file', required: true}),
     factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware)'}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
@@ -35,6 +36,12 @@ export default class GenerateFull extends Command {
 
     let config = parseDeviceConfig(await fs.readFile(configPath, { encoding: 'utf8' }))
 
+    // customRoot might point to a system state JSON
+    let customState: SystemState | null = null
+    if ((await fs.stat(customRoot)).isFile()) {
+      customState = parseSystemState(await fs.readFile(customRoot, { encoding: 'utf8' }))
+    }
+
     // Each step will modify this. Key = combined part path
     let namedEntries = new Map<string, BlobEntry>()
 
@@ -45,7 +52,8 @@ export default class GenerateFull extends Command {
 
       let filesRef = await listPart(partition, stockRoot)
       if (filesRef == null) continue
-      let filesNew = await listPart(partition, customRoot)
+      let filesNew = customState != null ? customState.partitionFiles[partition] :
+        await listPart(partition, customRoot)
       if (filesNew == null) continue
 
       let missingFiles = diffLists(filesNew, filesRef)
@@ -95,7 +103,8 @@ export default class GenerateFull extends Command {
     // 5. Props
     spinner = startActionSpinner('Extracting properties')
     let stockProps = await loadPartitionProps(stockRoot)
-    let customProps = await loadPartitionProps(customRoot)
+    let customProps = customState != null ? customState.partitionProps :
+      await loadPartitionProps(customRoot)
     // Filter props
     if (config.prop_filters != null) {
       filterPartPropKeys(stockProps, config.prop_filters)
