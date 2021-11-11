@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import * as chalk from 'chalk'
 
-import { parseFileList } from '../blobs/file_list'
+import { parseFileList, serializeBlobList } from '../blobs/file_list'
 import { enumeratePresignedBlobs, parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
 
 export default class CheckPresigned extends Command {
@@ -12,6 +12,7 @@ export default class CheckPresigned extends Command {
     help: flags.help({char: 'h'}),
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
     sepolicy: flags.string({char: 'p', description: 'paths to device and vendor sepolicy dirs', required: true, multiple: true}),
+    outList: flags.string({char: 'o', description: 'output path for new proprietary-files.txt with PRESIGNED tags'}),
   }
 
   static args = [
@@ -20,7 +21,7 @@ export default class CheckPresigned extends Command {
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, sepolicy: sepolicyDirs}, args: {source, listPath}} = this.parse(CheckPresigned)
+    let {flags: {aapt2: aapt2Path, sepolicy: sepolicyDirs, outList: outPath}, args: {source, listPath}} = this.parse(CheckPresigned)
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))
@@ -35,7 +36,10 @@ export default class CheckPresigned extends Command {
       let presignedEntries = await updatePresignedBlobs(aapt2Path, source, presignedPkgs, entries)
       presignedEntries.forEach(e => this.log(e.srcPath))
 
-      // TODO: write new list
+      if (outPath != undefined) {
+        let newList = await serializeBlobList(presignedEntries)
+        await fs.writeFile(outPath, newList)
+      }
     } else {
       // Find APKs
       let presignedPaths = await enumeratePresignedBlobs(aapt2Path, source, presignedPkgs)
