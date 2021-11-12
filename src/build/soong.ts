@@ -42,7 +42,7 @@ export interface ExecutableModule {
 
 export interface ScriptModule {
   src: string
-  relative_install_path?: string
+  sub_dir?: string
 }
 
 export interface ApkModule {
@@ -154,7 +154,7 @@ export function blobToSoongModule(
     moduleSpecific = {
       _type: 'sh_binary',
       src: entry.srcPath,
-      ...(relPath && { relative_install_path: relPath }),
+      ...(relPath && { sub_dir: relPath }),
     }
   } else if (ext == '.xml') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
