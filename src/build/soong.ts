@@ -87,7 +87,6 @@ export interface RroModule {
 }
 
 export interface SoongNamespace {
-  imports: Array<string>
 }
 
 export type SoongModuleSpecific = {
@@ -124,7 +123,6 @@ export type SoongModule = {
 
 export interface SoongBlueprint {
   noNamespace?: boolean
-  imports?: Array<string>
 
   modules: Iterable<SoongModule>
 }
@@ -335,7 +333,6 @@ export function serializeBlueprint(bp: SoongBlueprint) {
   if (!bp.noNamespace) {
     serializedModules.push(serializeModule({
       _type: 'soong_namespace',
-      ...(bp.imports != undefined && { imports: bp.imports })
     }))
   }
 
