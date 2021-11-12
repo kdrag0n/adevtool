@@ -81,6 +81,10 @@ export interface DspModule {
   sub_dir?: string
 }
 
+export interface RroModule {
+  theme?: string
+}
+
 export interface SoongNamespace {
   imports: Array<string>
 }
@@ -98,7 +102,8 @@ export type SoongModuleSpecific = {
   EtcModule |
   EtcXmlModule |
   DspModule |
-  SoongNamespace
+  SoongNamespace |
+  RroModule
 )
 
 export type SoongModule = {
@@ -117,8 +122,10 @@ export type SoongModule = {
 } & SoongModuleSpecific
 
 export interface SoongBlueprint {
-  imports: Array<string>
-  modules: IterableIterator<SoongModule>
+  noNamespace?: boolean
+  imports?: Array<string>
+
+  modules: Iterable<SoongModule>
 }
 
 function getRelativeInstallPath(entry: BlobEntry, pathParts: Array<string>, installDir: string) {
@@ -324,10 +331,12 @@ export function serializeBlueprint(bp: SoongBlueprint) {
   let serializedModules = []
 
   // Declare namespace
-  serializedModules.push(serializeModule({
-    _type: 'soong_namespace',
-    imports: bp.imports,
-  }))
+  if (!bp.noNamespace) {
+    serializedModules.push(serializeModule({
+      _type: 'soong_namespace',
+      ...(bp.imports != undefined && { imports: bp.imports })
+    }))
+  }
 
   for (let module of bp.modules) {
     let serialized = serializeModule(module)
