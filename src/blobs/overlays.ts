@@ -464,9 +464,7 @@ export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
 }
 
 export async function serializePartOverlays(partValues: PartResValues, overlaysDir: string) {
-  let xmlBuilder = new xml2js.Builder({
-    xmldec: {},
-  })
+  let xmlBuilder = new xml2js.Builder()
 
   let buildPkgs = []
   for (let [partition, values] of Object.entries(partValues)) {
