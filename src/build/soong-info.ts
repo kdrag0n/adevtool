@@ -15,8 +15,18 @@ export interface TargetModuleInfo {
   is_unit_test: string
 }
 
-export type SoongModuleInfo = { [moduleName: string]: TargetModuleInfo }
+export type SoongModuleInfo = Map<string, TargetModuleInfo>
 
 export function parseModuleInfo(info: string) {
-  return JSON.parse(info) as SoongModuleInfo
+  return new Map(Object.entries(JSON.parse(info))) as SoongModuleInfo
+}
+
+export function removeSelfModules(modulesMap: SoongModuleInfo, proprietaryDir: string) {
+  // Remove modules provided by our generated vendor module, so we don't have to
+  // save module-info.json in the system state
+  for (let [moduleName, module] of modulesMap.entries()) {
+    if (module.path.find(p => p == proprietaryDir) != undefined) {
+      modulesMap.delete(moduleName)
+    }
+  }
 }

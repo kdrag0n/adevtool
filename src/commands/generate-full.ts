@@ -10,7 +10,7 @@ import { diffPartOverlays, parsePartOverlayApks, serializePartOverlays } from '.
 import { parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
 import { diffPartitionProps, filterPartPropKeys, loadPartitionProps } from '../blobs/props'
 import { findOverrideModules } from '../build/overrides'
-import { parseModuleInfo } from '../build/soong-info'
+import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
@@ -48,6 +48,9 @@ export default class GenerateFull extends Command {
     // Each step will modify this. Key = combined part path
     let namedEntries = new Map<string, BlobEntry>()
 
+    // Prepare output directories
+    let {proprietaryDir, fwDir, overlaysDir} = await createVendorDirs(config.device.vendor, config.device.name)
+
     // 1. Diff files
     let spinner = startActionSpinner('Enumerating files')
     for (let partition of ALL_PARTITIONS) {
@@ -76,6 +79,7 @@ export default class GenerateFull extends Command {
 
     let moduleInfoPath = `${targetPrefix}module-info.json`
     let modulesMap = parseModuleInfo(await fs.readFile(moduleInfoPath, { encoding: 'utf8' }))
+    removeSelfModules(modulesMap, proprietaryDir)
     let {modules: builtModules, builtPaths} = findOverrideModules(targetPaths, modulesMap)
 
     // Remove new modules from entries
@@ -96,8 +100,6 @@ export default class GenerateFull extends Command {
     stopActionSpinner(spinner)
 
     // 4. Extract
-    // Prepare output directories
-    let {proprietaryDir, fwDir, overlaysDir} = await createVendorDirs(config.device.vendor, config.device.name)
     // Copy blobs (this has its own spinner)
     if (!skipCopy) {
       await copyBlobs(entries, stockRoot, proprietaryDir)

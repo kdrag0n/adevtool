@@ -22,7 +22,7 @@ export function parseOverrides(list: string) {
 export function findOverrideModules(overridePaths: Iterable<string>, modulesMap: SoongModuleInfo) {
   // Build installed path->module index
   let pathMap = new Map<string, TargetModuleInfo>()
-  for (let module of Object.values(modulesMap)) {
+  for (let module of modulesMap.values()) {
     for (let path of module.installed) {
       pathMap.set(path, module)
     }
