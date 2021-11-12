@@ -271,8 +271,8 @@ function parseRsrcLines(rsrc: string, targetPkg: string) {
         // Keep dimensions as strings to preserve unit
         value = rawValue
       } else if (curType == 'color') {
-        // Hex color code
-        value = parseInt(rawValue.slice(1), 16)
+        // Raw hex code
+        value = rawValue
       } else if (rawValue.startsWith('(file) ')) {
         // Just return the file path for now
         value = rawValue.split(' ')[1]
