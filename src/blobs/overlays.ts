@@ -377,41 +377,44 @@ export async function parsePartOverlayApks(
   return partValues
 }
 
+function shouldDeleteKey(rawKey: string, { targetPkg, type, key, flags }: ResKey) {
+  // Simple exclusion sets
+  if (DIFF_EXCLUDE_TYPES.has(type) ||
+        DIFF_EXCLUDE_PACKAGES.has(targetPkg) ||
+        DIFF_EXCLUDE_KEYS.has(rawKey)) {
+    return true
+  }
+
+  // Exclude localized values for now
+  if (flags != null) {
+    return true
+  }
+
+  // Exclusion prefixes (expensive, so these are checked last)
+  if (DIFF_EXCLUDE_PREFIXES.find(p => rawKey.startsWith(p)) != undefined) {
+    return true
+  }
+
+  return false
+}
+
 function filterValues(values: ResValues) {
   for (let [rawKey, value] of values.entries()) {
-    let { targetPkg, type, key, flags } = decodeResKey(rawKey)
+    let key = decodeResKey(rawKey)
 
-    //
-    if (DIFF_EXCLUDE_TYPES.has(type) ||
-          DIFF_EXCLUDE_PACKAGES.has(targetPkg) ||
-          DIFF_EXCLUDE_KEYS.has(rawKey)) {
+    if (shouldDeleteKey(rawKey, key)) {
       values.delete(rawKey)
-      continue
-    }
-
-    //
-    if (flags != null) {
-      values.delete(rawKey)
-      continue
-    }
-
-    if (DIFF_MAP_PACKAGES.has(targetPkg)) {
-      targetPkg = DIFF_MAP_PACKAGES.get(targetPkg)!
+    } else if (DIFF_MAP_PACKAGES.has(key.targetPkg)) {
+      let targetPkg = DIFF_MAP_PACKAGES.get(key.targetPkg)!
       let newKey = encodeResKey({
         targetPkg: targetPkg,
-        type: type,
-        key: key,
-        flags: flags,
+        type: key.type,
+        key: key.key,
+        flags: key.flags,
       })
 
       values.delete(rawKey)
       values.set(newKey, value)
-      continue
-    }
-
-    if (DIFF_EXCLUDE_PREFIXES.find(p => rawKey.startsWith(p)) != undefined) {
-      values.delete(rawKey)
-      continue
     }
   }
 }
@@ -476,7 +479,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
           ...(partition == 'product' && { product_specific: true }),
           ...(partition == 'vendor' && { soc_specific: true }),
           ...(partition == 'odm' && { device_specific: true }),
-        }]
+        }],
       })
 
       let manifest = `<manifest xmlns:android="http://schemas.android.com/apk/res/android"
