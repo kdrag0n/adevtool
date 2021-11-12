@@ -30,7 +30,6 @@ const DIFF_EXCLUDE_PREFIXES = [
   'android:drawable/ic_doc_',
   'android:string/config_system',
   'android:string-array/config_companionDevice',
-  'android:string/config_default',
   'android:string/biometric_',
   'android:string/widget_',
   'android:bool/config_assist',
@@ -122,6 +121,30 @@ const DIFF_EXCLUDE_KEYS = new Set([
   'android:string/default_wallpaper_component',
   'android:bool/config_pinnerHomeApp',
   'com.android.settings:string-array/slice_allowlist_package_names',
+
+  // TODO: refactor into regex that excludes all except config_defaultAttentionService
+  'android:string/config_defaultAccessibilityService',
+  'android:string/config_defaultAssistantAccessComponent',
+  'android:string/config_defaultAutofillService',
+  'android:string/config_defaultDialer',
+  'android:string/config_defaultGallery',
+  'android:string/config_defaultListenerAccessPackages',
+  'android:string/config_defaultMusic',
+  'android:string/config_defaultNetworkRecommendationProviderPackage',
+  'android:string/config_defaultSms',
+  'android:string/config_defaultAppPredictionService',
+  'android:string/config_defaultAugmentedAutofillService',
+  'android:string/config_defaultBugReportHandlerApp',
+  'android:string/config_defaultContentCaptureService',
+  'android:string/config_defaultModuleMetadataProvider',
+  'android:string/config_defaultMusicRecognitionService',
+  'android:string/config_defaultOnDeviceSpeechRecognitionService',
+  'android:string/config_defaultProfcollectReportUploaderAction',
+  'android:string/config_defaultProfcollectReportUploaderApp',
+  'android:string/config_defaultSearchUiService',
+  'android:string/config_defaultSmartspaceService',
+  'android:string/config_defaultTextClassifierPackage',
+  'android:string/config_defaultTranslationService',
 ])
 
 const DIFF_MAP_PACKAGES = new Map([
