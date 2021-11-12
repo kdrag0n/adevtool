@@ -63,6 +63,7 @@ export async function generateBuild(
         linkSubpath: entry.path,
         targetPath: targetPath,
       } as Symlink)
+      continue
     } else if (blobNeedsSoong(entry, ext)) {
       // Named dependencies -> Soong blueprint
 
