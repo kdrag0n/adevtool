@@ -267,15 +267,15 @@ function parseRsrcLines(rsrc: string, targetPkg: string) {
 
       let value: ResValue
       let rawValue = valueLine![2]
-      if (curType == 'dimen') {
+      if (rawValue.startsWith('(file) ')) {
+        // Return @[path]
+        value = `@${rawValue.split(' ')[1]}`
+      } else if (curType == 'dimen') {
         // Keep dimensions as strings to preserve unit
         value = rawValue
       } else if (curType == 'color') {
         // Raw hex code
         value = rawValue
-      } else if (rawValue.startsWith('(file) ')) {
-        // Just return the file path for now
-        value = rawValue.split(' ')[1]
       } else if (rawValue.startsWith('0x')) {
         // Hex integer
         value = parseInt(rawValue.slice(2), 16)
