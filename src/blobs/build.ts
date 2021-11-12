@@ -78,7 +78,6 @@ export async function generateBuild(
         let conflictModule = namedModules.get(name)!
         if (conflictModule._type == TYPE_SHARED_LIBRARY &&
               (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
-              conflictModule._entry?.partition == entry.partition &&
               conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)) {
           // Same partition = skip arch variant
           if (conflictModule._entry?.partition == entry.partition) {
