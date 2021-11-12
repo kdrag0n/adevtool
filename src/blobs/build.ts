@@ -16,6 +16,7 @@ export interface VendorDirectories {
   outDir: string
   proprietaryDir: string
   fwDir: string
+  overlaysDir: string
 }
 
 function nameDepKey(entry: BlobEntry) {
@@ -113,7 +114,6 @@ export async function generateBuild(
 
   return {
     blueprint: {
-      imports: [],
       modules: namedModules.values(),
     },
     modulesMakefile: {
@@ -141,10 +141,14 @@ export async function createVendorDirs(vendor: string, device: string) {
   let fwDir = `${proprietaryDir}/firmware`
   await fs.mkdir(fwDir, { recursive: true })
 
+  let overlaysDir = `${proprietaryDir}/overlays`
+  await fs.mkdir(overlaysDir, { recursive: true })
+
   return {
     outDir: outDir,
     proprietaryDir: proprietaryDir,
     fwDir: fwDir,
+    overlaysDir: overlaysDir,
   } as VendorDirectories
 }
 
