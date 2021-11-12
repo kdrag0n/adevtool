@@ -7,9 +7,8 @@ import { MAKEFILE_HEADER } from '../util/headers'
 const CONT_SEPARATOR = ' \\\n    '
 
 const SEPOLICY_PARTITION_VARS: { [part: string]: string } = {
-  system: 'BOARD_PLAT_PUBLIC_SEPOLICY_DIR',
-  system_ext: 'SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS',
-  product: 'PRODUCT_PUBLIC_SEPOLICY_DIRS',
+  system_ext: 'SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS',
+  product: 'PRODUCT_PRIVATE_SEPOLICY_DIRS',
   vendor: 'BOARD_VENDOR_SEPOLICY_DIRS',
   odm: 'BOARD_ODM_SEPOLICY_DIRS',
 }
