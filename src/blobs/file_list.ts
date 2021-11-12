@@ -2,9 +2,9 @@ import * as path from 'path'
 
 import { BlobEntry, partPathToSrcPath, srcPathToPartPath } from './entry'
 import { exists, listFilesRecursive } from '../util/fs'
-import { MAKEFILE_HEADER } from '../build/make'
 import { createActionSpinner, stopActionSpinner } from '../util/cli'
 import { parseLines } from '../util/parse'
+import { MAKEFILE_HEADER } from '../util/headers'
 
 // Sub-partition directories to ignore
 const IGNORE_DIRS = new Set([

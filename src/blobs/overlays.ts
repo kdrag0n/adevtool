@@ -5,6 +5,7 @@ import * as xml2js from 'xml2js'
 import { serializeBlueprint } from '../build/soong'
 import { aapt2 } from '../util/aapt2'
 import { exists, listFilesRecursive } from '../util/fs'
+import { XML_HEADER } from '../util/headers'
 import { parseLines } from '../util/parse'
 import { EXT_PARTITIONS } from '../util/partitions'
 
@@ -446,10 +447,7 @@ export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
 
 export async function serializePartOverlays(partValues: PartResValues, overlaysDir: string) {
   let xmlBuilder = new xml2js.Builder({
-    xmldec: {
-      version: '1.0',
-      encoding: 'UTF-8',
-    },
+    xmldec: {},
   })
 
   let buildPkgs = []
@@ -482,13 +480,15 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
         }],
       })
 
-      let manifest = `<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      let manifest = `${XML_HEADER}
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${rroName}">
 
     <overlay android:targetPackage="${targetPkg}" android:isStatic="true" android:priority="1" />
     <application android:hasCode="false" />
 
-</manifest>`
+</manifest>
+`
 
       let valuesObj = { resources: { } as { [type: string]: Array<any> } }
       for (let [{type, key}, value] of values.entries()) {
@@ -511,7 +511,8 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
         }
       }
 
-      let valuesXml = xmlBuilder.buildObject(valuesObj)
+      let valuesXml = `<?xml version="1.0" encoding="UTF-8"?>
+${XML_HEADER}${xmlBuilder.buildObject(valuesObj).replace(/^<\?xml.*>$/m, '')}`
 
       // Write files
       let overlayDir = `${overlaysDir}/${partition}_${targetPkg}`
