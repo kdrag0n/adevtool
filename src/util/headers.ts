@@ -7,5 +7,6 @@ export const MAKEFILE_HEADER = `# ${LINE1}
 export const SOONG_HEADER = `// ${LINE1}
 // ${LINE2}`
 
-export const XML_HEADER = `<!-- ${LINE1}
+export const XML_HEADER = `<?xml version="1.0" encoding="UTF-8"?>
+<!-- ${LINE1}
      ${LINE2} -->`

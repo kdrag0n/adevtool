@@ -511,8 +511,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
         }
       }
 
-      let valuesXml = `<?xml version="1.0" encoding="UTF-8"?>
-${XML_HEADER}${xmlBuilder.buildObject(valuesObj).replace(/^<\?xml.*>$/m, '')}`
+      let valuesXml = XML_HEADER + xmlBuilder.buildObject(valuesObj).replace(/^<\?xml.*>$/m, '')
 
       // Write files
       let overlayDir = `${overlaysDir}/${partition}_${targetPkg}`
