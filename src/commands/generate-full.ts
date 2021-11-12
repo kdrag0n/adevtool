@@ -6,6 +6,7 @@ import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { combinedPartPathToEntry, diffLists, listPart, serializeBlobList } from '../blobs/file_list'
+import { diffPartOverlays, parsePartOverlayApks, serializePartOverlays } from '../blobs/overlays'
 import { parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
 import { diffPartitionProps, filterPartPropKeys, loadPartitionProps } from '../blobs/props'
 import { findOverrideModules } from '../build/overrides'
@@ -96,7 +97,7 @@ export default class GenerateFull extends Command {
 
     // 4. Extract
     // Prepare output directories
-    let {proprietaryDir, fwDir} = await createVendorDirs(config.device.vendor, config.device.name)
+    let {proprietaryDir, fwDir, overlaysDir} = await createVendorDirs(config.device.vendor, config.device.name)
     // Copy blobs (this has its own spinner)
     if (!skipCopy) {
       await copyBlobs(entries, stockRoot, proprietaryDir)
@@ -144,7 +145,21 @@ export default class GenerateFull extends Command {
     let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts)
     stopActionSpinner(spinner)
 
-    // 7. Firmware
+    // 7. Overlays
+    spinner = startActionSpinner('Extracting overlays')
+    let stockOverlays = await parsePartOverlayApks(aapt2Path, stockRoot, path => {
+      spinner.text = path
+    })
+    let customOverlays = customState != null ? customState.partitionOverlays :
+      await parsePartOverlayApks(aapt2Path, customRoot, path => {
+        spinner.text = path
+      })
+    let missingOverlays = diffPartOverlays(stockOverlays, customOverlays)
+    let overlayPkgs = await serializePartOverlays(missingOverlays, overlaysDir)
+    console.log(missingOverlays)
+    stopActionSpinner(spinner)
+
+    // 8. Firmware
     let fwPaths: Array<string> | null = null
     if (factoryZip != undefined) {
       spinner = startActionSpinner('Extracting firmware')
@@ -162,12 +177,12 @@ export default class GenerateFull extends Command {
       stopActionSpinner(spinner)
     }
 
-    // 8. Build files
+    // 9. Build files
     spinner = startActionSpinner('Generating build files')
     let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, proprietaryDir)
 
-    // Add rules to build overridden modules and re-sort
-    build.productMakefile.packages!.push(...builtModules)
+    // Add rules to build overridden modules and overlays, then re-sort
+    build.productMakefile.packages!.push(...builtModules, ...overlayPkgs)
     build.productMakefile.packages!.sort((a, b) => a.localeCompare(b))
 
     // Add props, fingerprint, and OTA partitions
