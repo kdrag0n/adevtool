@@ -20,9 +20,6 @@ export interface TargetSrcs {
 export interface SharedLibraryModule {
   stem?: string
   relative_install_path?: string
-  strip: {
-    none: boolean
-  }
   target: {
     android_arm?: TargetSrcs
     android_arm64?: TargetSrcs
@@ -30,6 +27,9 @@ export interface SharedLibraryModule {
   compile_multilib: string
   check_elf_files: boolean
   prefer: boolean
+  strip: {
+    none: boolean
+  }
 }
 
 export interface ExecutableModule {
@@ -38,6 +38,9 @@ export interface ExecutableModule {
   relative_install_path?: string
   check_elf_files: boolean
   prefer: boolean
+  strip: {
+    none: boolean
+  }
 }
 
 export interface ScriptModule {
@@ -176,6 +179,9 @@ export function blobToSoongModule(
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
       prefer: true,
+      strip: {
+        none: true,
+      },
     }
   } else if (pathParts[0] == 'dsp') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'dsp')
@@ -240,9 +246,6 @@ export function blobToSoongModule(
       _type: TYPE_SHARED_LIBRARY,
       ...(name != origFileName && { stem: origFileName }),
       ...(relPath && { relative_install_path: relPath }),
-      strip: {
-        none: true,
-      },
       target: {
         ...(arch == '32' && { android_arm: targetSrcs }),
         ...(arch == '64' && { android_arm64: targetSrcs }),
@@ -254,6 +257,9 @@ export function blobToSoongModule(
       compile_multilib: arch,
       check_elf_files: false,
       prefer: true,
+      strip: {
+        none: true,
+      },
     }
   } else if (ext == '.apk') {
     moduleSpecific = {
