@@ -1,6 +1,9 @@
+import { promises as fs } from 'fs'
 import * as path from 'path'
-import { aapt2 } from '../util/aapt2'
+import * as xml2js from 'xml2js'
 
+import { serializeBlueprint } from '../build/soong'
+import { aapt2 } from '../util/aapt2'
 import { exists, listFilesRecursive } from '../util/fs'
 import { parseLines } from '../util/parse'
 import { EXT_PARTITIONS } from '../util/partitions'
@@ -10,6 +13,121 @@ const TARGET_PACKAGE_PATTERN = /^\s+A: http:\/\/schemas.android.com\/apk\/res\/a
 // This is terrible, but aapt2 doesn't escape strings properly and some of these
 // strings contain double quotes, which break our parser.
 const EXCLUDE_LOCALES = new Set(['ar', 'iw'])
+
+// Diff exclusions
+const DIFF_EXCLUDE_TYPES = new Set(['raw', 'xml', 'color'])
+const DIFF_EXCLUDE_PACKAGES = new Set([
+  'com.google.android.documentsui',
+  'com.google.android.pixel.setupwizard',
+  'com.android.managedprovisioning',
+  'com.android.providers.settings',
+  'com.google.android.cellbroadcastreceiver',
+  'com.google.android.cellbroadcastservice',
+  'com.android.simappdialog',
+])
+const DIFF_EXCLUDE_PREFIXES = [
+  'android:drawable/ic_doc_',
+  'android:string/config_system',
+  'android:string-array/config_companionDevice',
+  'android:string/config_default',
+  'android:string/biometric_',
+  'android:string/widget_',
+  'android:bool/config_assist',
+  'com.android.settings:bool/config_',
+  'com.android.settings:string/display_white_balance_',
+  'com.android.settings:string/fingerprint_',
+  'com.android.settings:string/security_settings_',
+  'com.android.settings:string/lock_settings_',
+  'com.android.systemui:string/branded_',
+  'com.android.settings:string/security_settings_',
+  'com.android.settings:string/unlock_disable_frp_',
+  'com.android.wifi.resources:integer/config_wifi_framework_wifi_score_',
+]
+const DIFF_EXCLUDE_KEYS = new Set([
+  'android:bool/config_enableGeolocationTimeZoneDetection',
+  'android:bool/config_enablePrimaryLocationTimeZoneProvider',
+  'android:bool/config_enableSecondaryLocationTimeZoneProvider',
+  'android:string-array/config_accessibility_allowed_install_source',
+  'android:string-array/config_allowedSecureInstantAppSettings',
+  'android:string-array/config_disabledUntilUsedPreinstalledImes',
+  'com.android.providers.contacts:string/metadata_sync_pacakge',
+  'android:string/harmful_app_warning_title',
+  'com.google.android.permissioncontroller:string/help_app_permissions',
+  'com.google.android.networkstack:bool/config_dhcp_client_hostname',
+  'android:string/config_defaultDndAccessPackages',
+  'android:string/config_primaryLocationTimeZoneProviderPackageName',
+  'android:string/config_secondaryLocationTimeZoneProviderPackageName',
+  'android:string/config_servicesExtensionPackage',
+  'android:bool/config_swipe_up_gesture_setting_available',
+  'android:bool/config_showGesturalNavigationHints',
+  'android:bool/config_volumeHushGestureEnabled',
+  'android:integer/config_defaultNightMode',
+  'android:string-array/config_batteryPackageTypeService',
+  'android:array/config_notificationMsgPkgsAllowedAsConvos',
+  'android:bool/config_bugReportHandlerEnabled',
+  'android:bool/config_defaultRingtonePickerEnabled',
+  'android:bool/config_profcollectReportUploaderEnabled',
+  'android:bool/config_sendPackageName',
+  'android:bool/config_smart_battery_available',
+  'android:bool/config_volumeShowRemoteSessions',
+  'android:dimen/config_highResTaskSnapshotScale',
+  'android:integer/config_storageManagerDaystoRetainDefault',
+  'android:string/android_start_title',
+  'android:string/android_upgrading_title',
+  'android:string/config_batterySaverScheduleProvider',
+  'android:string/config_bodyFontFamily',
+  'android:string/config_bodyFontFamilyMedium',
+  'android:string/config_emergency_dialer_package',
+  'android:string/config_feedbackIntentExtraKey',
+  'android:string/config_feedbackIntentNameKey',
+  'android:string/config_headlineFontFamily',
+  'android:string/config_headlineFontFamilyMedium',
+  'android:string/config_headlineFontFeatureSettings',
+  'android:string/config_helpIntentExtraKey',
+  'android:string/config_helpIntentNameKey',
+  'android:string/config_helpPackageNameKey',
+  'android:string/config_helpPackageNameValue',
+  'android:string/config_incidentReportApproverPackage',
+  'android:string/config_powerSaveModeChangedListenerPackage',
+  'android:string/config_recentsComponentName',
+  'android:string/config_retailDemoPackage',
+  'android:string/config_retailDemoPackageSignature',
+  'android:string/config_secondaryHomePackage',
+  'com.android.settings:string-array/config_settings_slices_accessibility_components',
+  'com.android.settings:string/setup_fingerprint_enroll_finish_message',
+  'com.android.settings:string/suggested_fingerprint_lock_settings_summary',
+  'com.android.systemui:string-array/config_controlsPreferredPackages',
+  'com.android.systemui:bool/config_hspa_data_distinguishable',
+  'com.android.systemui:bool/config_touch_context_enabled',
+  'com.android.systemui:bool/config_wlc_support_enabled',
+  'com.android.systemui:drawable/ic_qs_branded_vpn',
+  'com.android.systemui:drawable/stat_sys_branded_vpn',
+  'com.android.systemui:string/config_dockComponent',
+  'com.android.systemui:string/config_screenshotEditor',
+  'com.android.phone:string-array/config_countries_to_enable_shortcut_view',
+  'com.android.phone:string/dialer_default_class',
+  'com.android.phone:string/platform_number_verification_package',
+  'com.android.server.telecom:bool/config_hspa_data_distinguishable',
+  'com.android.server.telecom:string/call_diagnostic_service_package_name',
+  'com.android.server.telecom:string/dialer_default_class',
+  'com.android.traceur:bool/config_hspa_data_distinguishable',
+  'android:string-array/config_defaultFirstUserRestrictions',
+  'android:string-array/config_keep_warming_services',
+  'android:bool/config_enableFusedLocationOverlay',
+  'android:bool/config_enableGeocoderOverlay',
+  'android:bool/config_enableGeofenceOverlay',
+  'android:bool/config_enableNetworkLocationOverlay',
+  'android:string/config_deviceProvisioningPackage',
+  'android:string/default_wallpaper_component',
+  'android:bool/config_pinnerHomeApp',
+  'com.android.settings:string-array/slice_allowlist_package_names',
+])
+
+const DIFF_MAP_PACKAGES = new Map([
+  ['com.google.android.wifi.resources', 'com.android.wifi.resources'],
+  ['com.google.android.connectivity.resources', 'com.android.connectivity.resources'],
+  ['com.google.android.networkstack.tethering', 'com.android.networkstack.tethering'],
+])
 
 export type ResValue = number | boolean | string | Array<ResValue>
 
@@ -29,10 +147,12 @@ function encodeResKey(key: ResKey) {
 }
 
 export function decodeResKey(encoded: string) {
-  let [type, kf] = encoded.split('/')
-  let [key, flags] = kf.split(':')
+  let [targetPkg, tkf] = encoded.split(':')
+  let [type, kf] = tkf.split('/')
+  let [key, flags] = kf.split('|')
 
   return {
+    targetPkg: targetPkg,
     type: type,
     key: key,
     flags: flags != undefined ? flags : null,
@@ -255,4 +375,152 @@ export async function parsePartOverlayApks(
   }
 
   return partValues
+}
+
+function filterValues(values: ResValues) {
+  for (let [rawKey, value] of values.entries()) {
+    let { targetPkg, type, key, flags } = decodeResKey(rawKey)
+
+    //
+    if (DIFF_EXCLUDE_TYPES.has(type) ||
+          DIFF_EXCLUDE_PACKAGES.has(targetPkg) ||
+          DIFF_EXCLUDE_KEYS.has(rawKey)) {
+      values.delete(rawKey)
+      continue
+    }
+
+    //
+    if (flags != null) {
+      values.delete(rawKey)
+      continue
+    }
+
+    if (DIFF_MAP_PACKAGES.has(targetPkg)) {
+      targetPkg = DIFF_MAP_PACKAGES.get(targetPkg)!
+      let newKey = encodeResKey({
+        targetPkg: targetPkg,
+        type: type,
+        key: key,
+        flags: flags,
+      })
+
+      values.delete(rawKey)
+      values.set(newKey, value)
+      continue
+    }
+
+    if (DIFF_EXCLUDE_PREFIXES.find(p => rawKey.startsWith(p)) != undefined) {
+      values.delete(rawKey)
+      continue
+    }
+  }
+}
+
+export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
+  let missingPartValues: PartResValues = {}
+  for (let [partition, valuesNew] of Object.entries(pvNew)) {
+    let valuesRef = pvRef[partition]
+    let missingValues: ResValues = new Map<string, ResValue>()
+
+    // Filter values first
+    filterValues(valuesRef)
+    filterValues(valuesNew)
+
+    // Find missing overlays
+    for (let [key, refValue] of valuesRef.entries()) {
+      if (!valuesNew.has(key)) {
+        missingValues.set(key, refValue)
+      }
+    }
+
+    if (missingValues.size > 0) {
+      missingPartValues[partition] = missingValues
+    }
+  }
+
+  return missingPartValues
+}
+
+export async function serializePartOverlays(partValues: PartResValues, overlaysDir: string) {
+  let xmlBuilder = new xml2js.Builder({
+    xmldec: {
+      'version': '1.0',
+      'encoding': 'UTF-8',
+    },
+  })
+
+  let buildPkgs = []
+  for (let [partition, values] of Object.entries(partValues)) {
+    // Group by package
+    let pkgValues = new Map<string, Map<ResKey, ResValue>>()
+    for (let [key, value] of values.entries()) {
+      let keyInfo = decodeResKey(key)
+      if (pkgValues.has(keyInfo.targetPkg)) {
+        pkgValues.get(keyInfo.targetPkg)!.set(keyInfo, value)
+      } else {
+        pkgValues.set(keyInfo.targetPkg, new Map<ResKey, ResValue>([[keyInfo, value]]))
+      }
+    }
+
+    // Now serialize each package-partition combination
+    for (let [targetPkg, values] of pkgValues.entries()) {
+      let rroName = `${targetPkg}.auto_generated_rro_${partition}_adevtool__`
+
+      let bp = serializeBlueprint({
+        noNamespace: true,
+        modules: [{
+          _type: 'runtime_resource_overlay',
+          name: rroName,
+
+          ...(partition == 'system_ext' && { system_ext_specific: true }),
+          ...(partition == 'product' && { product_specific: true }),
+          ...(partition == 'vendor' && { soc_specific: true }),
+          ...(partition == 'odm' && { device_specific: true }),
+        }]
+      })
+
+      let manifest = `<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="${rroName}">
+
+    <overlay android:targetPackage="${targetPkg}" android:isStatic="true" android:priority="1" />
+    <application android:hasCode="false" />
+
+</manifest>`
+
+      let valuesObj = { resources: { } as { [type: string]: Array<any> } }
+      for (let [{type, key}, value] of values.entries()) {
+        let entry = {
+          '$': {
+            name: key,
+          },
+        } as { [key: string]: any }
+
+        if (type.includes('array')) {
+          entry.item = (value as Array<any>).map(v => JSON.stringify(v))
+        } else {
+          entry._ = value
+        }
+
+        if (type in valuesObj) {
+          valuesObj.resources[type].push(entry)
+        } else {
+          valuesObj.resources[type] = [entry]
+        }
+      }
+
+      let valuesXml = xmlBuilder.buildObject(valuesObj)
+
+      // Write files
+      let overlayDir = `${overlaysDir}/${partition}_${targetPkg}`
+      let resDir = `${overlayDir}/res/values`
+      await fs.mkdir(resDir, { recursive: true })
+      await fs.writeFile(`${overlayDir}/Android.bp`, bp)
+      await fs.writeFile(`${overlayDir}/AndroidManifest.xml`, manifest)
+      await fs.writeFile(`${resDir}/values.xml`, valuesXml)
+
+      buildPkgs.push(rroName)
+    }
+  }
+
+  return buildPkgs
 }
