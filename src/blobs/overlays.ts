@@ -447,8 +447,8 @@ export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
 export async function serializePartOverlays(partValues: PartResValues, overlaysDir: string) {
   let xmlBuilder = new xml2js.Builder({
     xmldec: {
-      'version': '1.0',
-      'encoding': 'UTF-8',
+      version: '1.0',
+      encoding: 'UTF-8',
     },
   })
 
@@ -493,7 +493,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
       let valuesObj = { resources: { } as { [type: string]: Array<any> } }
       for (let [{type, key}, value] of values.entries()) {
         let entry = {
-          '$': {
+          $: {
             name: key,
           },
         } as { [key: string]: any }
@@ -504,7 +504,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
           entry._ = value
         }
 
-        if (type in valuesObj) {
+        if (valuesObj.resources.hasOwnProperty(type)) {
           valuesObj.resources[type].push(entry)
         } else {
           valuesObj.resources[type] = [entry]
