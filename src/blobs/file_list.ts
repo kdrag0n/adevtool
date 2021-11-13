@@ -163,9 +163,11 @@ system_ext/overlay/
 product/overlay/
 vendor/overlay/`,
 
-  // DLKM partitions
+  // DLKM partition: symlinks and modules
   `vendor/lib/modules
-odm/lib/modules`,
+vendor_dlkm/
+odm/lib/modules
+odm_dlkm/`,
 ])
 
 function paths(blocks: Array<string>) {
