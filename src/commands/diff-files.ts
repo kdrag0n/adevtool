@@ -21,17 +21,14 @@ export default class DiffFiles extends Command {
     let {flags: {all}, args: {sourceRef, sourceNew}} = this.parse(DiffFiles)
 
     for (let partition of ALL_PARTITIONS) {
-      this.log(chalk.bold(partition))
-
       let filesRef = await listPart(partition, sourceRef)
       if (filesRef == null) {
         continue
       }
 
-      let filesNew = await listPart(partition, sourceNew)
-      if (filesNew == null) {
-        continue
-      }
+      let filesNew = await listPart(partition, sourceNew) ?? []
+
+      this.log(chalk.bold(partition))
 
       let newAdded = diffLists(filesRef, filesNew)
       let newRemoved = diffLists(filesNew, filesRef)
