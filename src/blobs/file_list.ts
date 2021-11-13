@@ -157,11 +157,15 @@ product/wallpaper/
 product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
 product/etc/permissions/com.google.android.odad.xml`,
 
-  // Overlays should be dealt with, but they should never be copied as-is.
+  // Overlays are created separately; they should never be copied as-is.
   `system/overlay/
 system_ext/overlay/
 product/overlay/
 vendor/overlay/`,
+
+  // DLKM partitions
+  `vendor/lib/modules
+odm/lib/modules`,
 ])
 
 function paths(blocks: Array<string>) {

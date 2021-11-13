@@ -36,8 +36,8 @@ export async function loadPartitionProps(sourceRoot: string) {
       // System-as-root
       propPath = `${sourceRoot}/system/system/build.prop`
     }
-    // Android 12: some partitions have props in etc/build.prop
-    if ((partition == 'system_ext' || partition == 'product') && !(await exists(propPath))) {
+    // Android 12: some ext partitions have props in etc/build.prop
+    if (!(await exists(propPath))) {
       propPath = `${sourceRoot}/${partition}/etc/build.prop`
     }
     if (!(await exists(propPath))) {
