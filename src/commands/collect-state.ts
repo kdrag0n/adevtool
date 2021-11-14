@@ -4,6 +4,7 @@ import { promises as fs } from 'fs'
 import { listPart } from '../blobs/file_list'
 import { parsePartOverlayApks } from '../blobs/overlays'
 import { loadPartitionProps } from '../blobs/props'
+import { loadPartVintfInfo } from '../blobs/vintf'
 import { serializeSystemState, SystemState } from '../config/system-state'
 import { parsePartContexts } from '../sepolicy/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
@@ -56,6 +57,11 @@ export default class CollectState extends Command {
     state.partitionOverlays = await parsePartOverlayApks(aapt2Path, customRoot, path => {
       spinner.text = path
     })
+    stopActionSpinner(spinner)
+
+    // vintf info
+    spinner = startActionSpinner('Extracting vintf manifests')
+    state.partitionVintfInfo = await loadPartVintfInfo(customRoot)
     stopActionSpinner(spinner)
 
     // Write

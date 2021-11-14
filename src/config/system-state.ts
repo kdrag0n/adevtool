@@ -1,5 +1,6 @@
 import { PartResValues } from "../blobs/overlays"
 import { PartitionProps } from "../blobs/props"
+import { PartitionVintfInfo } from "../blobs/vintf"
 import { SelinuxPartContexts } from "../sepolicy/contexts"
 
 const STATE_VERSION = 1
@@ -9,6 +10,7 @@ export interface SystemState {
   partitionProps: PartitionProps
   partitionSecontexts: SelinuxPartContexts
   partitionOverlays: PartResValues
+  partitionVintfInfo: PartitionVintfInfo
 }
 
 type SerializedSystemState = {
