@@ -108,8 +108,7 @@ export default class GenerateFull extends Command {
     // 5. Props
     spinner = startActionSpinner('Extracting properties')
     let stockProps = await loadPartitionProps(stockRoot)
-    let customProps = customState != null ? customState.partitionProps :
-      await loadPartitionProps(customRoot)
+    let customProps = customState?.partitionProps ?? await loadPartitionProps(customRoot)
     // Filter props
     if (config.prop_filters != null) {
       filterPartPropKeys(stockProps, config.prop_filters)
@@ -131,8 +130,7 @@ export default class GenerateFull extends Command {
     spinner = startActionSpinner('Adding missing SELinux policies')
     // Built contexts
     let stockContexts = await parsePartContexts(stockRoot)
-    let customContexts = customState != null ? customState.partitionSecontexts :
-      await parsePartContexts(customRoot)
+    let customContexts = customState?.partitionSecontexts ?? await parsePartContexts(customRoot)
     // Contexts from AOSP
     let sourceContexts: SelinuxContexts = new Map<string, string>()
     for (let dir of config.sepolicy_dirs) {
@@ -152,7 +150,7 @@ export default class GenerateFull extends Command {
     let stockOverlays = await parsePartOverlayApks(aapt2Path, stockRoot, path => {
       spinner.text = path
     })
-    let customOverlays = customState != null ? customState.partitionOverlays :
+    let customOverlays = customState?.partitionOverlays ??
       await parsePartOverlayApks(aapt2Path, customRoot, path => {
         spinner.text = path
       })
