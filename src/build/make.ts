@@ -29,6 +29,13 @@ export interface ModulesMakefile {
   symlinks: Array<Symlink>
 }
 
+export interface BoardMakefile {
+  abOtaPartitions?: Array<string>
+
+  boardInfo?: string
+  secontextResolutions?: SelinuxPartResolutions
+}
+
 export interface ProductMakefile {
   namespaces?: Array<string>
   copyFiles?: Array<string>
@@ -36,12 +43,6 @@ export interface ProductMakefile {
 
   props?: PartitionProps
   fingerprint?: string
-}
-
-export interface BoardMakefile {
-  abOtaPartitions?: Array<string>
-  boardInfo?: string
-  secontextResolutions?: SelinuxPartResolutions
 }
 
 function startBlocks() {
@@ -108,6 +109,52 @@ function addContBlock(blocks: Array<string>, variable: String, items: Array<stri
   }
 }
 
+export function serializeBoardMakefile(mk: BoardMakefile) {
+  let blocks = startBlocks()
+
+  // TODO: remove this when all ELF prebuilts work with Soong
+  blocks.push('BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true')
+
+  // Build vendor?
+  if (mk.abOtaPartitions?.includes('vendor')) {
+    blocks.push('BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4')
+  }
+
+  // Build DLKM partitions?
+  if (mk.abOtaPartitions?.includes('vendor_dlkm')) {
+    blocks.push(`BOARD_USES_VENDOR_DLKMIMAGE := true
+BOARD_VENDOR_DLKMIMAGE_FILE_SYSTEM_TYPE := ext4
+TARGET_COPY_OUT_VENDOR_DLKM := vendor_dlkm`)
+  }
+  if (mk.abOtaPartitions?.includes('odm_dlkm')) {
+    blocks.push(`BOARD_USES_ODM_DLKIMAGE := true
+BOARD_ODM_DLKIMAGE_FILE_SYSTEM_TYPE := ext4
+TARGET_COPY_OUT_ODM_DLKM := odm_dlkm`)
+  }
+
+  addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
+
+  if (mk.boardInfo != undefined) {
+    blocks.push(`TARGET_BOARD_INFO_FILE := ${mk.boardInfo}`)
+  }
+
+  if (mk.secontextResolutions != undefined) {
+    for (let [partition, {sepolicyDirs, missingContexts}] of mk.secontextResolutions.entries()) {
+      let partVar = SEPOLICY_PARTITION_VARS[partition]
+      if (sepolicyDirs.length > 0) {
+        addContBlock(blocks, partVar, sepolicyDirs)
+      }
+
+      if (missingContexts.length > 0) {
+        blocks.push(missingContexts.map(c => `# Missing ${partition} SELinux context: ${c}`)
+          .join('\n'))
+      }
+    }
+  }
+
+  return finishBlocks(blocks)
+}
+
 export function serializeProductMakefile(mk: ProductMakefile) {
   let blocks = startBlocks()
 
@@ -130,40 +177,6 @@ export function serializeProductMakefile(mk: ProductMakefile) {
 
   if (mk.fingerprint != undefined) {
     blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT := ${mk.fingerprint}`)
-  }
-
-  return finishBlocks(blocks)
-}
-
-export function serializeBoardMakefile(mk: BoardMakefile) {
-  let blocks = startBlocks()
-
-  // TODO: remove when all ELF prebuilts work with Soong
-  blocks.push('BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true')
-
-  // Build vendor?
-  if (mk.abOtaPartitions?.includes('vendor')) {
-    blocks.push('BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4')
-  }
-
-  addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
-
-  if (mk.boardInfo != undefined) {
-    blocks.push(`TARGET_BOARD_INFO_FILE := ${mk.boardInfo}`)
-  }
-
-  if (mk.secontextResolutions != undefined) {
-    for (let [partition, {sepolicyDirs, missingContexts}] of mk.secontextResolutions.entries()) {
-      let partVar = SEPOLICY_PARTITION_VARS[partition]
-      if (sepolicyDirs.length > 0) {
-        addContBlock(blocks, partVar, sepolicyDirs)
-      }
-
-      if (missingContexts.length > 0) {
-        blocks.push(missingContexts.map(c => `# Missing ${partition} SELinux context: ${c}`)
-          .join('\n'))
-      }
-    }
   }
 
   return finishBlocks(blocks)
