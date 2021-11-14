@@ -122,8 +122,9 @@ const DIFF_EXCLUDE_KEYS = new Set([
   'android:bool/config_pinnerHomeApp',
   'com.android.settings:string-array/slice_allowlist_package_names',
 
-  // Intentionally included; attention, app prediction, speech recognition, search UI, smartspace, translation
+  // Intentionally included; attention, speech recognition, search UI, smartspace, translation
   'android:string/config_defaultAccessibilityService',
+  'android:string/config_defaultAppPredictionService',
   'android:string/config_defaultAssistantAccessComponent',
   'android:string/config_defaultAutofillService',
   'android:string/config_defaultDialer',
