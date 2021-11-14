@@ -37,7 +37,7 @@ export default class CheckPresigned extends Command {
       presignedEntries.forEach(e => this.log(e.srcPath))
 
       if (outPath != undefined) {
-        let newList = await serializeBlobList(presignedEntries)
+        let newList = serializeBlobList(presignedEntries)
         await fs.writeFile(outPath, newList)
       }
     } else {
