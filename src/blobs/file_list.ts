@@ -56,6 +56,7 @@ product/etc/permissions/split-permissions-google.xml
 product/etc/preferred-apps/google.xml
 product/etc/sysconfig/google-staged-installer-whitelist.xml
 product/etc/sysconfig/preinstalled-packages-
+product/framework/com.google.android.dialer.support.jar
 product/priv-app/AndroidAutoStubPrebuilt/AndroidAutoStubPrebuilt.apk
 product/priv-app/ConfigUpdater/ConfigUpdater.apk
 product/priv-app/FilesPrebuilt/FilesPrebuilt.apk
