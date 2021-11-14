@@ -13,6 +13,13 @@ const SEPOLICY_PARTITION_VARS: { [part: string]: string } = {
   odm: 'BOARD_ODM_SEPOLICY_DIRS',
 }
 
+const VINTF_MANIFEST_PARTITION_VARS: { [part: string]: string } = {
+  system_ext: 'SYSTEM_EXT_MANIFEST_FILES',
+  product: 'PRODUCT_MANIFEST_FILES',
+  vendor: 'DEVICE_MANIFEST_FILE', // no 'S'
+  odm: 'ODM_MANIFEST_FILES',
+}
+
 export interface Symlink {
   moduleName: string
   linkPartition: string
@@ -40,6 +47,8 @@ export interface ProductMakefile {
   namespaces?: Array<string>
   copyFiles?: Array<string>
   packages?: Array<string>
+
+  vintfManifestPaths?: Map<string, string>
 
   props?: PartitionProps
   fingerprint?: string
@@ -161,6 +170,12 @@ export function serializeProductMakefile(mk: ProductMakefile) {
   addContBlock(blocks, 'PRODUCT_SOONG_NAMESPACES', mk.namespaces)
   addContBlock(blocks, 'PRODUCT_COPY_FILES', mk.copyFiles)
   addContBlock(blocks, 'PRODUCT_PACKAGES', mk.packages)
+
+  if (mk.vintfManifestPaths != undefined) {
+    for (let [partition, manifestPath] of mk.vintfManifestPaths.entries()) {
+      blocks.push(`${VINTF_MANIFEST_PARTITION_VARS[partition]} += ${manifestPath}`)
+    }
+  }
 
   if (mk.props != undefined) {
     for (let [partition, props] of mk.props.entries()) {
