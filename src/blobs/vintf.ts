@@ -32,6 +32,7 @@ export interface VintfInfo {
 }
 
 export type PartitionVintfInfo = Map<string, VintfInfo>
+export type PartitionVintfManifests = Map<string, Array<VintfHal>>
 
 function halToKey(hal: VintfHal) {
   return JSON.stringify(hal)
@@ -78,6 +79,20 @@ export function diffVintfHals(halsRef: Array<VintfHal>, halsNew: Array<VintfHal>
   return halsNew.filter(h => !refKeys.has(halToKey(h)))
 }
 
+export function diffPartVintfManifests(vintfRef: PartitionVintfInfo, vintfNew: PartitionVintfInfo) {
+  let partDiffs: PartitionVintfManifests = new Map<string, Array<VintfHal>>()
+  for (let [partition, { manifest: halsNew }] of vintfNew.entries()) {
+    if (halsNew == null) {
+      continue
+    }
+
+    let halsRef = vintfRef.get(partition)?.manifest ?? []
+    partDiffs.set(partition, diffVintfHals(halsRef, halsNew))
+  }
+
+  return partDiffs
+}
+
 export function serializeVintfHals(hals: Array<VintfHal>) {
   return XML_BUILDER.buildObject({
     manifest: {
@@ -88,4 +103,17 @@ export function serializeVintfHals(hals: Array<VintfHal>) {
       hal: hals,
     }
   })
+}
+
+export async function writePartVintfManifests(partHals: PartitionVintfManifests, vintfDir: string) {
+  let paths = new Map<string, string>()
+  for (let [partition, hals] of partHals.entries()) {
+    if (hals.length > 0) {
+      let path = `${vintfDir}/adevtool_manifest_${partition}.xml`
+      await fs.writeFile(path, serializeVintfHals(hals))
+      paths.set(partition, path)
+    }
+  }
+
+  return paths
 }
