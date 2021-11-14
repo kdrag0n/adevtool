@@ -111,6 +111,7 @@ product/framework/libhwinfo.jar
 product/priv-app/AmbientSensePrebuilt/AmbientSensePrebuilt.apk
 product/priv-app/BetterBug/BetterBug.apk
 product/priv-app/CarrierMetrics/CarrierMetrics.apk
+product/priv-app/GoogleCamera/GoogleCamera.apk
 product/priv-app/HardwareInfo/HardwareInfo.apk
 product/priv-app/HelpRtcPrebuilt/HelpRtcPrebuilt.apk
 product/priv-app/MaestroPrebuilt/MaestroPrebuilt.apk
