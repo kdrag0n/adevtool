@@ -148,6 +148,8 @@ const DIFF_MAP_PACKAGES = new Map([
   ['com.google.android.networkstack.tethering', 'com.android.networkstack.tethering'],
 ])
 
+const XML_BUILDER = new xml2js.Builder()
+
 export type ResValue = number | boolean | string | Array<ResValue>
 
 export interface ResKey {
@@ -464,8 +466,6 @@ export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
 }
 
 export async function serializePartOverlays(partValues: PartResValues, overlaysDir: string) {
-  let xmlBuilder = new xml2js.Builder()
-
   let buildPkgs = []
   for (let [partition, values] of Object.entries(partValues)) {
     // Group by package
@@ -527,7 +527,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
         }
       }
 
-      let valuesXml = XML_HEADER + xmlBuilder.buildObject(valuesObj).replace(/^<\?xml.*>$/m, '')
+      let valuesXml = XML_HEADER + XML_BUILDER.buildObject(valuesObj).replace(/^<\?xml.*>$/m, '')
 
       // Write files
       let overlayDir = `${overlaysDir}/${partition}_${targetPkg}`
