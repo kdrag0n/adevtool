@@ -9,6 +9,7 @@ import { combinedPartPathToEntry, diffLists, listPart, serializeBlobList } from 
 import { diffPartOverlays, parsePartOverlayApks, serializePartOverlays } from '../blobs/overlays'
 import { parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
 import { diffPartitionProps, filterPartPropKeys, loadPartitionProps } from '../blobs/props'
+import { diffPartVintfManifests, loadPartVintfInfo, writePartVintfManifests } from '../blobs/vintf'
 import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
@@ -49,13 +50,11 @@ export default class GenerateFull extends Command {
     let namedEntries = new Map<string, BlobEntry>()
 
     // Prepare output directories
-    let {proprietaryDir, fwDir, overlaysDir} = await createVendorDirs(config.device.vendor, config.device.name)
+    let {proprietaryDir, fwDir, overlaysDir, vintfDir} = await createVendorDirs(config.device.vendor, config.device.name)
 
     // 1. Diff files
     let spinner = startActionSpinner('Enumerating files')
     for (let partition of ALL_PARTITIONS) {
-      spinner.text = partition
-
       let filesRef = await listPart(partition, stockRoot)
       if (filesRef == null) continue
       let filesNew = customState != null ? customState.partitionFiles[partition] :
@@ -68,6 +67,8 @@ export default class GenerateFull extends Command {
         let entry = combinedPartPathToEntry(partition, combinedPartPath)
         namedEntries.set(combinedPartPath, entry)
       }
+
+      spinner.text = partition
     }
     stopActionSpinner(spinner)
 
@@ -156,10 +157,17 @@ export default class GenerateFull extends Command {
       })
     let missingOverlays = diffPartOverlays(stockOverlays, customOverlays)
     let overlayPkgs = await serializePartOverlays(missingOverlays, overlaysDir)
-    console.log(missingOverlays)
     stopActionSpinner(spinner)
 
-    // 8. Firmware
+    // 8. vintf manifests
+    spinner = startActionSpinner('Extracting vintf manifests')
+    let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customRoot)
+    let stockVintf = await loadPartVintfInfo(stockRoot)
+    let missingHals = diffPartVintfManifests(customVintf, stockVintf)
+    let vintfManifestPaths = await writePartVintfManifests(missingHals, vintfDir)
+    stopActionSpinner(spinner)
+
+    // 9. Firmware
     let fwPaths: Array<string> | null = null
     if (factoryZip != undefined) {
       spinner = startActionSpinner('Extracting firmware')
@@ -177,7 +185,7 @@ export default class GenerateFull extends Command {
       stopActionSpinner(spinner)
     }
 
-    // 9. Build files
+    // 10. Build files
     spinner = startActionSpinner('Generating build files')
     let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, proprietaryDir)
 
@@ -194,6 +202,9 @@ export default class GenerateFull extends Command {
 
     // Add SELinux policies
     build.boardMakefile.secontextResolutions = ctxResolutions
+
+    // Add vintf manifest XMLs
+    build.productMakefile.vintfManifestPaths = vintfManifestPaths
 
     // Add firmware
     if (fwPaths != null) {
