@@ -157,7 +157,8 @@ system_ext/priv-app/FactoryOta/FactoryOta.apk`,
   `product/tts/google/
 product/wallpaper/
 product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
-product/etc/permissions/com.google.android.odad.xml`,
+product/etc/permissions/com.google.android.odad.xml
+product/etc/sysconfig/vendor-apex-allowlist.xml`,
 
   // Overlays are created separately; they should never be copied as-is.
   `system/overlay/
