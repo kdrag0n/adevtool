@@ -48,6 +48,11 @@ export function blobNeedsSoong(entry: BlobEntry, ext: string) {
     return true
   }
 
+  // Force Soong for APEXs to make them work better with flattened APEX builds.
+  if (ext == '.apex') {
+    return true
+  }
+
   // Otherwise, just copy the file
   return false
 }
