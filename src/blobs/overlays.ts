@@ -9,7 +9,8 @@ import { XML_HEADER } from '../util/headers'
 import { parseLines } from '../util/parse'
 import { EXT_PARTITIONS } from '../util/partitions'
 
-const TARGET_PACKAGE_PATTERN = /^\s+A: http:\/\/schemas.android.com\/apk\/res\/android:targetPackage\(0x[a-z0-9]+\)="(.+)" \(Raw: ".*$/m
+const TARGET_PACKAGE_PATTERN = makeManifestRegex('targetPackage')
+const TARGET_NAME_PATTERN = makeManifestRegex('targetName')
 
 // This is terrible, but aapt2 doesn't escape strings properly and some of these
 // strings contain double quotes, which break our parser.
@@ -52,8 +53,8 @@ const DIFF_EXCLUDE_KEYS = new Set([
   'android:string-array/config_disabledUntilUsedPreinstalledImes',
   'com.android.providers.contacts:string/metadata_sync_pacakge',
   'android:string/harmful_app_warning_title',
-  'com.google.android.permissioncontroller:string/help_app_permissions',
-  'com.google.android.networkstack:bool/config_dhcp_client_hostname',
+  'com.google.android.permissioncontroller/PermissionControllerStyles:string/help_app_permissions',
+  'com.google.android.networkstack/NetworkStackConfig:bool/config_dhcp_client_hostname',
   'android:string/config_defaultDndAccessPackages',
   'android:string/config_primaryLocationTimeZoneProviderPackageName',
   'android:string/config_secondaryLocationTimeZoneProviderPackageName',
@@ -146,7 +147,9 @@ const DIFF_EXCLUDE_KEYS = new Set([
 const DIFF_MAP_PACKAGES = new Map([
   ['com.google.android.wifi.resources', 'com.android.wifi.resources'],
   ['com.google.android.connectivity.resources', 'com.android.connectivity.resources'],
+  ['com.google.android.networkstack', 'com.android.networkstack'],
   ['com.google.android.networkstack.tethering', 'com.android.networkstack.tethering'],
+  ['com.google.android.permissioncontroller', 'com.android.permissioncontroller'],
 ])
 
 const XML_BUILDER = new xml2js.Builder()
@@ -155,6 +158,7 @@ export type ResValue = number | boolean | string | Array<ResValue>
 
 export interface ResKey {
   targetPkg: string
+  targetName: string | null
   type: string
   key: string
   flags: string | null
@@ -164,17 +168,30 @@ export type ResValues = Map<string, ResValue>
 
 export type PartResValues = { [part: string]: ResValues }
 
+function makeManifestRegex(attr: string) {
+  return new RegExp(
+    (/^\s+A: http:\/\/schemas.android.com\/apk\/res\/android:/).source +
+    attr +
+    (/\(0x[a-z0-9]+\)="(.+)" \(Raw: ".*$/).source,
+    'm' // multiline flag
+  )
+}
+
 function encodeResKey(key: ResKey) {
-  return `${key.targetPkg}:${key.type}/${key.key}${key.flags?.length ? `|${key.flags}` : ''}`
+  // pkg/name:type/key|flags
+  return `${key.targetPkg}${key.targetName?.length ? `/${key.targetName}` : ''}:` +
+    `${key.type}/${key.key}${key.flags?.length ? `|${key.flags}` : ''}`
 }
 
 export function decodeResKey(encoded: string) {
-  let [targetPkg, tkf] = encoded.split(':')
+  let [tpn, tkf] = encoded.split(':')
+  let [targetPkg, targetName] = tpn.split('/')
   let [type, kf] = tkf.split('/')
   let [key, flags] = kf.split('|')
 
   return {
     targetPkg: targetPkg,
+    targetName: targetName != undefined ? targetName: null,
     type: type,
     key: key,
     flags: flags != undefined ? flags : null,
@@ -183,12 +200,14 @@ export function decodeResKey(encoded: string) {
 
 function toResKey(
   targetPkg: string,
+  targetName: string | null,
   type: string | null,
   key: string | null,
   flags: string | null,
 ) {
   return encodeResKey({
     targetPkg: targetPkg,
+    targetName: targetName,
     type: type!,
     key: key!,
     flags: flags!,
@@ -198,6 +217,7 @@ function toResKey(
 function finishArray(
   values: Map<string, ResValue>,
   targetPkg: string,
+  targetName: string | null,
   type: string | null,
   key: string | null,
   flags: string | null,
@@ -221,7 +241,7 @@ function finishArray(
     }
   }
 
-  values.set(toResKey(targetPkg, type, key, flags), array)
+  values.set(toResKey(targetPkg, targetName, type, key, flags), array)
 }
 
 function parseAaptJson(value: string) {
@@ -234,7 +254,7 @@ function parseAaptJson(value: string) {
   return JSON.parse(value)
 }
 
-function parseRsrcLines(rsrc: string, targetPkg: string) {
+function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | null) {
   // Finished values with encoded res keys
   let values: ResValues = new Map<string, ResValue>()
 
@@ -251,7 +271,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string) {
     if (resStart) {
       // Finish last array?
       if (curArray != null) {
-        finishArray(values, targetPkg, curType, curKey, curFlags, curArray)
+        finishArray(values, targetPkg, targetName, curType, curKey, curFlags, curArray)
       }
 
       let keyParts = resStart[1]!.split('/')
@@ -267,7 +287,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string) {
     if (arrayLine) {
       // Finish last array?
       if (curArray != null) {
-        finishArray(values, targetPkg, curType, curKey, curFlags, curArray)
+        finishArray(values, targetPkg, targetName, curType, curKey, curFlags, curArray)
       }
 
       // Start new array
@@ -310,7 +330,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string) {
         value = parseAaptJson(rawValue)
       }
 
-      values.set(toResKey(targetPkg, curType, curKey, curFlags), value)
+      values.set(toResKey(targetPkg, targetName, curType, curKey, curFlags), value)
     }
 
     // New type section
@@ -329,7 +349,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string) {
 
   // Finish remaining array?
   if (curArray != null) {
-    finishArray(values, targetPkg, curType, curKey, curFlags, curArray)
+    finishArray(values, targetPkg, targetName, curType, curKey, curFlags, curArray)
   }
 
   return values
@@ -367,9 +387,13 @@ async function parseOverlayApksRecursive(
     if (!match) throw new Error(`Overlay ${apkPath} is missing target package`)
     let targetPkg = match[1]
 
+    // Get the target overlayable config name, if it exists
+    match = manifest.match(TARGET_NAME_PATTERN)
+    let targetName = match == undefined ? null : match[1]
+
     // Overlay is eligible, now read the resource table
     let rsrc = await aapt2(aapt2Path, 'dump', 'resources', apkPath)
-    let apkValues = parseRsrcLines(rsrc, targetPkg)
+    let apkValues = parseRsrcLines(rsrc, targetPkg, targetName)
 
     // Merge overlayed values
     for (let [key, value] of apkValues) {
@@ -429,10 +453,8 @@ function filterValues(values: ResValues) {
     } else if (DIFF_MAP_PACKAGES.has(key.targetPkg)) {
       let targetPkg = DIFF_MAP_PACKAGES.get(key.targetPkg)!
       let newKey = encodeResKey({
+        ...key,
         targetPkg: targetPkg,
-        type: key.type,
-        key: key.key,
-        flags: key.flags,
       })
 
       values.delete(rawKey)
@@ -466,22 +488,29 @@ export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
   return missingPartValues
 }
 
+function serializeXmlObject(obj: any) {
+  return XML_HEADER + XML_BUILDER.buildObject(obj).replace(/^<\?xml.*>$/m, '')
+}
+
 export async function serializePartOverlays(partValues: PartResValues, overlaysDir: string) {
   let buildPkgs = []
   for (let [partition, values] of Object.entries(partValues)) {
-    // Group by package
+    // Group by package and target name
     let pkgValues = new Map<string, Map<ResKey, ResValue>>()
     for (let [key, value] of values.entries()) {
       let keyInfo = decodeResKey(key)
-      if (pkgValues.has(keyInfo.targetPkg)) {
-        pkgValues.get(keyInfo.targetPkg)!.set(keyInfo, value)
+      let pkgNameKey = `${keyInfo.targetPkg}${keyInfo.targetName?.length ? `/${keyInfo.targetName}` : ''}`
+
+      if (pkgValues.has(pkgNameKey)) {
+        pkgValues.get(pkgNameKey)!.set(keyInfo, value)
       } else {
-        pkgValues.set(keyInfo.targetPkg, new Map<ResKey, ResValue>([[keyInfo, value]]))
+        pkgValues.set(pkgNameKey, new Map<ResKey, ResValue>([[keyInfo, value]]))
       }
     }
 
-    // Now serialize each package-partition combination
-    for (let [targetPkg, values] of pkgValues.entries()) {
+    // Now serialize each (package,target)-partition combination
+    for (let [pkgNameKey, values] of pkgValues.entries()) {
+      let [targetPkg, targetName] = pkgNameKey.split('/')
       let rroName = `${targetPkg}.auto_generated_rro_${partition}_adevtool__`
 
       let bp = serializeBlueprint({
@@ -497,15 +526,25 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
         }],
       })
 
-      let manifest = `${XML_HEADER}
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="${rroName}">
-
-    <overlay android:targetPackage="${targetPkg}" android:isStatic="true" android:priority="1" />
-    <application android:hasCode="false" />
-
-</manifest>
-`
+      let manifest = serializeXmlObject({
+        manifest: {
+          $: {
+            'xmlns:android': 'http://schemas.android.com/apk/res/android',
+            package: rroName,
+          },
+          overlay: [
+            {
+              $: {
+                'android:targetPackage': targetPkg,
+                'android:targetName': targetName,
+                'android:isStatic': 'true',
+                'android:priority': '1',
+              },
+            },
+          ],
+          application: [ { $: { 'android:hasCode': 'false' } } ],
+        },
+      })
 
       let valuesObj = { resources: { } as { [type: string]: Array<any> } }
       for (let [{type, key}, value] of values.entries()) {
@@ -528,7 +567,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
         }
       }
 
-      let valuesXml = XML_HEADER + XML_BUILDER.buildObject(valuesObj).replace(/^<\?xml.*>$/m, '')
+      let valuesXml = serializeXmlObject(valuesObj)
 
       // Write files
       let overlayDir = `${overlaysDir}/${partition}_${targetPkg}`
