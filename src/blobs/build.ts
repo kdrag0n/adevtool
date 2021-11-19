@@ -111,7 +111,7 @@ export async function generateBuild(
   }
 
   let buildPackages = Array.from(namedModules.keys())
-  buildPackages.push(...symlinks.map(l => l.moduleName))
+  buildPackages.push('device_symlinks')
 
   return {
     blueprint: {

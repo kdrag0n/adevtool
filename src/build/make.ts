@@ -1,4 +1,4 @@
-import { basename } from 'path'
+import { basename, dirname } from 'path'
 import { BlobEntry } from '../blobs/entry'
 import { PartitionProps } from '../blobs/props'
 import { SelinuxPartResolutions } from '../sepolicy/contexts'
@@ -87,24 +87,28 @@ export function serializeModulesMakefile(mk: ModulesMakefile) {
     blocks.push(mk.radioFiles.map(img => `$(call add-radio-file,${img})`).join('\n'))
   }
 
-  for (let link of mk.symlinks) {
-    let destPath = partPathToMakePath(link.linkPartition, link.linkSubpath)
+  if (mk.symlinks.length > 0) {
+    let mkdirCmds = new Set<string>()
+    let linkCmds = []
+    for (let link of mk.symlinks) {
+      let destPath = `$(PRODUCT_OUT)/${link.linkPartition}/${link.linkSubpath}`
+      mkdirCmds.add(`mkdir -p ${dirname(destPath)};`)
+      linkCmds.push(`ln -sf ${link.targetPath} ${destPath};`)
+    }
 
     blocks.push(`include $(CLEAR_VARS)
-LOCAL_MODULE := ${link.moduleName}
-LOCAL_MODULE_CLASS := FAKE
+LOCAL_MODULE := device_symlinks
+LOCAL_MODULE_CLASS := ETC
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := ${mk.vendor}
-include $(BUILD_SYSTEM)/base_rules.mk
-$(LOCAL_BUILT_MODULE): TARGET := ${link.targetPath}
-$(LOCAL_BUILT_MODULE): SYMLINK := ${destPath}
-$(LOCAL_BUILT_MODULE):
-\t$(hide) mkdir -p $(dir $@)
-\t$(hide) mkdir -p $(dir $(SYMLINK))
-\t$(hide) rm -rf $@
-\t$(hide) rm -rf $(SYMLINK)
-\t$(hide) ln -sf $(TARGET) $(SYMLINK)
-\t$(hide) touch $@`)
+LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_ETC)
+LOCAL_MODULE_STEM := .device_symlinks
+LOCAL_SRC_FILES := Android.mk
+LOCAL_POST_INSTALL_CMD := \\
+    ${Array.from(mkdirCmds).join(CONT_SEPARATOR)} \\
+    ${linkCmds.join(CONT_SEPARATOR)} \\
+    rm -f $(TARGET_OUT_VENDOR_ETC)/.device_symlinks
+include $(BUILD_PREBUILT)`)
   }
 
   blocks.push('endif')
