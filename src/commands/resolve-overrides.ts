@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 
-import { serializeProductMakefile } from '../build/make'
+import { serializeDeviceMakefile } from '../build/make'
 import { findOverrideModules, parseOverrides } from '../build/overrides'
 import { parseModuleInfo } from '../build/soong-info'
 
@@ -25,7 +25,7 @@ export default class ResolveOverrides extends Command {
     let modulesMap = parseModuleInfo(await fs.readFile(moduleInfo, { encoding: 'utf8' }))
 
     let {modules, missingPaths} = findOverrideModules(overrides, modulesMap)
-    let makefile = serializeProductMakefile({
+    let makefile = serializeDeviceMakefile({
       packages: modules,
     })
 

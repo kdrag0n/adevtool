@@ -43,7 +43,7 @@ export interface BoardMakefile {
   secontextResolutions?: SelinuxPartResolutions
 }
 
-export interface ProductMakefile {
+export interface DeviceMakefile {
   namespaces?: Array<string>
   copyFiles?: Array<string>
   packages?: Array<string>
@@ -168,7 +168,7 @@ TARGET_COPY_OUT_ODM_DLKM := odm_dlkm`)
   return finishBlocks(blocks)
 }
 
-export function serializeProductMakefile(mk: ProductMakefile) {
+export function serializeDeviceMakefile(mk: DeviceMakefile) {
   let blocks = startBlocks()
 
   addContBlock(blocks, 'PRODUCT_SOONG_NAMESPACES', mk.namespaces)

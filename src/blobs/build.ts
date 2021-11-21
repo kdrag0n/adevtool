@@ -1,14 +1,14 @@
 import * as path from 'path'
 import { promises as fs } from 'fs'
 
-import { blobToFileCopy, BoardMakefile, ModulesMakefile, ProductMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeProductMakefile, Symlink } from '../build/make'
+import { blobToFileCopy, BoardMakefile, ModulesMakefile, DeviceMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeDeviceMakefile, Symlink } from '../build/make'
 import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS, TYPE_SHARED_LIBRARY } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
 
 export interface BuildFiles {
   blueprint: SoongBlueprint
   modulesMakefile: ModulesMakefile
-  productMakefile: ProductMakefile
+  deviceMakefile: DeviceMakefile
   boardMakefile: BoardMakefile
 }
 
@@ -122,7 +122,7 @@ export async function generateBuild(
       vendor: vendor,
       symlinks: symlinks,
     },
-    productMakefile: {
+    deviceMakefile: {
       namespaces: [proprietaryDir],
       packages: buildPackages,
       copyFiles: copyFiles,
@@ -164,8 +164,8 @@ export async function writeBuildFiles(build: BuildFiles, proprietaryDir: string)
   let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
   await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
 
-  let productMakefile = serializeProductMakefile(build.productMakefile)
-  await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, productMakefile)
+  let deviceMakefile = serializeDeviceMakefile(build.deviceMakefile)
+  await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, deviceMakefile)
 
   let boardMakefile = serializeBoardMakefile(build.boardMakefile)
   await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)

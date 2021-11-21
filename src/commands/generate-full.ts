@@ -190,12 +190,12 @@ export default class GenerateFull extends Command {
     let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, proprietaryDir)
 
     // Add rules to build overridden modules and overlays, then re-sort
-    build.productMakefile.packages!.push(...builtModules, ...overlayPkgs)
-    build.productMakefile.packages!.sort((a, b) => a.localeCompare(b))
+    build.deviceMakefile.packages!.push(...builtModules, ...overlayPkgs)
+    build.deviceMakefile.packages!.sort((a, b) => a.localeCompare(b))
 
     // Add props, fingerprint, and OTA partitions
-    build.productMakefile.props = missingProps
-    build.productMakefile.fingerprint = fingerprint
+    build.deviceMakefile.props = missingProps
+    build.deviceMakefile.fingerprint = fingerprint
     if (missingOtaParts.length > 0) {
       build.boardMakefile.abOtaPartitions = missingOtaParts
     }
@@ -204,7 +204,7 @@ export default class GenerateFull extends Command {
     build.boardMakefile.secontextResolutions = ctxResolutions
 
     // Add vintf manifest XMLs
-    build.productMakefile.vintfManifestPaths = vintfManifestPaths
+    build.deviceMakefile.vintfManifestPaths = vintfManifestPaths
 
     // Add firmware
     if (fwPaths != null) {
