@@ -514,7 +514,6 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
       let rroName = `${targetPkg}.auto_generated_rro_${partition}_adevtool__`
 
       let bp = serializeBlueprint({
-        noNamespace: true,
         modules: [{
           _type: 'runtime_resource_overlay',
           name: rroName,

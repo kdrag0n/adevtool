@@ -125,9 +125,9 @@ export type SoongModule = {
 } & SoongModuleSpecific
 
 export interface SoongBlueprint {
-  noNamespace?: boolean
+  namespace?: boolean
 
-  modules: Iterable<SoongModule>
+  modules?: Iterable<SoongModule>
 }
 
 function getRelativeInstallPath(entry: BlobEntry, pathParts: Array<string>, installDir: string) {
@@ -147,7 +147,6 @@ export function blobToSoongModule(
   entrySrcPaths: Set<string>,
 ) {
   let pathParts = entry.path.split('/')
-  let srcPath = `proprietary/${entry.srcPath}`
 
   // Type and info is based on file extension
   let moduleSpecific: SoongModuleSpecific
@@ -157,7 +156,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'sh_binary',
-      src: srcPath,
+      src: entry.srcPath,
       ...(relPath && { sub_dir: relPath }),
     }
   } else if (ext == '.xml') {
@@ -165,7 +164,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_etc_xml',
-      src: srcPath,
+      src: entry.srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
@@ -175,7 +174,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'cc_prebuilt_binary',
-      srcs: [srcPath],
+      srcs: [entry.srcPath],
       ...(name != pathParts.at(-1) && { stem: pathParts.at(-1) }),
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
@@ -189,7 +188,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_dsp',
-      src: srcPath,
+      src: entry.srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
@@ -198,7 +197,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_etc',
-      src: srcPath,
+      src: entry.srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
@@ -231,7 +230,7 @@ export function blobToSoongModule(
 
     // For single-arch
     let targetSrcs = {
-      srcs: [srcPath],
+      srcs: [entry.srcPath],
     } as TargetSrcs
 
     // For multi-arch
@@ -265,7 +264,7 @@ export function blobToSoongModule(
   } else if (ext == '.apk') {
     moduleSpecific = {
       _type: 'android_app_import',
-      apk: srcPath,
+      apk: entry.srcPath,
       ...(entry.isPresigned && { presigned: true } || { certificate: 'platform' }),
       ...(entry.path.startsWith('priv-app/') && { privileged: true }),
       dex_preopt: {
@@ -275,12 +274,12 @@ export function blobToSoongModule(
   } else if (ext == '.jar') {
     moduleSpecific = {
       _type: 'dex_import',
-      jars: [srcPath],
+      jars: [entry.srcPath],
     }
   } else if (ext == '.apex') {
     moduleSpecific = {
       _type: 'prebuilt_apex',
-      src: srcPath,
+      src: entry.srcPath,
       prefer: true,
     }
   } else {
@@ -337,15 +336,17 @@ export function serializeBlueprint(bp: SoongBlueprint) {
   let serializedModules = []
 
   // Declare namespace
-  if (!bp.noNamespace) {
+  if (bp.namespace) {
     serializedModules.push(serializeModule({
       _type: 'soong_namespace',
     }))
   }
 
-  for (let module of bp.modules) {
-    let serialized = serializeModule(module)
-    serializedModules.push(serialized)
+  if (bp.modules != undefined) {
+    for (let module of bp.modules) {
+      let serialized = serializeModule(module)
+      serializedModules.push(serialized)
+    }
   }
 
   return `${SOONG_HEADER}
