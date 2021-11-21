@@ -1,15 +1,19 @@
 import * as path from 'path'
 import { promises as fs } from 'fs'
 
-import { blobToFileCopy, BoardMakefile, ModulesMakefile, DeviceMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeDeviceMakefile, Symlink } from '../build/make'
+import { blobToFileCopy, BoardMakefile, ModulesMakefile, DeviceMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeDeviceMakefile, Symlink, ProductsMakefile, ProductMakefile, serializeProductMakefile, serializeProductsMakefile } from '../build/make'
 import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS, TYPE_SHARED_LIBRARY } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
 
 export interface BuildFiles {
-  blueprint: SoongBlueprint
-  modulesMakefile: ModulesMakefile
-  deviceMakefile: DeviceMakefile
-  boardMakefile: BoardMakefile
+  blueprint?: SoongBlueprint
+  modulesMakefile?: ModulesMakefile
+
+  deviceMakefile?: DeviceMakefile
+  boardMakefile?: BoardMakefile
+
+  productMakefile?: ProductMakefile
+  productsMakefile?: ProductsMakefile
 }
 
 export interface VendorDirectories {
@@ -127,7 +131,6 @@ export async function generateBuild(
       packages: buildPackages,
       copyFiles: copyFiles,
     },
-    boardMakefile: {},
   } as BuildFiles
 }
 
@@ -157,16 +160,34 @@ export async function createVendorDirs(vendor: string, device: string) {
   } as VendorDirectories
 }
 
-export async function writeBuildFiles(build: BuildFiles, proprietaryDir: string) {
-  let blueprint = serializeBlueprint(build.blueprint)
-  await fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
+export async function writeBuildFiles(build: BuildFiles, outDir: string, proprietaryDir: string) {
+  if (build.blueprint != undefined) {
+    let blueprint = serializeBlueprint(build.blueprint)
+    await fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
+  }
 
-  let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
-  await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
+  if (build.modulesMakefile != undefined) {
+    let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
+    await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
+  }
 
-  let deviceMakefile = serializeDeviceMakefile(build.deviceMakefile)
-  await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, deviceMakefile)
+  if (build.deviceMakefile != undefined) {
+    let deviceMakefile = serializeDeviceMakefile(build.deviceMakefile)
+    await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, deviceMakefile)
+  }
 
-  let boardMakefile = serializeBoardMakefile(build.boardMakefile)
-  await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
+  if (build.boardMakefile != undefined) {
+    let boardMakefile = serializeBoardMakefile(build.boardMakefile)
+    await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
+  }
+
+  if (build.productMakefile != undefined) {
+    let productMakefile = serializeProductMakefile(build.productMakefile)
+    await fs.writeFile(`${outDir}/${build.productMakefile.name}.mk`, productMakefile)
+  }
+
+  if (build.productsMakefile != undefined) {
+    let productsMakefile = serializeProductsMakefile(build.productsMakefile)
+    await fs.writeFile(`${outDir}/AndroidProducts.mk`, productsMakefile)
+  }
 }

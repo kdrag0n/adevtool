@@ -54,6 +54,19 @@ export interface DeviceMakefile {
   fingerprint?: string
 }
 
+export interface ProductsMakefile {
+  products: Array<string>
+}
+
+export interface ProductMakefile {
+  baseProductPath: string
+
+  name: string
+  model: string
+  brand: string
+  manufacturer: string
+}
+
 function startBlocks() {
   return [MAKEFILE_HEADER]
 }
@@ -197,6 +210,29 @@ export function serializeDeviceMakefile(mk: DeviceMakefile) {
   if (mk.fingerprint != undefined) {
     blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT := ${mk.fingerprint}`)
   }
+
+  return finishBlocks(blocks)
+}
+
+export function serializeProductMakefile(mk: ProductMakefile) {
+  // Use a raw template for simplicity
+  return `${MAKEFILE_HEADER}
+
+# Inherit AOSP product
+$(call inherit-product, ${mk.baseProductPath})
+
+# Match stock product info
+PRODUCT_NAME := ${mk.name}
+PRODUCT_MODEL := ${mk.model}
+PRODUCT_BRAND := ${mk.brand}
+PRODUCT_MANUFACTURER := ${mk.manufacturer}
+`
+}
+
+export function serializeProductsMakefile(mk: ProductsMakefile) {
+  let blocks = [MAKEFILE_HEADER]
+
+  addContBlock(blocks, 'PRODUCT_MAKEFILES', mk.products.map(p => `$(LOCAL_DIR)/${p}.mk`))
 
   return finishBlocks(blocks)
 }
