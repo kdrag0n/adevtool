@@ -197,7 +197,6 @@ export default class GenerateFull extends Command {
     build.deviceMakefile = {
       props: missingProps,
       fingerprint: fingerprint,
-      ...(missingOtaParts.length > 0 && { abOtaPartitions: missingOtaParts }),
       vintfManifestPaths: vintfManifestPaths,
       ...build.deviceMakefile,
     }
@@ -205,6 +204,7 @@ export default class GenerateFull extends Command {
     // Add board parts
     build.boardMakefile = {
       secontextResolutions: ctxResolutions,
+      ...(missingOtaParts.length > 0 && { abOtaPartitions: missingOtaParts }),
       ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
     }
 
