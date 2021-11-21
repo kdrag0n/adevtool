@@ -50,7 +50,7 @@ export default class GenerateFull extends Command {
     let namedEntries = new Map<string, BlobEntry>()
 
     // Prepare output directories
-    let {proprietaryDir, fwDir, overlaysDir, vintfDir} = await createVendorDirs(config.device.vendor, config.device.name)
+    let {outDir, proprietaryDir, fwDir, overlaysDir, vintfDir} = await createVendorDirs(config.device.vendor, config.device.name)
 
     // 1. Diff files
     let spinner = startActionSpinner('Enumerating files')
@@ -190,33 +190,48 @@ export default class GenerateFull extends Command {
     let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, proprietaryDir)
 
     // Add rules to build overridden modules and overlays, then re-sort
-    build.deviceMakefile.packages!.push(...builtModules, ...overlayPkgs)
-    build.deviceMakefile.packages!.sort((a, b) => a.localeCompare(b))
+    build.deviceMakefile!.packages!.push(...builtModules, ...overlayPkgs)
+    build.deviceMakefile!.packages!.sort((a, b) => a.localeCompare(b))
 
-    // Add props, fingerprint, and OTA partitions
-    build.deviceMakefile.props = missingProps
-    build.deviceMakefile.fingerprint = fingerprint
-    if (missingOtaParts.length > 0) {
-      build.boardMakefile.abOtaPartitions = missingOtaParts
+    // Add device parts
+    build.deviceMakefile = {
+      props: missingProps,
+      fingerprint: fingerprint,
+      ...(missingOtaParts.length > 0 && { abOtaPartitions: missingOtaParts }),
+      vintfManifestPaths: vintfManifestPaths,
+      ...build.deviceMakefile,
     }
 
-    // Add SELinux policies
-    build.boardMakefile.secontextResolutions = ctxResolutions
-
-    // Add vintf manifest XMLs
-    build.deviceMakefile.vintfManifestPaths = vintfManifestPaths
+    // Add board parts
+    build.boardMakefile = {
+      secontextResolutions: ctxResolutions,
+      ...(fwPaths != null && { boardInfo: `${fwDir}/${ANDROID_INFO}` }),
+    }
 
     // Add firmware
     if (fwPaths != null) {
-      build.boardMakefile.boardInfo = `${fwDir}/${ANDROID_INFO}`
-      build.modulesMakefile.radioFiles = fwPaths.map(p => path.relative(proprietaryDir, p))
+      build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(proprietaryDir, p))
+    }
+
+    // Create device
+    let productProps = stockProps.get('product')!
+    let productName = productProps.get('ro.product.product.name')!
+    build.productMakefile = {
+      baseProductPath: config.product_makefile,
+      name: productName,
+      model: productProps.get('ro.product.product.model')!,
+      brand: productProps.get('ro.product.product.brand')!,
+      manufacturer: productProps.get('ro.product.product.manufacturer')!,
+    }
+    build.productsMakefile = {
+      products: [productName],
     }
 
     // Dump list
     let fileList = serializeBlobList(entries)
     await fs.writeFile(`${proprietaryDir}/proprietary-files.txt`, fileList)
 
-    await writeBuildFiles(build, proprietaryDir)
+    await writeBuildFiles(build, outDir, proprietaryDir)
     stopActionSpinner(spinner)
   }
 }

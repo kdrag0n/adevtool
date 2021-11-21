@@ -10,6 +10,7 @@ export interface DeviceConfig {
   device: DeviceInfo
   namespaces?: Array<string>
   sepolicy_dirs: Array<string>
+  product_makefile: string
 
   prop_filters?: PropFilters
 
