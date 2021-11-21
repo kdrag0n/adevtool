@@ -50,7 +50,7 @@ export default class GenerateFull extends Command {
     let namedEntries = new Map<string, BlobEntry>()
 
     // Prepare output directories
-    let {outDir, proprietaryDir, fwDir, overlaysDir, vintfDir} = await createVendorDirs(config.device.vendor, config.device.name)
+    let dirs = await createVendorDirs(config.device.vendor, config.device.name)
 
     // 1. Diff files
     let spinner = startActionSpinner('Enumerating files')
@@ -80,7 +80,7 @@ export default class GenerateFull extends Command {
 
     let moduleInfoPath = `${targetPrefix}module-info.json`
     let modulesMap = parseModuleInfo(await fs.readFile(moduleInfoPath, { encoding: 'utf8' }))
-    removeSelfModules(modulesMap, proprietaryDir)
+    removeSelfModules(modulesMap, dirs.proprietary)
     let {modules: builtModules, builtPaths} = findOverrideModules(targetPaths, modulesMap)
 
     // Remove new modules from entries
@@ -103,7 +103,7 @@ export default class GenerateFull extends Command {
     // 4. Extract
     // Copy blobs (this has its own spinner)
     if (!skipCopy) {
-      await copyBlobs(entries, stockRoot, proprietaryDir)
+      await copyBlobs(entries, stockRoot, dirs.proprietary)
     }
 
     // 5. Props
@@ -156,7 +156,7 @@ export default class GenerateFull extends Command {
         spinner.text = path
       })
     let missingOverlays = diffPartOverlays(stockOverlays, customOverlays)
-    let overlayPkgs = await serializePartOverlays(missingOverlays, overlaysDir)
+    let overlayPkgs = await serializePartOverlays(missingOverlays, dirs.overlays)
     stopActionSpinner(spinner)
 
     // 8. vintf manifests
@@ -164,7 +164,7 @@ export default class GenerateFull extends Command {
     let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customRoot)
     let stockVintf = await loadPartVintfInfo(stockRoot)
     let missingHals = diffPartVintfManifests(customVintf, stockVintf)
-    let vintfManifestPaths = await writePartVintfManifests(missingHals, vintfDir)
+    let vintfManifestPaths = await writePartVintfManifests(missingHals, dirs.vintf)
     stopActionSpinner(spinner)
 
     // 9. Firmware
@@ -172,7 +172,7 @@ export default class GenerateFull extends Command {
     if (factoryZip != undefined) {
       spinner = startActionSpinner('Extracting firmware')
       let fwImages = await extractFactoryFirmware(factoryZip)
-      fwPaths = await writeFirmwareImages(fwImages, fwDir)
+      fwPaths = await writeFirmwareImages(fwImages, dirs.firmware)
 
       // Generate android-info.txt from device and versions
       let androidInfo = generateAndroidInfo(
@@ -180,14 +180,14 @@ export default class GenerateFull extends Command {
         stockProps.get('vendor')!.get('ro.build.expect.bootloader')!,
         stockProps.get('vendor')!.get('ro.build.expect.baseband')!,
       )
-      await fs.writeFile(`${fwDir}/${ANDROID_INFO}`, androidInfo)
+      await fs.writeFile(`${dirs.firmware}/${ANDROID_INFO}`, androidInfo)
 
       stopActionSpinner(spinner)
     }
 
     // 10. Build files
     spinner = startActionSpinner('Generating build files')
-    let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, proprietaryDir)
+    let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, dirs)
 
     // Add rules to build overridden modules and overlays, then re-sort
     build.deviceMakefile!.packages!.push(...builtModules, ...overlayPkgs)
@@ -205,12 +205,12 @@ export default class GenerateFull extends Command {
     // Add board parts
     build.boardMakefile = {
       secontextResolutions: ctxResolutions,
-      ...(fwPaths != null && { boardInfo: `${fwDir}/${ANDROID_INFO}` }),
+      ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
     }
 
     // Add firmware
     if (fwPaths != null) {
-      build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(proprietaryDir, p))
+      build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(dirs.out, p))
     }
 
     // Create device
@@ -229,9 +229,9 @@ export default class GenerateFull extends Command {
 
     // Dump list
     let fileList = serializeBlobList(entries)
-    await fs.writeFile(`${proprietaryDir}/proprietary-files.txt`, fileList)
+    await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList)
 
-    await writeBuildFiles(build, outDir, proprietaryDir)
+    await writeBuildFiles(build, dirs)
     stopActionSpinner(spinner)
   }
 }

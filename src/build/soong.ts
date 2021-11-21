@@ -147,6 +147,7 @@ export function blobToSoongModule(
   entrySrcPaths: Set<string>,
 ) {
   let pathParts = entry.path.split('/')
+  let srcPath = `proprietary/${entry.srcPath}`
 
   // Type and info is based on file extension
   let moduleSpecific: SoongModuleSpecific
@@ -156,7 +157,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'sh_binary',
-      src: entry.srcPath,
+      src: srcPath,
       ...(relPath && { sub_dir: relPath }),
     }
   } else if (ext == '.xml') {
@@ -164,7 +165,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_etc_xml',
-      src: entry.srcPath,
+      src: srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
@@ -174,7 +175,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'cc_prebuilt_binary',
-      srcs: [entry.srcPath],
+      srcs: [srcPath],
       ...(name != pathParts.at(-1) && { stem: pathParts.at(-1) }),
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
@@ -188,7 +189,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_dsp',
-      src: entry.srcPath,
+      src: srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
@@ -197,7 +198,7 @@ export function blobToSoongModule(
 
     moduleSpecific = {
       _type: 'prebuilt_etc',
-      src: entry.srcPath,
+      src: srcPath,
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
@@ -230,7 +231,7 @@ export function blobToSoongModule(
 
     // For single-arch
     let targetSrcs = {
-      srcs: [entry.srcPath],
+      srcs: [srcPath],
     } as TargetSrcs
 
     // For multi-arch
@@ -264,7 +265,7 @@ export function blobToSoongModule(
   } else if (ext == '.apk') {
     moduleSpecific = {
       _type: 'android_app_import',
-      apk: entry.srcPath,
+      apk: srcPath,
       ...(entry.isPresigned && { presigned: true } || { certificate: 'platform' }),
       ...(entry.path.startsWith('priv-app/') && { privileged: true }),
       dex_preopt: {
@@ -274,12 +275,12 @@ export function blobToSoongModule(
   } else if (ext == '.jar') {
     moduleSpecific = {
       _type: 'dex_import',
-      jars: [entry.srcPath],
+      jars: [srcPath],
     }
   } else if (ext == '.apex') {
     moduleSpecific = {
       _type: 'prebuilt_apex',
-      src: entry.srcPath,
+      src: srcPath,
       prefer: true,
     }
   } else {

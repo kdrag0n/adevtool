@@ -4,11 +4,11 @@ import * as path from 'path'
 import { BlobEntry } from './entry'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 
-export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, outDir: string) {
+export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, destDir: string) {
   let spinner = startActionSpinner('Copying files')
 
   for (let entry of entries) {
-    let outPath = `${outDir}/${entry.srcPath}`
+    let outPath = `${destDir}/${entry.srcPath}`
     let srcPath = `${srcDir}/${entry.srcPath}`
     spinner.text = entry.srcPath
 

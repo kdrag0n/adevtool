@@ -30,16 +30,16 @@ export default class Extract extends Command {
     let entries = parseFileList(list)
 
     // Prepare output directories
-    let {proprietaryDir} = await createVendorDirs(vendor, device)
+    let dirs = await createVendorDirs(vendor, device)
 
     // Copy blobs
     if (!skipCopy) {
-      await copyBlobs(entries, source, proprietaryDir)
+      await copyBlobs(entries, source, dirs.proprietary)
     }
 
     // Generate build files
     this.log(chalk.bold(chalk.greenBright('Generating build files')))
-    let build = await generateBuild(entries, device, vendor, source, proprietaryDir)
-    await writeBuildFiles(build, proprietaryDir)
+    let build = await generateBuild(entries, device, vendor, source, dirs)
+    await writeBuildFiles(build, dirs)
   }
 }

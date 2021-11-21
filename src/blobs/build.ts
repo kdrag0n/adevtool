@@ -17,11 +17,11 @@ export interface BuildFiles {
 }
 
 export interface VendorDirectories {
-  outDir: string
-  proprietaryDir: string
-  fwDir: string
-  overlaysDir: string
-  vintfDir: string
+  out: string
+  proprietary: string
+  firmware: string
+  overlays: string
+  vintf: string
 }
 
 function nameDepKey(entry: BlobEntry) {
@@ -34,7 +34,7 @@ export async function generateBuild(
   device: string,
   vendor: string,
   source: string,
-  proprietaryDir: string,
+  dirs: VendorDirectories,
 ) {
   // Re-sort entries to give priority to explicit named dependencies in name
   // conflict resolution. XMLs are also de-prioritized because they have
@@ -111,7 +111,7 @@ export async function generateBuild(
     // Other files (and failed Soong files) -> Kati Makefile
 
     // Simple PRODUCT_COPY_FILES line
-    copyFiles.push(blobToFileCopy(entry, proprietaryDir))
+    copyFiles.push(blobToFileCopy(entry, dirs.proprietary))
   }
 
   let buildPackages = Array.from(namedModules.keys())
@@ -127,7 +127,7 @@ export async function generateBuild(
       symlinks: symlinks,
     },
     deviceMakefile: {
-      namespaces: [proprietaryDir],
+      namespaces: [dirs.out],
       packages: buildPackages,
       copyFiles: copyFiles,
     },
@@ -142,52 +142,52 @@ export async function createVendorDirs(vendor: string, device: string) {
   let proprietaryDir = `${outDir}/proprietary`
   await fs.mkdir(proprietaryDir, { recursive: true })
 
-  let fwDir = `${proprietaryDir}/firmware`
+  let fwDir = `${outDir}/firmware`
   await fs.mkdir(fwDir, { recursive: true })
 
-  let overlaysDir = `${proprietaryDir}/overlays`
+  let overlaysDir = `${outDir}/overlays`
   await fs.mkdir(overlaysDir, { recursive: true })
 
-  let vintfDir = `${proprietaryDir}/vintf`
+  let vintfDir = `${outDir}/vintf`
   await fs.mkdir(vintfDir, { recursive: true })
 
   return {
-    outDir: outDir,
-    proprietaryDir: proprietaryDir,
-    fwDir: fwDir,
-    overlaysDir: overlaysDir,
-    vintfDir: vintfDir,
+    out: outDir,
+    proprietary: proprietaryDir,
+    firmware: fwDir,
+    overlays: overlaysDir,
+    vintf: vintfDir,
   } as VendorDirectories
 }
 
-export async function writeBuildFiles(build: BuildFiles, outDir: string, proprietaryDir: string) {
+export async function writeBuildFiles(build: BuildFiles, dirs: VendorDirectories) {
   if (build.blueprint != undefined) {
     let blueprint = serializeBlueprint(build.blueprint)
-    await fs.writeFile(`${proprietaryDir}/Android.bp`, blueprint)
+    await fs.writeFile(`${dirs.out}/Android.bp`, blueprint)
   }
 
   if (build.modulesMakefile != undefined) {
     let modulesMakefile = serializeModulesMakefile(build.modulesMakefile)
-    await fs.writeFile(`${proprietaryDir}/Android.mk`, modulesMakefile)
+    await fs.writeFile(`${dirs.out}/Android.mk`, modulesMakefile)
   }
 
   if (build.deviceMakefile != undefined) {
     let deviceMakefile = serializeDeviceMakefile(build.deviceMakefile)
-    await fs.writeFile(`${proprietaryDir}/device-vendor.mk`, deviceMakefile)
+    await fs.writeFile(`${dirs.proprietary}/device-vendor.mk`, deviceMakefile)
   }
 
   if (build.boardMakefile != undefined) {
     let boardMakefile = serializeBoardMakefile(build.boardMakefile)
-    await fs.writeFile(`${proprietaryDir}/BoardConfigVendor.mk`, boardMakefile)
+    await fs.writeFile(`${dirs.proprietary}/BoardConfigVendor.mk`, boardMakefile)
   }
 
   if (build.productMakefile != undefined) {
     let productMakefile = serializeProductMakefile(build.productMakefile)
-    await fs.writeFile(`${outDir}/${build.productMakefile.name}.mk`, productMakefile)
+    await fs.writeFile(`${dirs.out}/${build.productMakefile.name}.mk`, productMakefile)
   }
 
   if (build.productsMakefile != undefined) {
     let productsMakefile = serializeProductsMakefile(build.productsMakefile)
-    await fs.writeFile(`${outDir}/AndroidProducts.mk`, productsMakefile)
+    await fs.writeFile(`${dirs.out}/AndroidProducts.mk`, productsMakefile)
   }
 }
