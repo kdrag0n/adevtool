@@ -283,5 +283,5 @@ export function combinedPartPathToEntry(partition: string, combinedPartPath: str
     isPresigned: false,
     // TODO
     isNamedDependency: false,
-  }
+  } as BlobEntry
 }
