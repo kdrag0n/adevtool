@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as xml2js from 'xml2js'
 
 import { serializeBlueprint } from '../build/soong'
-import { aapt2 } from '../util/aapt2'
+import { aapt2 } from '../util/process'
 import { exists, listFilesRecursive } from '../util/fs'
 import { XML_HEADER } from '../util/headers'
 import { parseLines } from '../util/parse'
