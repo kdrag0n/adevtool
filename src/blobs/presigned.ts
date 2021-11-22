@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import * as path from 'path'
 
-import { parseSeappContexts } from '../sepolicy/seapp'
+import { parseSeappContexts } from '../selinux/seapp'
 import { aapt2 } from '../util/process'
 import { listFilesRecursive } from '../util/fs'
 import { BlobEntry } from './entry'

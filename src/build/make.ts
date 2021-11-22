@@ -1,7 +1,7 @@
 import { basename, dirname } from 'path'
 import { BlobEntry } from '../blobs/entry'
 import { PartitionProps } from '../blobs/props'
-import { SelinuxPartResolutions } from '../sepolicy/contexts'
+import { SelinuxPartResolutions } from '../selinux/contexts'
 import { MAKEFILE_HEADER } from '../util/headers'
 
 const CONT_SEPARATOR = ' \\\n    '

@@ -16,7 +16,7 @@ import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
 import { parseDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
-import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../sepolicy/contexts'
+import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../selinux/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
 import { ALL_PARTITIONS } from '../util/partitions'
@@ -135,7 +135,8 @@ export default class GenerateFull extends Command {
       // A/B OTA partitions
       let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
       let customOtaParts = new Set(customProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
-      let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p))
+      // TODO: add proper filters
+      let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p) && p != 'vbmeta_vendor')
       stopActionSpinner(spinner)
 
       // 7. SELinux policies

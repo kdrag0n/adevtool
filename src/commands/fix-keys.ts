@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command'
 
-import { KeyInfo, MacSigner, readKeysConfRecursive, readMacPermissionsRecursive, readPartMacPermissions, resolveKeys, writeMappedKeys } from '../sepolicy/keys'
+import { KeyInfo, MacSigner, readKeysConfRecursive, readMacPermissionsRecursive, readPartMacPermissions, resolveKeys, writeMappedKeys } from '../selinux/keys'
 
 export default class FixKeys extends Command {
   static description = 'fix SELinux presigned app keys'

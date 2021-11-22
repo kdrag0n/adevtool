@@ -6,7 +6,7 @@ import { parsePartOverlayApks } from '../blobs/overlays'
 import { loadPartitionProps } from '../blobs/props'
 import { loadPartVintfInfo } from '../blobs/vintf'
 import { serializeSystemState, SystemState } from '../config/system-state'
-import { parsePartContexts } from '../sepolicy/contexts'
+import { parsePartContexts } from '../selinux/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { ALL_PARTITIONS } from '../util/partitions'
 

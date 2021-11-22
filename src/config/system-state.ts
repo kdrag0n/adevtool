@@ -1,7 +1,7 @@
 import { PartResValues } from "../blobs/overlays"
 import { PartitionProps } from "../blobs/props"
 import { PartitionVintfInfo } from "../blobs/vintf"
-import { SelinuxPartContexts } from "../sepolicy/contexts"
+import { SelinuxPartContexts } from "../selinux/contexts"
 
 const STATE_VERSION = 1
 
