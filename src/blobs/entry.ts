@@ -15,6 +15,9 @@ export interface BlobEntry {
   isPresigned: boolean
   // Whether to force creating a named dependency module
   isNamedDependency: boolean
+
+  // Whether to force Kati
+  disableSoong?: boolean
 }
 
 export function partPathToSrcPath(partition: string, path: string) {
@@ -41,6 +44,11 @@ export function srcPathToPartPath(srcPath: string) {
 }
 
 export function blobNeedsSoong(entry: BlobEntry, ext: string) {
+  // Force-disable flag takes precedence
+  if (entry.disableSoong) {
+    return false
+  }
+
   // Explicit named dependency = Soong
   if (entry.isNamedDependency) {
     return true
