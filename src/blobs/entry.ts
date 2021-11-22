@@ -1,10 +1,19 @@
 import { EXT_PARTITIONS } from '../util/partitions'
 
 export interface BlobEntry {
+  // Android partition
   partition: string
+  // Sub-partition path
   path: string
+  // Combined partition path without "system/"
   srcPath: string
+
+  // Path to copy file from on host (default = srcDir/srcPath)
+  diskSrcPath?: string
+
+  // Whether to keep the original signature (for APKs only)
   isPresigned: boolean
+  // Whether to force creating a named dependency module
   isNamedDependency: boolean
 }
 

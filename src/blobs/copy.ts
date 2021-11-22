@@ -9,7 +9,7 @@ export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, de
 
   for (let entry of entries) {
     let outPath = `${destDir}/${entry.srcPath}`
-    let srcPath = `${srcDir}/${entry.srcPath}`
+    let srcPath = entry.diskSrcPath ?? `${srcDir}/${entry.srcPath}`
     spinner.text = entry.srcPath
 
     // Symlinks are created at build time, not copied

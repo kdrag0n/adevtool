@@ -53,7 +53,7 @@ export async function generateBuild(
   for (let entry of entries) {
     let ext = path.extname(entry.path)
     let pathParts = entry.path.split('/')
-    let srcPath = `${source}/${entry.srcPath}`
+    let srcPath = entry.diskSrcPath ?? `${source}/${entry.srcPath}`
     let stat = await fs.lstat(srcPath)
 
     if (stat.isSymbolicLink()) {
