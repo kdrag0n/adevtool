@@ -1,6 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import * as path from 'path'
+import { flattenAllApexs } from '../blobs/apex'
 
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
@@ -17,6 +18,7 @@ import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../sepolicy/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
+import { withTempDir } from '../util/fs'
 import { ALL_PARTITIONS } from '../util/partitions'
 
 export default class GenerateFull extends Command {
@@ -100,138 +102,148 @@ export default class GenerateFull extends Command {
     })
     stopActionSpinner(spinner)
 
-    // 4. Extract
-    // Copy blobs (this has its own spinner)
-    if (!skipCopy) {
-      await copyBlobs(entries, stockRoot, dirs.proprietary)
-    }
-
-    // 5. Props
-    spinner = startActionSpinner('Extracting properties')
-    let stockProps = await loadPartitionProps(stockRoot)
-    let customProps = customState?.partitionProps ?? await loadPartitionProps(customRoot)
-    // Filter props
-    if (config.prop_filters != null) {
-      filterPartPropKeys(stockProps, config.prop_filters)
-      filterPartPropKeys(customProps, config.prop_filters)
-    }
-    // Diff
-    let propChanges = diffPartitionProps(stockProps, customProps)
-    let missingProps = new Map(Array.from(propChanges.entries())
-      .map(([part, props]) => [part, props.removed]))
-    // Fingerprint for SafetyNet
-    let fingerprint = stockProps.get('system')!.get('ro.system.build.fingerprint')!
-    // A/B OTA partitions
-    let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
-    let customOtaParts = new Set(customProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
-    let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p))
-    stopActionSpinner(spinner)
-
-    // 6. SELinux policies
-    spinner = startActionSpinner('Adding missing SELinux policies')
-    // Built contexts
-    let stockContexts = await parsePartContexts(stockRoot)
-    let customContexts = customState?.partitionSecontexts ?? await parsePartContexts(customRoot)
-    // Contexts from AOSP
-    let sourceContexts: SelinuxContexts = new Map<string, string>()
-    for (let dir of config.sepolicy_dirs) {
-      // TODO: support alternate ROM root
-      let contexts = await parseContextsRecursive(dir, '.')
-      for (let [ctx, source] of contexts.entries()) {
-        sourceContexts.set(ctx, source)
+    // Create tmp dir in case we extract APEXs
+    await withTempDir(async (tmp) => {
+      // 4. Flatten APEX modules
+      if (config.flatten_apex) {
+        spinner = startActionSpinner('Flattening APEX modules')
+        entries = await flattenAllApexs(entries, stockRoot, tmp)
+        stopActionSpinner(spinner)
       }
-    }
-    // Diff; reversed custom->stock order to get *missing* contexts
-    let ctxDiffs = diffPartContexts(customContexts, stockContexts)
-    let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts)
-    stopActionSpinner(spinner)
 
-    // 7. Overlays
-    spinner = startActionSpinner('Extracting overlays')
-    let stockOverlays = await parsePartOverlayApks(aapt2Path, stockRoot, path => {
-      spinner.text = path
-    })
-    let customOverlays = customState?.partitionOverlays ??
-      await parsePartOverlayApks(aapt2Path, customRoot, path => {
+      // 5. Extract
+      // Copy blobs (this has its own spinner)
+      if (!skipCopy) {
+        await copyBlobs(entries, stockRoot, dirs.proprietary)
+      }
+
+      // 6. Props
+      spinner = startActionSpinner('Extracting properties')
+      let stockProps = await loadPartitionProps(stockRoot)
+      let customProps = customState?.partitionProps ?? await loadPartitionProps(customRoot)
+      // Filter props
+      if (config.prop_filters != null) {
+        filterPartPropKeys(stockProps, config.prop_filters)
+        filterPartPropKeys(customProps, config.prop_filters)
+      }
+      // Diff
+      let propChanges = diffPartitionProps(stockProps, customProps)
+      let missingProps = new Map(Array.from(propChanges.entries())
+        .map(([part, props]) => [part, props.removed]))
+      // Fingerprint for SafetyNet
+      let fingerprint = stockProps.get('system')!.get('ro.system.build.fingerprint')!
+      // A/B OTA partitions
+      let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
+      let customOtaParts = new Set(customProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
+      let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p))
+      stopActionSpinner(spinner)
+
+      // 7. SELinux policies
+      spinner = startActionSpinner('Adding missing SELinux policies')
+      // Built contexts
+      let stockContexts = await parsePartContexts(stockRoot)
+      let customContexts = customState?.partitionSecontexts ?? await parsePartContexts(customRoot)
+      // Contexts from AOSP
+      let sourceContexts: SelinuxContexts = new Map<string, string>()
+      for (let dir of config.sepolicy_dirs) {
+        // TODO: support alternate ROM root
+        let contexts = await parseContextsRecursive(dir, '.')
+        for (let [ctx, source] of contexts.entries()) {
+          sourceContexts.set(ctx, source)
+        }
+      }
+      // Diff; reversed custom->stock order to get *missing* contexts
+      let ctxDiffs = diffPartContexts(customContexts, stockContexts)
+      let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts)
+      stopActionSpinner(spinner)
+
+      // 8. Overlays
+      spinner = startActionSpinner('Extracting overlays')
+      let stockOverlays = await parsePartOverlayApks(aapt2Path, stockRoot, path => {
         spinner.text = path
       })
-    let missingOverlays = diffPartOverlays(stockOverlays, customOverlays)
-    let overlayPkgs = await serializePartOverlays(missingOverlays, dirs.overlays)
-    stopActionSpinner(spinner)
-
-    // 8. vintf manifests
-    spinner = startActionSpinner('Extracting vintf manifests')
-    let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customRoot)
-    let stockVintf = await loadPartVintfInfo(stockRoot)
-    let missingHals = diffPartVintfManifests(customVintf, stockVintf)
-    let vintfManifestPaths = await writePartVintfManifests(missingHals, dirs.vintf)
-    stopActionSpinner(spinner)
-
-    // 9. Firmware
-    let fwPaths: Array<string> | null = null
-    if (factoryZip != undefined) {
-      spinner = startActionSpinner('Extracting firmware')
-      let fwImages = await extractFactoryFirmware(factoryZip)
-      fwPaths = await writeFirmwareImages(fwImages, dirs.firmware)
-
-      // Generate android-info.txt from device and versions
-      let androidInfo = generateAndroidInfo(
-        config.device.name,
-        stockProps.get('vendor')!.get('ro.build.expect.bootloader')!,
-        stockProps.get('vendor')!.get('ro.build.expect.baseband')!,
-      )
-      await fs.writeFile(`${dirs.firmware}/${ANDROID_INFO}`, androidInfo)
-
+      let customOverlays = customState?.partitionOverlays ??
+        await parsePartOverlayApks(aapt2Path, customRoot, path => {
+          spinner.text = path
+        })
+      let missingOverlays = diffPartOverlays(stockOverlays, customOverlays)
+      let overlayPkgs = await serializePartOverlays(missingOverlays, dirs.overlays)
       stopActionSpinner(spinner)
-    }
 
-    // 10. Build files
-    spinner = startActionSpinner('Generating build files')
-    let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, dirs)
+      // 9. vintf manifests
+      spinner = startActionSpinner('Extracting vintf manifests')
+      let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customRoot)
+      let stockVintf = await loadPartVintfInfo(stockRoot)
+      let missingHals = diffPartVintfManifests(customVintf, stockVintf)
+      let vintfManifestPaths = await writePartVintfManifests(missingHals, dirs.vintf)
+      stopActionSpinner(spinner)
 
-    // Add rules to build overridden modules and overlays, then re-sort
-    build.deviceMakefile!.packages!.push(...builtModules, ...overlayPkgs)
-    build.deviceMakefile!.packages!.sort((a, b) => a.localeCompare(b))
+      // 10. Firmware
+      let fwPaths: Array<string> | null = null
+      if (factoryZip != undefined) {
+        spinner = startActionSpinner('Extracting firmware')
+        let fwImages = await extractFactoryFirmware(factoryZip)
+        fwPaths = await writeFirmwareImages(fwImages, dirs.firmware)
 
-    // Add device parts
-    build.deviceMakefile = {
-      props: missingProps,
-      fingerprint: fingerprint,
-      vintfManifestPaths: vintfManifestPaths,
-      ...build.deviceMakefile,
-    }
+        // Generate android-info.txt from device and versions
+        let androidInfo = generateAndroidInfo(
+          config.device.name,
+          stockProps.get('vendor')!.get('ro.build.expect.bootloader')!,
+          stockProps.get('vendor')!.get('ro.build.expect.baseband')!,
+        )
+        await fs.writeFile(`${dirs.firmware}/${ANDROID_INFO}`, androidInfo)
 
-    // Add board parts
-    build.boardMakefile = {
-      secontextResolutions: ctxResolutions,
-      ...(missingOtaParts.length > 0 && { abOtaPartitions: missingOtaParts }),
-      ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
-    }
+        stopActionSpinner(spinner)
+      }
 
-    // Add firmware
-    if (fwPaths != null) {
-      build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(dirs.out, p))
-    }
+      // 11. Build files
+      spinner = startActionSpinner('Generating build files')
+      let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, dirs)
 
-    // Create device
-    let productProps = stockProps.get('product')!
-    let productName = productProps.get('ro.product.product.name')!
-    build.productMakefile = {
-      baseProductPath: config.product_makefile,
-      name: productName,
-      model: productProps.get('ro.product.product.model')!,
-      brand: productProps.get('ro.product.product.brand')!,
-      manufacturer: productProps.get('ro.product.product.manufacturer')!,
-    }
-    build.productsMakefile = {
-      products: [productName],
-    }
+      // Add rules to build overridden modules and overlays, then re-sort
+      build.deviceMakefile!.packages!.push(...builtModules, ...overlayPkgs)
+      build.deviceMakefile!.packages!.sort((a, b) => a.localeCompare(b))
 
-    // Dump list
-    let fileList = serializeBlobList(entries)
-    await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList)
+      // Add device parts
+      build.deviceMakefile = {
+        props: missingProps,
+        fingerprint: fingerprint,
+        vintfManifestPaths: vintfManifestPaths,
+        ...build.deviceMakefile,
+      }
 
-    await writeBuildFiles(build, dirs)
-    stopActionSpinner(spinner)
+      // Add board parts
+      build.boardMakefile = {
+        secontextResolutions: ctxResolutions,
+        ...(missingOtaParts.length > 0 && { abOtaPartitions: missingOtaParts }),
+        ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
+      }
+
+      // Add firmware
+      if (fwPaths != null) {
+        build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(dirs.out, p))
+      }
+
+      // Create device
+      let productProps = stockProps.get('product')!
+      let productName = productProps.get('ro.product.product.name')!
+      build.productMakefile = {
+        baseProductPath: config.product_makefile,
+        name: productName,
+        model: productProps.get('ro.product.product.model')!,
+        brand: productProps.get('ro.product.product.brand')!,
+        manufacturer: productProps.get('ro.product.product.manufacturer')!,
+      }
+      build.productsMakefile = {
+        products: [productName],
+      }
+
+      // Dump list
+      let fileList = serializeBlobList(entries)
+      await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList)
+
+      await writeBuildFiles(build, dirs)
+      stopActionSpinner(spinner)
+    })
   }
 }

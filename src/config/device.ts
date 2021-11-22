@@ -11,6 +11,7 @@ export interface DeviceConfig {
   namespaces?: Array<string>
   sepolicy_dirs: Array<string>
   product_makefile: string
+  flatten_apex?: boolean
 
   prop_filters?: PropFilters
 
