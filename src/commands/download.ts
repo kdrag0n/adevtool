@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 import { downloadFile } from '../images/download'
 
 export default class Download extends Command {

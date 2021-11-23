@@ -1,5 +1,5 @@
 import { Command, flags } from '@oclif/command'
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 
 import { diffLists, listPart } from '../blobs/file_list'
 import { ALL_PARTITIONS } from '../util/partitions'

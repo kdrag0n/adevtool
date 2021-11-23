@@ -1,5 +1,7 @@
-import * as ora from 'ora'
-import * as chalk from 'chalk'
+import ora from 'ora'
+import chalk from 'chalk'
+
+type ProgressCallback = (progress: string) => void
 
 export function createActionSpinner(action: string) {
   return ora({
