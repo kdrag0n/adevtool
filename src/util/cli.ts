@@ -1,7 +1,7 @@
 import ora from 'ora'
 import chalk from 'chalk'
 
-type ProgressCallback = (progress: string) => void
+export type ProgressCallback = (progress: string) => void
 
 export function createActionSpinner(action: string) {
   return ora({
