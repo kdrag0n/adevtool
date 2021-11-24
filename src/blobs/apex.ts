@@ -2,6 +2,8 @@ import { promises as fs } from 'fs'
 import * as path from 'path'
 import * as unzipit from 'unzipit'
 
+import { enumerateSelinuxLabels, SelinuxFileLabels } from '../selinux/labels'
+import { ProgressCallback } from '../util/cli'
 import { listFilesRecursive, TempState } from '../util/fs'
 import { run } from '../util/process'
 import { NodeFileReader } from '../util/zip'
@@ -12,22 +14,38 @@ export const ANDROID_INFO = 'android-info.txt'
 
 export type FirmwareImages = Map<string, ArrayBuffer>
 
-async function listPayload(partition: string, apexName: string, img: ArrayBuffer, tmp: TempState) {
+export interface FlattenedApex {
+  entries: Array<BlobEntry>
+  labels: SelinuxFileLabels
+}
+
+async function listPayload(
+  partition: string,
+  apexName: string,
+  img: ArrayBuffer,
+  tmp: TempState,
+  progressCallback?: ProgressCallback,
+) {
   // Extract image
   let imgPath = `${tmp.dir}/apex_payload.img`
   await fs.writeFile(imgPath, new DataView(img))
 
   // Mount
-  let mountPoint = `${tmp.dir}/payload`
-  await fs.mkdir(mountPoint)
-  await run(`mount -t ext4 -o ro ${imgPath} ${mountPoint}`)
-  tmp.mounts.push(mountPoint)
+  let mountpoint = `${tmp.dir}/payload`
+  await fs.mkdir(mountpoint)
+  await run(`mount -t ext4 -o ro ${imgPath} ${mountpoint}`)
+  tmp.mounts.push(mountpoint)
 
   // Extract files, including apex_metadata.pb
+  let apexRoot = `${partition}/apex/${apexName}`
   let entries: Array<BlobEntry> = []
-  for await (let file of listFilesRecursive(mountPoint)) {
-    let partPath = path.relative(mountPoint, file)
-    let entry = combinedPartPathToEntry(partition, `${partition}/apex/${apexName}/${partPath}`)
+  for await (let file of listFilesRecursive(mountpoint)) {
+    if (progressCallback != undefined) {
+      progressCallback(file)
+    }
+
+    let partPath = path.relative(mountpoint, file)
+    let entry = combinedPartPathToEntry(partition, `${apexRoot}/${partPath}`)
     // I don't know of a way to make Soong copy files to a non-standard path ($part/apex/*)
     entry.disableSoong = true
     // Copy directly from mounted image
@@ -36,12 +54,27 @@ async function listPayload(partition: string, apexName: string, img: ArrayBuffer
     entries.push(entry)
   }
 
-  return entries
+  // Get SELinux labels
+  let labels = await enumerateSelinuxLabels(mountpoint)
+  // Fix paths
+  labels = new Map(Array.from(labels.entries())
+    .map(([file, context]) => [`/${apexRoot}/${path.relative(mountpoint, file)}`, context]))
+
+  return {
+    entries: entries,
+    labels: labels,
+  } as FlattenedApex
 }
 
-export async function flattenApex(partition: string, zipPath: string, tmp: TempState) {
+export async function flattenApex(
+  partition: string,
+  zipPath: string,
+  tmp: TempState,
+  progressCallback?: ProgressCallback,
+) {
   let apexName = path.basename(zipPath, '.apex')
   let entries: Array<BlobEntry> = []
+  let labels: SelinuxFileLabels | null = null
   let reader = new NodeFileReader(zipPath)
 
   try {
@@ -60,19 +93,29 @@ export async function flattenApex(partition: string, zipPath: string, tmp: TempS
       } else if (name == 'apex_payload.img') {
         // Mount and add payload files as entries
         let img = await zipEntry.arrayBuffer()
-        let payloadEntries = await listPayload(partition, apexName, img, tmp)
-        entries.push(...payloadEntries)
+        let payload = await listPayload(partition, apexName, img, tmp, progressCallback)
+        entries.push(...payload.entries)
+        labels = payload.labels
       }
     }
 
-    return entries
+    return {
+      entries: entries,
+      labels: labels,
+    } as FlattenedApex
   } finally {
     await reader.close()
   }
 }
 
-export async function flattenAllApexs(rawEntries: Array<BlobEntry>, srcDir: string, tmp: TempState) {
+export async function flattenAllApexs(
+  rawEntries: Array<BlobEntry>,
+  srcDir: string,
+  tmp: TempState,
+  progressCallback?: ProgressCallback,
+) {
   let entries = new Set(rawEntries)
+  let labels = new Map<string, string>()
   for (let entry of rawEntries) {
     if (path.extname(entry.path) != '.apex') {
       continue
@@ -80,12 +123,17 @@ export async function flattenAllApexs(rawEntries: Array<BlobEntry>, srcDir: stri
 
     // Flatten and add new entries
     let apexPath = `${srcDir}/${entry.srcPath}`
-    let apexEntries = await flattenApex(entry.partition, apexPath, tmp)
-    apexEntries.forEach(e => entries.add(e))
+    let apex = await flattenApex(entry.partition, apexPath, tmp, progressCallback)
+    apex.entries.forEach(e => entries.add(e))
+    Array.from(apex.labels.entries())
+      .forEach(([path, context]) => labels.set(path, context))
 
     // Remove the APEX blob entry
     entries.delete(entry)
   }
 
-  return Array.from(entries)
+  return {
+    entries: Array.from(entries),
+    labels: labels,
+  } as FlattenedApex
 }
