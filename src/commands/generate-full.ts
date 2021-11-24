@@ -17,6 +17,7 @@ import { parseDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../selinux/contexts'
+import { generateFileContexts } from '../selinux/labels'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
 import { ALL_PARTITIONS } from '../util/partitions'
@@ -107,7 +108,14 @@ export default class GenerateFull extends Command {
       // 4. Flatten APEX modules
       if (config.flatten_apex) {
         spinner = startActionSpinner('Flattening APEX modules')
-        entries = await flattenAllApexs(entries, stockRoot, tmp)
+        let apex = await flattenAllApexs(entries, stockRoot, tmp, (progress) => {
+          spinner.text = progress
+        })
+        entries = apex.entries
+
+        // Write context labels
+        let fileContexts = `${dirs.sepolicy}/file_contexts`
+        await fs.writeFile(fileContexts, generateFileContexts(apex.labels))
         stopActionSpinner(spinner)
       }
 
@@ -156,6 +164,10 @@ export default class GenerateFull extends Command {
       // Diff; reversed custom->stock order to get *missing* contexts
       let ctxDiffs = diffPartContexts(customContexts, stockContexts)
       let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts)
+      // Add APEX labels
+      if (ctxResolutions.has('vendor')) {
+        ctxResolutions.get('vendor')!.sepolicyDirs.push(dirs.sepolicy)
+      }
       stopActionSpinner(spinner)
 
       // 8. Overlays
