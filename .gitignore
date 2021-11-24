@@ -9,3 +9,6 @@ node_modules
 
 # Vendor output
 /vendor/
+
+# State
+*.json
