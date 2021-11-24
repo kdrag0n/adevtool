@@ -23,6 +23,7 @@ export interface VendorDirectories {
   firmware: string
   overlays: string
   vintf: string
+  sepolicy: string
 }
 
 function nameDepKey(entry: BlobEntry) {
@@ -155,12 +156,16 @@ export async function createVendorDirs(vendor: string, device: string) {
   let vintfDir = `${outDir}/vintf`
   await fs.mkdir(vintfDir, { recursive: true })
 
+  let sepolicyDir = `${outDir}/sepolicy`
+  await fs.mkdir(sepolicyDir, { recursive: true })
+
   return {
     out: outDir,
     proprietary: proprietaryDir,
     firmware: fwDir,
     overlays: overlaysDir,
     vintf: vintfDir,
+    sepolicy: sepolicyDir,
   } as VendorDirectories
 }
 
