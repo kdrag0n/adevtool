@@ -17,3 +17,14 @@ export function startActionSpinner(action: string) {
 export function stopActionSpinner(spinner: ora.Ora) {
   spinner.stopAndPersist()
 }
+
+export async function withSpinner<Return>(
+  action: string,
+  callback: (spinner: ora.Ora) => Promise<Return>,
+) {
+  let spinner = createActionSpinner(action)
+  let ret = await callback(spinner)
+  stopActionSpinner(spinner)
+
+  return ret
+}
