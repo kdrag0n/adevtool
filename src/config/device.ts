@@ -27,12 +27,13 @@ export interface DeviceConfig {
     overrides: boolean
     presigned: boolean
     flat_apex: boolean
+    files: boolean
     props: boolean
     sepolicy_dirs: boolean
     overlays: boolean
     vintf: boolean
     factory_firmware: boolean
-    ota_firmware: boolean
+    ota_firmware: boolean // not yet implemented
     products: boolean
   }
 
@@ -42,7 +43,8 @@ export interface DeviceConfig {
   filters: {
     props: Filters
     overlays: Filters
-    files: PartFilters
+    partitions: Filters
+    files: Filters
   }
 }
 
@@ -64,6 +66,7 @@ const DEFAULT_CONFIG_BASE = {
     overrides: true,
     presigned: true,
     flat_apex: false, // currently broken
+    files: true,
     props: true,
     sepolicy_dirs: true,
     overlays: true,
@@ -73,17 +76,10 @@ const DEFAULT_CONFIG_BASE = {
     products: true,
   },
   filters: {
-    props: EMPTY_FILTERS,
-    overlays: EMPTY_FILTERS,
-    files: {
-      system: EMPTY_FILTERS,
-      system_ext: EMPTY_FILTERS,
-      product: EMPTY_FILTERS,
-      vendor: EMPTY_FILTERS,
-      vendor_dlkm: EMPTY_FILTERS,
-      odm: EMPTY_FILTERS,
-      odm_dlkm: EMPTY_FILTERS,
-    },
+    props: structuredClone(EMPTY_FILTERS),
+    overlays: structuredClone(EMPTY_FILTERS),
+    partitions: structuredClone(EMPTY_FILTERS),
+    files: structuredClone(EMPTY_FILTERS),
   },
 }
 
@@ -100,7 +96,7 @@ async function loadOverlaysRecursive(overlays: any[], rootPath: string, root: an
     for (let relPath of root.includes) {
       let overlayPath = path.resolve(rootPath, relPath)
       let overlay = YAML.parse(await readFile(overlayPath))
-      loadOverlaysRecursive(overlays, rootPath, overlay)
+      await loadOverlaysRecursive(overlays, rootPath, overlay)
     }
   }
 
@@ -116,18 +112,14 @@ export async function loadDeviceConfig(configPath: string) {
   let rootOverlay = YAML.parse(await readFile(configPath))
   let rootPath = path.dirname(configPath)
   let overlays: any[] = []
-  loadOverlaysRecursive(overlays, rootPath, rootOverlay)
+  await loadOverlaysRecursive(overlays, rootPath, rootOverlay)
 
   // Merge from base to final root
   let merged = overlays.reduce((base, overlay) => mergeConfigs(base, overlay), base)
 
   // Parse filters
-  let srcFilters = merged.filters
-  merged.filters = {
-    props: parseFilters(srcFilters.props),
-    overlays: parseFilters(srcFilters.overlays),
-    files: Object.fromEntries(Object.entries(srcFilters).map(([k, v]) => [k, parseFilters(v)])),
-  }
+  merged.filters = Object.fromEntries(Object.entries(merged.filters)
+    .map(([group, filters]) => [group, parseFilters(filters as SerializedFilters)]))
 
   // Finally, cast it to the parsed config type
   delete merged.includes
