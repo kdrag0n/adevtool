@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import { listPart } from '../blobs/file_list'
 
-import { ALL_PARTITIONS } from '../util/partitions'
+import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class ListFiles extends Command {
   static description = 'list system files and symlinks important for blobs'
@@ -21,7 +21,7 @@ export default class ListFiles extends Command {
 
     await fs.mkdir(out, { recursive: true })
 
-    for (let partition of ALL_PARTITIONS) {
+    for (let partition of ALL_SYS_PARTITIONS) {
       let files = await listPart(partition, systemRoot, true)
       if (files == null) {
         continue

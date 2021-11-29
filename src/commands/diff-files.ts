@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import chalk from 'chalk'
 
 import { diffLists, listPart } from '../blobs/file_list'
-import { ALL_PARTITIONS } from '../util/partitions'
+import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class DiffFiles extends Command {
   static description = 'find missing system files compared to a reference system'
@@ -20,7 +20,7 @@ export default class DiffFiles extends Command {
   async run() {
     let {flags: {all}, args: {sourceRef, sourceNew}} = this.parse(DiffFiles)
 
-    for (let partition of ALL_PARTITIONS) {
+    for (let partition of ALL_SYS_PARTITIONS) {
       let filesRef = await listPart(partition, sourceRef)
       if (filesRef == null) {
         continue

@@ -20,7 +20,7 @@ import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePar
 import { generateFileContexts } from '../selinux/labels'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
-import { ALL_PARTITIONS } from '../util/partitions'
+import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class GenerateFull extends Command {
   static description = 'generate all vendor parts automatically'
@@ -57,7 +57,7 @@ export default class GenerateFull extends Command {
 
     // 1. Diff files
     let spinner = startActionSpinner('Enumerating files')
-    for (let partition of ALL_PARTITIONS) {
+    for (let partition of ALL_SYS_PARTITIONS) {
       let filesRef = await listPart(partition, stockRoot)
       if (filesRef == null) continue
       let filesNew = customState != null ? customState.partitionFiles[partition] :

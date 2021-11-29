@@ -8,7 +8,7 @@ import { loadPartVintfInfo } from '../blobs/vintf'
 import { serializeSystemState, SystemState } from '../config/system-state'
 import { parsePartContexts } from '../selinux/contexts'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
-import { ALL_PARTITIONS } from '../util/partitions'
+import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class CollectState extends Command {
   static description = 'collect built system state for use with other commands'
@@ -32,7 +32,7 @@ export default class CollectState extends Command {
 
     // Files
     let spinner = startActionSpinner('Enumerating files')
-    for (let partition of ALL_PARTITIONS) {
+    for (let partition of ALL_SYS_PARTITIONS) {
       spinner.text = partition
 
       let files = await listPart(partition, customRoot)

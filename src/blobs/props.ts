@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 
 import { exists } from '../util/fs'
 import { parseLines } from '../util/parse'
-import { ALL_PARTITIONS } from '../util/partitions'
+import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export type PartitionProps = Map<string, Map<string, string>>
 
@@ -30,7 +30,7 @@ export function parseProps(file: string) {
 export async function loadPartitionProps(sourceRoot: string) {
   let partProps = new Map<string, Map<string, string>>() as PartitionProps
 
-  for (let partition of ALL_PARTITIONS) {
+  for (let partition of ALL_SYS_PARTITIONS) {
     let propPath = `${sourceRoot}/${partition}/build.prop`
     if (partition == 'system' && !(await exists(propPath))) {
       // System-as-root
