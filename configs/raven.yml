@@ -5,4 +5,4 @@ platform:
   product_makefile: device/google/raviole/aosp_raven.mk
 
 includes:
-  - filters/pixel/2021.yml
+  - snippets/pixel/2021.yml

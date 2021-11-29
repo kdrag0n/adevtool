@@ -5,7 +5,7 @@ platform:
   product_makefile: device/google/raviole/aosp_oriole.mk
 
 includes:
-  - filters/pixel/2021.yml
+  - snippets/pixel/2021.yml
 
 filters:
   overlay_files:

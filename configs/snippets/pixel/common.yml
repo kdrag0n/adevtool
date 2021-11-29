@@ -2,19 +2,19 @@ device:
   vendor: google_devices
 
 includes:
-  - filters/mainline_system.yml
-  - filters/gms.yml
+  - snippets/mainline_system.yml
+  - snippets/gms.yml
 
   # Irrelevant stock feature: silent factory OTAs
-  - filters/pixel/factoryota.yml
+  - snippets/pixel/factoryota.yml
 
   # Apps that don't really need to be privileged
-  - filters/pixel/gcam.yml
+  - snippets/pixel/gcam.yml
 
   # Pixel-exclusive features that need additional support
-  - filters/pixel/dreamliner.yml
-  - filters/pixel/flipendo.yml
-  - filters/pixel/turbo.yml
+  - snippets/pixel/dreamliner.yml
+  - snippets/pixel/flipendo.yml
+  - snippets/pixel/turbo.yml
 
 filters:
   props:
