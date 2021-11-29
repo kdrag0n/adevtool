@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs'
 import path from 'path'
 import xml2js from 'xml2js'
 

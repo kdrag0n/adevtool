@@ -22,7 +22,7 @@ export default class ListFiles extends Command {
     await fs.mkdir(out, { recursive: true })
 
     for (let partition of ALL_SYS_PARTITIONS) {
-      let files = await listPart(partition, systemRoot, true)
+      let files = await listPart(partition, systemRoot, null, true)
       if (files == null) {
         continue
       }

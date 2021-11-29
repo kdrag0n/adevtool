@@ -15,7 +15,7 @@ import { diffPartVintfManifests, loadPartVintfInfo, writePartVintfManifests } fr
 import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
 import { DeviceConfig, loadDeviceConfig } from '../config/device'
-import { filterKeys } from '../config/filters'
+import { filterKeys, filterValue } from '../config/filters'
 import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts, SelinuxPartResolutions } from '../selinux/contexts'
@@ -34,16 +34,17 @@ interface PropResults {
 
 async function enumerateFiles(
   spinner: ora.Ora,
+  config: DeviceConfig,
   namedEntries: Map<string, BlobEntry>,
   customState: SystemState | null,
   stockRoot: string,
   customRoot: string,
 ) {
   for (let partition of ALL_SYS_PARTITIONS) {
-    let filesRef = await listPart(partition, stockRoot)
+    let filesRef = await listPart(partition, stockRoot, config.filters.files)
     if (filesRef == null) continue
     let filesNew = customState != null ? customState.partitionFiles[partition] :
-      await listPart(partition, customRoot)
+      await listPart(partition, customRoot, config.filters.files)
     if (filesNew == null) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
@@ -89,7 +90,7 @@ async function updatePresigned(
   let presignedPkgs = await parsePresignedRecursive(config.platform.sepolicy_dirs)
   await updatePresignedBlobs(aapt2Path, stockRoot, presignedPkgs, entries, entry => {
     spinner.text = entry.srcPath
-  })
+  }, config.filters.presigned)
 }
 
 async function flattenApexs(
@@ -138,8 +139,8 @@ async function extractProps(
   // A/B OTA partitions
   let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
   let customOtaParts = new Set(customProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
-  // TODO: add proper filters
-  let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p) && p != 'vbmeta_vendor')
+  let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p) &&
+    filterValue(config.filters.partitions, p))
 
   return {
     stockProps,
@@ -185,6 +186,7 @@ async function resolveSepolicyDirs(
 
 async function extractOverlays(
   spinner: ora.Ora,
+  config: DeviceConfig,
   customState: SystemState | null,
   dirs: VendorDirectories,
   aapt2Path: string,
@@ -193,14 +195,14 @@ async function extractOverlays(
 ) {
   let stockOverlays = await parsePartOverlayApks(aapt2Path, stockRoot, path => {
     spinner.text = path
-  })
+  }, config.filters.overlay_files)
 
   let customOverlays = customState?.partitionOverlays ??
     await parsePartOverlayApks(aapt2Path, customRoot, path => {
       spinner.text = path
-    })
+    }, config.filters.overlay_files)
 
-  let missingOverlays = diffPartOverlays(stockOverlays, customOverlays)
+  let missingOverlays = diffPartOverlays(stockOverlays, customOverlays, config.filters.overlays)
   return await serializePartOverlays(missingOverlays, dirs.overlays)
 }
 
@@ -298,7 +300,7 @@ async function generateBuildFiles(
 
   // Dump list
   let fileList = serializeBlobList(entries)
-  await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList)
+  await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList + '\n')
 
   await writeBuildFiles(build, dirs)
 }
@@ -338,7 +340,7 @@ export default class GenerateFull extends Command {
 
     // 1. Diff files
     await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, namedEntries, customState, stockRoot, customRoot))
+      enumerateFiles(spinner, config, namedEntries, customState, stockRoot, customRoot))
 
     // 2. Overrides
     let buildPkgs: string[] = []
@@ -387,7 +389,7 @@ export default class GenerateFull extends Command {
       // 8. Overlays
       if (config.generate.overlays) {
         let overlayPkgs = await withSpinner('Extracting overlays', (spinner) =>
-          extractOverlays(spinner, customState, dirs, aapt2Path, stockRoot, customRoot))
+          extractOverlays(spinner, config, customState, dirs, aapt2Path, stockRoot, customRoot))
         buildPkgs.push(...overlayPkgs)
       }
 

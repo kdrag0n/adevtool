@@ -8,6 +8,7 @@ import { exists, listFilesRecursive } from '../util/fs'
 import { XML_HEADER } from '../util/headers'
 import { parseLines } from '../util/parse'
 import { EXT_PARTITIONS } from '../util/partitions'
+import { Filters, filterValue } from '../config/filters'
 
 const TARGET_PACKAGE_PATTERN = makeManifestRegex('targetPackage')
 const TARGET_NAME_PATTERN = makeManifestRegex('targetName')
@@ -18,132 +19,6 @@ const EXCLUDE_LOCALES = new Set(['ar', 'iw'])
 
 // Diff exclusions
 const DIFF_EXCLUDE_TYPES = new Set(['raw', 'xml', 'color'])
-const DIFF_EXCLUDE_PACKAGES = new Set([
-  'com.google.android.documentsui',
-  'com.google.android.pixel.setupwizard',
-  'com.android.managedprovisioning',
-  'com.android.providers.settings',
-  'com.google.android.cellbroadcastreceiver',
-  'com.google.android.cellbroadcastservice',
-  'com.android.simappdialog',
-])
-const DIFF_EXCLUDE_PREFIXES = [
-  'android:drawable/ic_doc_',
-  'android:string/config_system',
-  'android:string-array/config_companionDevice',
-  'android:string/biometric_',
-  'android:string/widget_',
-  'android:bool/config_assist',
-  'com.android.settings:bool/config_',
-  'com.android.settings:string/display_white_balance_',
-  'com.android.settings:string/fingerprint_',
-  'com.android.settings:string/security_settings_',
-  'com.android.settings:string/lock_settings_',
-  'com.android.systemui:string/branded_',
-  'com.android.settings:string/security_settings_',
-  'com.android.settings:string/unlock_disable_frp_',
-  'com.android.wifi.resources:integer/config_wifi_framework_wifi_score_',
-]
-const DIFF_EXCLUDE_KEYS = new Set([
-  'android:bool/config_enableGeolocationTimeZoneDetection',
-  'android:bool/config_enablePrimaryLocationTimeZoneProvider',
-  'android:bool/config_enableSecondaryLocationTimeZoneProvider',
-  'android:string-array/config_accessibility_allowed_install_source',
-  'android:string-array/config_allowedSecureInstantAppSettings',
-  'android:string-array/config_disabledUntilUsedPreinstalledImes',
-  'com.android.providers.contacts:string/metadata_sync_pacakge',
-  'android:string/harmful_app_warning_title',
-  'com.google.android.permissioncontroller/PermissionControllerStyles:string/help_app_permissions',
-  'com.google.android.networkstack/NetworkStackConfig:bool/config_dhcp_client_hostname',
-  'android:string/config_defaultDndAccessPackages',
-  'android:string/config_primaryLocationTimeZoneProviderPackageName',
-  'android:string/config_secondaryLocationTimeZoneProviderPackageName',
-  'android:string/config_servicesExtensionPackage',
-  'android:bool/config_swipe_up_gesture_setting_available',
-  'android:bool/config_showGesturalNavigationHints',
-  'android:bool/config_volumeHushGestureEnabled',
-  'android:integer/config_defaultNightMode',
-  'android:string-array/config_batteryPackageTypeService',
-  'android:array/config_notificationMsgPkgsAllowedAsConvos',
-  'android:bool/config_bugReportHandlerEnabled',
-  'android:bool/config_defaultRingtonePickerEnabled',
-  'android:bool/config_profcollectReportUploaderEnabled',
-  'android:bool/config_sendPackageName',
-  'android:bool/config_smart_battery_available',
-  'android:bool/config_volumeShowRemoteSessions',
-  'android:dimen/config_highResTaskSnapshotScale',
-  'android:integer/config_storageManagerDaystoRetainDefault',
-  'android:string/android_start_title',
-  'android:string/android_upgrading_title',
-  'android:string/config_batterySaverScheduleProvider',
-  'android:string/config_bodyFontFamily',
-  'android:string/config_bodyFontFamilyMedium',
-  'android:string/config_emergency_dialer_package',
-  'android:string/config_feedbackIntentExtraKey',
-  'android:string/config_feedbackIntentNameKey',
-  'android:string/config_headlineFontFamily',
-  'android:string/config_headlineFontFamilyMedium',
-  'android:string/config_headlineFontFeatureSettings',
-  'android:string/config_helpIntentExtraKey',
-  'android:string/config_helpIntentNameKey',
-  'android:string/config_helpPackageNameKey',
-  'android:string/config_helpPackageNameValue',
-  'android:string/config_incidentReportApproverPackage',
-  'android:string/config_powerSaveModeChangedListenerPackage',
-  'android:string/config_recentsComponentName',
-  'android:string/config_retailDemoPackage',
-  'android:string/config_retailDemoPackageSignature',
-  'android:string/config_secondaryHomePackage',
-  'com.android.settings:string-array/config_settings_slices_accessibility_components',
-  'com.android.settings:string/setup_fingerprint_enroll_finish_message',
-  'com.android.settings:string/suggested_fingerprint_lock_settings_summary',
-  'com.android.systemui:string-array/config_controlsPreferredPackages',
-  'com.android.systemui:bool/config_hspa_data_distinguishable',
-  'com.android.systemui:bool/config_touch_context_enabled',
-  'com.android.systemui:bool/config_wlc_support_enabled',
-  'com.android.systemui:drawable/ic_qs_branded_vpn',
-  'com.android.systemui:drawable/stat_sys_branded_vpn',
-  'com.android.systemui:string/config_dockComponent',
-  'com.android.systemui:string/config_screenshotEditor',
-  'com.android.phone:string-array/config_countries_to_enable_shortcut_view',
-  'com.android.phone:string/dialer_default_class',
-  'com.android.phone:string/platform_number_verification_package',
-  'com.android.server.telecom:bool/config_hspa_data_distinguishable',
-  'com.android.server.telecom:string/call_diagnostic_service_package_name',
-  'com.android.server.telecom:string/dialer_default_class',
-  'com.android.traceur:bool/config_hspa_data_distinguishable',
-  'android:string-array/config_defaultFirstUserRestrictions',
-  'android:string-array/config_keep_warming_services',
-  'android:bool/config_enableFusedLocationOverlay',
-  'android:bool/config_enableGeocoderOverlay',
-  'android:bool/config_enableGeofenceOverlay',
-  'android:bool/config_enableNetworkLocationOverlay',
-  'android:string/config_deviceProvisioningPackage',
-  'android:string/default_wallpaper_component',
-  'android:bool/config_pinnerHomeApp',
-  'com.android.settings:string-array/slice_allowlist_package_names',
-
-  // Intentionally included; attention, speech recognition, search UI, smartspace, translation
-  'android:string/config_defaultAccessibilityService',
-  'android:string/config_defaultAppPredictionService',
-  'android:string/config_defaultAssistantAccessComponent',
-  'android:string/config_defaultAutofillService',
-  'android:string/config_defaultDialer',
-  'android:string/config_defaultGallery',
-  'android:string/config_defaultListenerAccessPackages',
-  'android:string/config_defaultMusic',
-  'android:string/config_defaultNetworkRecommendationProviderPackage',
-  'android:string/config_defaultSms',
-  'android:string/config_defaultAugmentedAutofillService',
-  'android:string/config_defaultBugReportHandlerApp',
-  'android:string/config_defaultContentCaptureService',
-  'android:string/config_defaultModuleMetadataProvider',
-  'android:string/config_defaultMusicRecognitionService',
-  'android:string/config_defaultProfcollectReportUploaderAction',
-  'android:string/config_defaultProfcollectReportUploaderApp',
-  'android:string/config_defaultTextClassifierPackage',
-])
-
 const DIFF_MAP_PACKAGES = new Map([
   ['com.google.android.wifi.resources', 'com.android.wifi.resources'],
   ['com.google.android.connectivity.resources', 'com.android.connectivity.resources'],
@@ -359,6 +234,7 @@ async function parseOverlayApksRecursive(
   aapt2Path: string,
   overlaysDir: string,
   pathCallback?: (path: string) => void,
+  filters: Filters | null = null,
 ) {
   let values: ResValues = new Map<string, ResValue>()
 
@@ -369,6 +245,10 @@ async function parseOverlayApksRecursive(
 
     if (pathCallback != undefined) {
       pathCallback(apkPath)
+    }
+
+    if (filters != null && !filterValue(filters, path.relative(overlaysDir, apkPath))) {
+      continue
     }
 
     // Check the manifest for eligibility first
@@ -408,6 +288,7 @@ export async function parsePartOverlayApks(
   aapt2Path: string,
   root: string,
   pathCallback?: (path: string) => void,
+  filters: Filters | null = null,
 ) {
   let partValues: PartResValues = {}
 
@@ -417,17 +298,15 @@ export async function parsePartOverlayApks(
       continue
     }
 
-    partValues[partition] = await parseOverlayApksRecursive(aapt2Path, src, pathCallback)
+    partValues[partition] = await parseOverlayApksRecursive(aapt2Path, src, pathCallback, filters)
   }
 
   return partValues
 }
 
-function shouldDeleteKey(rawKey: string, { targetPkg, type, key, flags }: ResKey) {
+function shouldDeleteKey(filters: Filters, rawKey: string, { targetPkg, type, key, flags }: ResKey) {
   // Simple exclusion sets
-  if (DIFF_EXCLUDE_TYPES.has(type) ||
-        DIFF_EXCLUDE_PACKAGES.has(targetPkg) ||
-        DIFF_EXCLUDE_KEYS.has(rawKey)) {
+  if (DIFF_EXCLUDE_TYPES.has(type)) {
     return true
   }
 
@@ -436,19 +315,19 @@ function shouldDeleteKey(rawKey: string, { targetPkg, type, key, flags }: ResKey
     return true
   }
 
-  // Exclusion prefixes (expensive, so these are checked last)
-  if (DIFF_EXCLUDE_PREFIXES.find(p => rawKey.startsWith(p)) != undefined) {
+  // User-provided filters
+  if (!filterValue(filters, rawKey)) {
     return true
   }
 
   return false
 }
 
-function filterValues(values: ResValues) {
+function filterValues(filters: Filters, values: ResValues) {
   for (let [rawKey, value] of values.entries()) {
     let key = decodeResKey(rawKey)
 
-    if (shouldDeleteKey(rawKey, key)) {
+    if (shouldDeleteKey(filters, rawKey, key)) {
       values.delete(rawKey)
     } else if (DIFF_MAP_PACKAGES.has(key.targetPkg)) {
       let targetPkg = DIFF_MAP_PACKAGES.get(key.targetPkg)!
@@ -463,15 +342,15 @@ function filterValues(values: ResValues) {
   }
 }
 
-export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues) {
+export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues, filters: Filters) {
   let missingPartValues: PartResValues = {}
   for (let [partition, valuesNew] of Object.entries(pvNew)) {
     let valuesRef = pvRef[partition]
     let missingValues: ResValues = new Map<string, ResValue>()
 
     // Filter values first
-    filterValues(valuesRef)
-    filterValues(valuesNew)
+    filterValues(filters, valuesRef)
+    filterValues(filters, valuesNew)
 
     // Find missing overlays
     for (let [key, refValue] of valuesRef.entries()) {
