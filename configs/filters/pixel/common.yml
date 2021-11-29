@@ -1,0 +1,222 @@
+device:
+  vendor: google_devices
+
+includes:
+  - filters/mainline_system.yml
+  - filters/gms.yml
+
+  # Irrelevant stock feature: silent factory OTAs
+  - filters/pixel/factoryota.yml
+
+  # Apps that don't really need to be privileged
+  - filters/pixel/gcam.yml
+
+  # Pixel-exclusive features that need additional support
+  - filters/pixel/dreamliner.yml
+  - filters/pixel/flipendo.yml
+  - filters/pixel/turbo.yml
+
+filters:
+  props:
+    match:
+      # Misc
+      - ro.llkd.enable
+      - ro.apex.updatable
+      - keyguard.no_require_sim
+      - ro.com.android.prov_mobiledata
+      - ro.control_privapp_permissions
+      - ro.boot.vendor.overlay.theme
+      - ro.surface_flinger.supports_background_blur
+
+  presigned:
+    match:
+    # Updated by Play Store
+    - product/priv-app/CarrierServices/CarrierServices.apk
+
+    # Needs same signature as EuiccSupportPixel
+    - product/priv-app/EuiccGoogle/EuiccGoogle.apk
+    # Is this really necessary?
+    - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
+
+  files:
+    match:
+      # Pixel 2020
+      - product/app/DevicePolicyPrebuilt/DevicePolicyPrebuilt.apk
+      - product/app/DeviceStatisticsService/DeviceStatisticsService.apk
+      - product/app/DiagnosticsToolPrebuilt/DiagnosticsToolPrebuilt.apk
+      - product/app/MarkupGoogle/MarkupGoogle.apk
+      - product/app/MicropaperPrebuilt/MicropaperPrebuilt.apk
+      - product/app/NgaResources/NgaResources.apk
+      - product/app/PixelThemesStub/PixelThemesStub.apk
+      - product/app/PrebuiltGoogleTelemetryTvp/PrebuiltGoogleTelemetryTvp.apk
+      - product/app/SafetyRegulatoryInfo/SafetyRegulatoryInfo.apk
+      - product/app/SoundAmplifierPrebuilt/SoundAmplifierPrebuilt.apk
+      - product/app/SoundPickerPrebuilt/SoundPickerPrebuilt.apk
+      - product/etc/permissions/com.google.android.hardwareinfo.xml
+      - product/framework/libhwinfo.jar
+      - product/priv-app/AmbientSensePrebuilt/AmbientSensePrebuilt.apk
+      - product/priv-app/BetterBug/BetterBug.apk
+      - product/priv-app/CarrierMetrics/CarrierMetrics.apk
+      - product/priv-app/HardwareInfo/HardwareInfo.apk
+      - product/priv-app/HelpRtcPrebuilt/HelpRtcPrebuilt.apk
+      - product/priv-app/MaestroPrebuilt/MaestroPrebuilt.apk
+      - product/priv-app/OdadPrebuilt/OdadPrebuilt.apk
+      - product/priv-app/OTAConfigNoZeroTouchPrebuilt/OTAConfigNoZeroTouchPrebuilt.apk
+      - product/priv-app/PixelLiveWallpaperPrebuilt/PixelLiveWallpaperPrebuilt.apk
+      - product/priv-app/SafetyHubPrebuilt/SafetyHubPrebuilt.apk
+      - product/priv-app/SCONE/SCONE.apk
+      - product/priv-app/ScribePrebuilt/ScribePrebuilt.apk
+      - product/priv-app/SecurityHubPrebuilt/SecurityHubPrebuilt.apk
+      - product/priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk
+      - product/priv-app/Showcase/Showcase.apk
+      - product/priv-app/TipsPrebuilt/TipsPrebuilt.apk
+      - system_ext/app/EmergencyInfoGoogleNoUi/EmergencyInfoGoogleNoUi.apk
+      - system_ext/priv-app/GoogleFeedback/GoogleFeedback.apk
+      - system_ext/priv-app/NexusLauncherRelease/NexusLauncherRelease.apk
+      - system_ext/priv-app/PixelSetupWizard/PixelSetupWizard.apk
+      - system_ext/priv-app/QuickAccessWallet/QuickAccessWallet.apk
+      - system_ext/priv-app/SettingsGoogle/SettingsGoogle.apk
+      - system_ext/priv-app/StorageManagerGoogle/StorageManagerGoogle.apk
+      - system_ext/priv-app/SystemUIGoogle/SystemUIGoogle.apk
+      - system_ext/priv-app/UvExposureReporter/UvExposureReporter.apk
+      - system_ext/priv-app/WallpaperPickerGoogleRelease/WallpaperPickerGoogleRelease.apk
+
+      # Pixel 2021
+      - product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
+      - product/etc/permissions/com.google.android.odad.xml
+
+    prefix:
+      # (Live) wallpapers
+      - product/app/WallpapersBReel
+      - product/app/PixelWallpapers
+
+      # Pixel 2020
+      - product/etc/security/
+
+      # Pixel 2021
+      - product/tts/google/
+      - product/wallpaper/
+
+  overlays:
+    match:
+      - android:bool/config_enableGeolocationTimeZoneDetection
+      - android:bool/config_enablePrimaryLocationTimeZoneProvider
+      - android:bool/config_enableSecondaryLocationTimeZoneProvider
+      - android:string-array/config_accessibility_allowed_install_source
+      - android:string-array/config_allowedSecureInstantAppSettings
+      - android:string-array/config_disabledUntilUsedPreinstalledImes
+      - com.android.providers.contacts:string/metadata_sync_pacakge
+      - android:string/harmful_app_warning_title
+      - com.google.android.permissioncontroller/PermissionControllerStyles:string/help_app_permissions
+      - com.google.android.networkstack/NetworkStackConfig:bool/config_dhcp_client_hostname
+      - android:string/config_defaultDndAccessPackages
+      - android:string/config_primaryLocationTimeZoneProviderPackageName
+      - android:string/config_secondaryLocationTimeZoneProviderPackageName
+      - android:string/config_servicesExtensionPackage
+      - android:bool/config_swipe_up_gesture_setting_available
+      - android:bool/config_showGesturalNavigationHints
+      - android:bool/config_volumeHushGestureEnabled
+      - android:integer/config_defaultNightMode
+      - android:string-array/config_batteryPackageTypeService
+      - android:array/config_notificationMsgPkgsAllowedAsConvos
+      - android:bool/config_bugReportHandlerEnabled
+      - android:bool/config_defaultRingtonePickerEnabled
+      - android:bool/config_profcollectReportUploaderEnabled
+      - android:bool/config_sendPackageName
+      - android:bool/config_smart_battery_available
+      - android:bool/config_volumeShowRemoteSessions
+      - android:dimen/config_highResTaskSnapshotScale
+      - android:integer/config_storageManagerDaystoRetainDefault
+      - android:string/android_start_title
+      - android:string/android_upgrading_title
+      - android:string/config_batterySaverScheduleProvider
+      - android:string/config_emergency_dialer_package
+      - android:string/config_incidentReportApproverPackage
+      - android:string/config_powerSaveModeChangedListenerPackage
+      - android:string/config_recentsComponentName
+      - android:string/config_retailDemoPackage
+      - android:string/config_retailDemoPackageSignature
+      - android:string/config_secondaryHomePackage
+      - com.android.settings:string-array/config_settings_slices_accessibility_components
+      - com.android.settings:string/setup_fingerprint_enroll_finish_message
+      - com.android.settings:string/suggested_fingerprint_lock_settings_summary
+      - com.android.systemui:string-array/config_controlsPreferredPackages
+      - com.android.systemui:bool/config_hspa_data_distinguishable
+      - com.android.systemui:bool/config_touch_context_enabled
+      - com.android.systemui:bool/config_wlc_support_enabled
+      - com.android.systemui:drawable/ic_qs_branded_vpn
+      - com.android.systemui:drawable/stat_sys_branded_vpn
+      - com.android.systemui:string/config_dockComponent
+      - com.android.systemui:string/config_screenshotEditor
+      - com.android.phone:string-array/config_countries_to_enable_shortcut_view
+      - com.android.phone:string/dialer_default_class
+      - com.android.phone:string/platform_number_verification_package
+      - com.android.server.telecom:bool/config_hspa_data_distinguishable
+      - com.android.server.telecom:string/call_diagnostic_service_package_name
+      - com.android.server.telecom:string/dialer_default_class
+      - com.android.traceur:bool/config_hspa_data_distinguishable
+      - android:string-array/config_defaultFirstUserRestrictions
+      - android:string-array/config_keep_warming_services
+      - android:bool/config_enableFusedLocationOverlay
+      - android:bool/config_enableGeocoderOverlay
+      - android:bool/config_enableGeofenceOverlay
+      - android:bool/config_enableNetworkLocationOverlay
+      - android:string/config_deviceProvisioningPackage
+      - android:string/default_wallpaper_component
+      - android:bool/config_pinnerHomeApp
+      - com.android.settings:string-array/slice_allowlist_package_names
+
+      # Intentionally included: attention, speech recognition, search UI, smartspace, translation
+      - android:string/config_defaultAccessibilityService
+      - android:string/config_defaultAppPredictionService
+      - android:string/config_defaultAssistantAccessComponent
+      - android:string/config_defaultAutofillService
+      - android:string/config_defaultDialer
+      - android:string/config_defaultGallery
+      - android:string/config_defaultListenerAccessPackages
+      - android:string/config_defaultMusic
+      - android:string/config_defaultNetworkRecommendationProviderPackage
+      - android:string/config_defaultSms
+      - android:string/config_defaultAugmentedAutofillService
+      - android:string/config_defaultBugReportHandlerApp
+      - android:string/config_defaultContentCaptureService
+      - android:string/config_defaultModuleMetadataProvider
+      - android:string/config_defaultMusicRecognitionService
+      - android:string/config_defaultProfcollectReportUploaderAction
+      - android:string/config_defaultProfcollectReportUploaderApp
+      - android:string/config_defaultTextClassifierPackage
+
+    prefix:
+      # Packages
+      - com.android.managedprovisioning
+      - com.android.providers.settings
+      - com.android.simappdialog
+      - com.google.android.cellbroadcastreceiver
+      - com.google.android.cellbroadcastservice
+      - com.google.android.documentsui
+      - com.google.android.pixel.setupwizard
+
+      # Misc keys
+      - android:bool/config_assist
+      - android:drawable/ic_doc_
+      - android:string-array/config_companionDevice
+      - android:string/biometric_
+      - android:string/config_system
+      - android:string/widget_
+      - com.android.settings:bool/config_
+      - com.android.settings:string/display_white_balance_
+      - com.android.settings:string/fingerprint_
+      - com.android.settings:string/lock_settings_
+      - com.android.settings:string/security_settings_
+      - com.android.settings:string/security_settings_
+      - com.android.settings:string/unlock_disable_frp_
+      - com.android.systemui:string/branded_
+      # Some ROMs remove these keys from the device tree
+      - com.android.wifi.resources:integer/config_wifi_framework_wifi_score_
+
+      # Fonts, feedback, help
+      - android:string/config_bodyFont
+      - android:string/config_feedbackIntent
+      - android:string/config_headlineFont
+      - android:string/config_helpIntent
+      - android:string/config_helpPackage

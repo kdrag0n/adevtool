@@ -1,0 +1,31 @@
+filters:
+  files:
+    prefix:
+      # Fonts and media in all partitions
+      - system/fonts/
+      - system/media/
+      - system_ext/fonts/
+      - system_ext/media/
+      - product/fonts/
+      - product/media/
+      - vendor/fonts/
+      - vendor/media/
+
+      # Overlays are created separately and should never be copied as APKs.
+      - system/overlay/
+      - system_ext/overlay/
+      - product/overlay/
+      - vendor/overlay/
+
+      # Kernel modules should be built from source or AOSP prebuilts, not copied from stock.
+      - vendor/lib/modules
+      - vendor_dlkm/
+      - odm/lib/modules
+      - odm_dlkm/
+
+    suffix:
+      # Compiled app code and profiles
+      - .art
+      - .odex
+      - .vdex
+      - .prof

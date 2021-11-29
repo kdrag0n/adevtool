@@ -1,0 +1,7 @@
+# Silent factory OTA updates
+filters:
+  files:
+    match:
+      - system_ext/etc/init/init.sota.rc
+      - system_ext/etc/permissions/com.google.android.factoryota.xml
+      - system_ext/priv-app/FactoryOta/FactoryOta.apk
