@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
-import * as path from 'path'
+import path from 'path'
 import { flattenAllApexs } from '../blobs/apex'
 
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'

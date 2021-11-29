@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
-import * as path from 'path'
-import * as unzipit from 'unzipit'
+import path from 'path'
+import unzipit from 'unzipit'
 
 import { enumerateSelinuxLabels, SelinuxFileLabels } from '../selinux/labels'
 import { ProgressCallback } from '../util/cli'

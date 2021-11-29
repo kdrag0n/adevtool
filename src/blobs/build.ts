@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path from 'path'
 import { promises as fs } from 'fs'
 
 import { blobToFileCopy, BoardMakefile, ModulesMakefile, DeviceMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeDeviceMakefile, Symlink, ProductsMakefile, ProductMakefile, serializeProductMakefile, serializeProductsMakefile } from '../build/make'

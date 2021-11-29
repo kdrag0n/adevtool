@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path from 'path'
 
 import { BlobEntry, partPathToSrcPath, srcPathToPartPath } from './entry'
 import { exists, listFilesRecursive } from '../util/fs'

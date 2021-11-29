@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
-import * as path from 'path'
-import * as xml2js from 'xml2js'
+import path from 'path'
+import xml2js from 'xml2js'
 
 import { exists, listFilesRecursive } from '../util/fs'
 import { parseLines } from '../util/parse'

@@ -1,4 +1,4 @@
-import * as util from 'util'
+import util from 'util'
 
 import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
 import { SOONG_HEADER } from '../util/headers'

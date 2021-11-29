@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import * as xml2js from 'xml2js'
+import xml2js from 'xml2js'
 
 import { exists } from '../util/fs'
 import { EXT_PARTITIONS } from '../util/partitions'

@@ -1,4 +1,4 @@
-import * as YAML from 'yaml'
+import YAML from 'yaml'
 import { PropFilters } from '../blobs/props'
 
 export interface DeviceInfo {

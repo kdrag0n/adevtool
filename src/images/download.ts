@@ -1,8 +1,8 @@
 import { createWriteStream } from 'fs'
-import * as cliProgress from 'cli-progress'
+import cliProgress from 'cli-progress'
 import fetch from 'node-fetch'
 import { promises as stream } from 'stream'
-import * as path from 'path'
+import path from 'path'
 
 const VENDOR_INDEX_URL = 'https://developers.google.com/android/drivers'
 const VENDOR_URL_PREFIX = 'https://dl.google.com/dl/android/aosp/google_devices'
