@@ -40,7 +40,7 @@ export interface BoardMakefile {
   abOtaPartitions?: Array<string>
 
   boardInfo?: string
-  secontextResolutions?: SelinuxPartResolutions
+  sepolicyResolutions?: SelinuxPartResolutions
 }
 
 export interface DeviceMakefile {
@@ -164,8 +164,8 @@ TARGET_COPY_OUT_ODM_DLKM := odm_dlkm`)
     blocks.push(`TARGET_BOARD_INFO_FILE := ${mk.boardInfo}`)
   }
 
-  if (mk.secontextResolutions != undefined) {
-    for (let [partition, {sepolicyDirs, missingContexts}] of mk.secontextResolutions.entries()) {
+  if (mk.sepolicyResolutions != undefined) {
+    for (let [partition, {sepolicyDirs, missingContexts}] of mk.sepolicyResolutions.entries()) {
       let partVar = SEPOLICY_PARTITION_VARS[partition]
       if (sepolicyDirs.length > 0) {
         addContBlock(blocks, partVar, sepolicyDirs)
