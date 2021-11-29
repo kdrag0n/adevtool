@@ -57,3 +57,7 @@ export async function withTempDir<Return>(callback: (tmp: TempState) => Promise<
     await fs.rm(dir, { force: true, recursive: true })
   }
 }
+
+export async function readFile(path: string) {
+  return await fs.readFile(path, { encoding: 'utf8' })
+}
