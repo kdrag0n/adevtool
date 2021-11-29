@@ -3,7 +3,7 @@ import path from 'path'
 import YAML from 'yaml'
 
 import { readFile } from '../util/fs'
-import { FilterMode, Filters, parseFilters, PartFilters, SerializedFilters } from './filters'
+import { FilterMode, Filters, parseFilters, SerializedFilters } from './filters'
 
 export interface DeviceInfo {
   name: string
@@ -44,6 +44,7 @@ export interface DeviceConfig {
     props: Filters
     overlays: Filters
     partitions: Filters
+    presigned: Filters
     files: Filters
   }
 }
@@ -79,6 +80,10 @@ const DEFAULT_CONFIG_BASE = {
     props: structuredClone(EMPTY_FILTERS),
     overlays: structuredClone(EMPTY_FILTERS),
     partitions: structuredClone(EMPTY_FILTERS),
+    presigned: {
+      ...structuredClone(EMPTY_FILTERS),
+      mode: FilterMode.Include,
+    },
     files: structuredClone(EMPTY_FILTERS),
   },
 }
