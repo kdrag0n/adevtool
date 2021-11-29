@@ -1,0 +1,5 @@
+filters:
+  overlays:
+    prefix:
+      # System app delegation
+      - android:string/config_default
