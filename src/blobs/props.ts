@@ -1,6 +1,4 @@
-import { promises as fs } from 'fs'
-
-import { exists } from '../util/fs'
+import { exists, readFile } from '../util/fs'
 import { parseLines } from '../util/parse'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
@@ -44,7 +42,7 @@ export async function loadPartitionProps(sourceRoot: string) {
       continue
     }
 
-    let props = parseProps(await fs.readFile(propPath, { encoding: 'utf8' }))
+    let props = parseProps(await readFile(propPath))
     partProps.set(partition, props)
   }
 

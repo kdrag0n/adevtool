@@ -4,6 +4,7 @@ import chalk from 'chalk'
 
 import { parseFileList, serializeBlobList } from '../blobs/file_list'
 import { enumeratePresignedBlobs, parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
+import { readFile } from '../util/fs'
 
 export default class CheckPresigned extends Command {
   static description = 'check for APKs that should be presigned'
@@ -25,7 +26,7 @@ export default class CheckPresigned extends Command {
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))
-    let list = listPath != null ? await fs.readFile(listPath, {encoding: 'utf8'}) : null
+    let list = listPath != null ? await readFile(listPath) : null
     let entries = list != null ? parseFileList(list) : null
 
     // Find and parse sepolicy seapp_contexts

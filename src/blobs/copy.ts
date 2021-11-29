@@ -3,6 +3,7 @@ import path from 'path'
 
 import { BlobEntry } from './entry'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
+import { readFile } from '../util/fs'
 
 export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, destDir: string) {
   let spinner = startActionSpinner('Copying files')
@@ -23,7 +24,7 @@ export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, de
 
     // Some files need patching
     if (entry.path.endsWith('.xml')) {
-      let xml = await fs.readFile(srcPath, {encoding: 'utf8'})
+      let xml = await readFile(srcPath)
       // Fix Qualcomm "version 2.0" XMLs
       if (xml.startsWith('<?xml version="2.0"')) {
         let patched = xml.replace(/^<\?xml version="2.0"/, '<?xml version="1.0"')

@@ -1,10 +1,10 @@
 import { Command, flags } from '@oclif/command'
-import { promises as fs } from 'fs'
 import chalk from 'chalk'
 
 import { parseFileList } from '../blobs/file_list'
 import { copyBlobs } from '../blobs/copy'
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
+import { readFile } from '../util/fs'
 
 export default class Extract extends Command {
   static description = 'extract proprietary files'
@@ -26,7 +26,7 @@ export default class Extract extends Command {
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))
-    let list = await fs.readFile(listPath, {encoding: 'utf8'})
+    let list = await readFile(listPath)
     let entries = parseFileList(list)
 
     // Prepare output directories

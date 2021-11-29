@@ -1,8 +1,7 @@
-import { promises as fs } from 'fs'
 import path from 'path'
 import xml2js from 'xml2js'
 
-import { exists, listFilesRecursive } from '../util/fs'
+import { exists, listFilesRecursive, readFile } from '../util/fs'
 import { parseLines } from '../util/parse'
 import { EXT_SYS_PARTITIONS } from '../util/partitions'
 
@@ -47,7 +46,7 @@ export async function readMacPermissionsRecursive(root: string) {
   let signers = []
   for await (let file of listFilesRecursive(root)) {
     if (path.basename(file) == 'mac_permissions.xml') {
-      let xml = await fs.readFile(file, { encoding: 'utf8' })
+      let xml = await readFile(file)
       signers.push(...(await parseMacPermissions(xml)))
     }
   }
@@ -63,7 +62,7 @@ export async function readPartMacPermissions(root: string) {
       continue
     }
 
-    let xml = await fs.readFile(path, { encoding: 'utf8' })
+    let xml = await readFile(path)
     signers.push(...(await parseMacPermissions(xml)))
   }
 
@@ -115,7 +114,7 @@ export async function readKeysConfRecursive(root: string) {
   let keys = []
   for await (let file of listFilesRecursive(root)) {
     if (path.basename(file) == 'keys.conf') {
-      let xml = await fs.readFile(file, { encoding: 'utf8' })
+      let xml = await readFile(file)
       keys.push(...parseKeysConf(xml))
     }
   }

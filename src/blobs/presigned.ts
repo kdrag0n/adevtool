@@ -1,9 +1,8 @@
-import { promises as fs } from 'fs'
 import path from 'path'
 
 import { parseSeappContexts } from '../selinux/seapp'
 import { aapt2 } from '../util/process'
-import { listFilesRecursive } from '../util/fs'
+import { listFilesRecursive, readFile } from '../util/fs'
 import { BlobEntry } from './entry'
 
 export async function parsePresignedRecursive(sepolicyDirs: Array<string>) {
@@ -14,7 +13,7 @@ export async function parsePresignedRecursive(sepolicyDirs: Array<string>) {
         continue
       }
 
-      let rawContexts = await fs.readFile(file, { encoding: 'utf8' })
+      let rawContexts = await readFile(file)
       contexts.push(...parseSeappContexts(rawContexts))
     }
   }

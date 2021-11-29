@@ -19,7 +19,7 @@ import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwar
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../selinux/contexts'
 import { generateFileContexts } from '../selinux/labels'
 import { startActionSpinner, stopActionSpinner } from '../util/cli'
-import { withTempDir } from '../util/fs'
+import { readFile, withTempDir } from '../util/fs'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class GenerateFull extends Command {
@@ -46,7 +46,7 @@ export default class GenerateFull extends Command {
     // customRoot might point to a system state JSON
     let customState: SystemState | null = null
     if ((await fs.stat(customRoot)).isFile()) {
-      customState = parseSystemState(await fs.readFile(customRoot, { encoding: 'utf8' }))
+      customState = parseSystemState(await readFile(customRoot))
     }
 
     // Each step will modify this. Key = combined part path
@@ -82,7 +82,7 @@ export default class GenerateFull extends Command {
       .map(cPartPath => `${targetPrefix}${cPartPath}`)
 
     let moduleInfoPath = `${targetPrefix}module-info.json`
-    let modulesMap = parseModuleInfo(await fs.readFile(moduleInfoPath, { encoding: 'utf8' }))
+    let modulesMap = parseModuleInfo(await readFile(moduleInfoPath))
     removeSelfModules(modulesMap, dirs.proprietary)
     let {modules: builtModules, builtPaths} = findOverrideModules(targetPaths, modulesMap)
 

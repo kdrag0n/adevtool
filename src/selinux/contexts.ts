@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 
-import { exists, listFilesRecursive } from '../util/fs'
+import { exists, listFilesRecursive, readFile } from '../util/fs'
 import { parseLines } from '../util/parse'
 import { EXT_PARTITIONS } from '../util/partitions'
 
@@ -34,7 +34,7 @@ export async function parseContextsRecursive(dir: string, relativeBase: string) 
       continue
     }
 
-    let rawContexts = await fs.readFile(file, { encoding: 'utf8' })
+    let rawContexts = await readFile(file)
     for (let line of parseLines(rawContexts)) {
       // Normalize whitespace to canonical single-space format
       let context = line.replaceAll(/\s+/g, ' ')

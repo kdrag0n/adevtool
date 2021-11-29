@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import xml2js from 'xml2js'
 
-import { exists } from '../util/fs'
+import { exists, readFile } from '../util/fs'
 import { EXT_PARTITIONS } from '../util/partitions'
 
 const XML_BUILDER = new xml2js.Builder({
@@ -54,7 +54,7 @@ export async function loadVintfManifest(root: string, partition: string, name: s
     return null
   }
 
-  let xml = await fs.readFile(path, { encoding: 'utf8' })
+  let xml = await readFile(path)
   return parseVintfManifest(xml)
 }
 
