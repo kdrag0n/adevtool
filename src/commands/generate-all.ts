@@ -13,7 +13,7 @@ import { diffPartitionProps, filterPartPropKeys, loadPartitionProps } from '../b
 import { diffPartVintfManifests, loadPartVintfInfo, writePartVintfManifests } from '../blobs/vintf'
 import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
-import { parseDeviceConfig } from '../config/device'
+import { loadDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts } from '../selinux/contexts'
@@ -41,7 +41,7 @@ export default class GenerateFull extends Command {
   async run() {
     let {flags: {aapt2: aapt2Path, stockRoot, customRoot, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
 
-    let config = parseDeviceConfig(await fs.readFile(configPath, { encoding: 'utf8' }))
+    let config = await loadDeviceConfig(configPath)
 
     // customRoot might point to a system state JSON
     let customState: SystemState | null = null
@@ -97,7 +97,7 @@ export default class GenerateFull extends Command {
 
     // 3. Presigned
     spinner = startActionSpinner('Finding presigned apps')
-    let presignedPkgs = await parsePresignedRecursive(config.sepolicy_dirs)
+    let presignedPkgs = await parsePresignedRecursive(config.platform.sepolicy_dirs)
     await updatePresignedBlobs(aapt2Path, stockRoot, presignedPkgs, entries, entry => {
       spinner.text = entry.srcPath
     })
@@ -106,7 +106,7 @@ export default class GenerateFull extends Command {
     // Create tmp dir in case we extract APEXs
     await withTempDir(async (tmp) => {
       // 4. Flatten APEX modules
-      if (config.flatten_apex) {
+      if (config.generate.flat_apex) {
         spinner = startActionSpinner('Flattening APEX modules')
         let apex = await flattenAllApexs(entries, stockRoot, tmp, (progress) => {
           spinner.text = progress
@@ -130,9 +130,9 @@ export default class GenerateFull extends Command {
       let stockProps = await loadPartitionProps(stockRoot)
       let customProps = customState?.partitionProps ?? await loadPartitionProps(customRoot)
       // Filter props
-      if (config.prop_filters != null) {
-        filterPartPropKeys(stockProps, config.prop_filters)
-        filterPartPropKeys(customProps, config.prop_filters)
+      if (config.filters.props != null) {
+        filterPartPropKeys(stockProps, config.filters.props)
+        filterPartPropKeys(customProps, config.filters.props)
       }
       // Diff
       let propChanges = diffPartitionProps(stockProps, customProps)
@@ -241,7 +241,7 @@ export default class GenerateFull extends Command {
       let productProps = stockProps.get('product')!
       let productName = productProps.get('ro.product.product.name')!
       build.productMakefile = {
-        baseProductPath: config.product_makefile,
+        baseProductPath: config.platform.product_makefile,
         name: productName,
         model: productProps.get('ro.product.product.model')!,
         brand: productProps.get('ro.product.product.brand')!,
