@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import unzipit from 'unzipit'
+import * as unzipit from 'unzipit'
 
 import { NodeFileReader } from '../util/zip'
 
