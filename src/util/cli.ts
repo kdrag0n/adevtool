@@ -22,7 +22,7 @@ export async function withSpinner<Return>(
   action: string,
   callback: (spinner: ora.Ora) => Promise<Return>,
 ) {
-  let spinner = createActionSpinner(action)
+  let spinner = startActionSpinner(action)
   let ret = await callback(spinner)
   stopActionSpinner(spinner)
 
