@@ -1,4 +1,16 @@
+# TODO: Add more exclusions
 filters:
+  files:
+    match:
+      # Apps that crash without GMS
+      - product/priv-app/CarrierServices/CarrierServices.apk
+      - product/priv-app/EuiccGoogle/EuiccGoogle.apk
+
+    prefix:
+      # AiAi
+      - product/priv-app/DeviceIntelligenceNetworkPrebuilt
+      - product/priv-app/DevicePersonalizationPrebuilt
+
   overlays:
     prefix:
       # System app delegation
