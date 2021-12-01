@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 
-import { listPart } from '../blobs/file_list'
+import { listPart } from '../blobs/file-list'
 import { parsePartOverlayApks } from '../blobs/overlays'
 import { loadPartitionProps } from '../blobs/props'
 import { loadPartVintfInfo } from '../blobs/vintf'

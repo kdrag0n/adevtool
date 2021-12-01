@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import chalk from 'chalk'
 
-import { parseFileList } from '../blobs/file_list'
+import { parseFileList } from '../blobs/file-list'
 import { copyBlobs } from '../blobs/copy'
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
 import { readFile } from '../util/fs'

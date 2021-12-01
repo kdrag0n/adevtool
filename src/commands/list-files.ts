@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
-import { listPart } from '../blobs/file_list'
+import { listPart } from '../blobs/file-list'
 
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 

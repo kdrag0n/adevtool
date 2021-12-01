@@ -2,7 +2,7 @@ import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import chalk from 'chalk'
 
-import { parseFileList, serializeBlobList } from '../blobs/file_list'
+import { parseFileList, serializeBlobList } from '../blobs/file-list'
 import { enumeratePresignedBlobs, parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
 import { readFile } from '../util/fs'
 

@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import chalk from 'chalk'
 
-import { diffLists, listPart } from '../blobs/file_list'
+import { diffLists, listPart } from '../blobs/file-list'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class DiffFiles extends Command {

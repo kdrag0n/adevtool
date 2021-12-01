@@ -8,7 +8,7 @@ import { listFilesRecursive, TempState } from '../util/fs'
 import { run } from '../util/process'
 import { NodeFileReader } from '../util/zip'
 import { BlobEntry } from './entry'
-import { combinedPartPathToEntry } from './file_list'
+import { combinedPartPathToEntry } from './file-list'
 
 export const ANDROID_INFO = 'android-info.txt'
 
