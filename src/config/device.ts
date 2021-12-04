@@ -98,12 +98,14 @@ function mergeConfigs(base: any, overlay: any) {
   }) as DeviceConfig
 }
 
-async function loadOverlaysRecursive(overlays: any[], rootPath: string, root: any) {
+async function loadOverlaysRecursive(overlays: any[], rootDir: string, root: any) {
   if (_.isArray(root.includes)) {
     for (let relPath of root.includes) {
-      let overlayPath = path.resolve(rootPath, relPath)
+      let overlayPath = path.resolve(rootDir, relPath)
+      let overlayDir = path.dirname(overlayPath)
+
       let overlay = YAML.parse(await readFile(overlayPath))
-      await loadOverlaysRecursive(overlays, rootPath, overlay)
+      await loadOverlaysRecursive(overlays, overlayDir, overlay)
     }
   }
 
