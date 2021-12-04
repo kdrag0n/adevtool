@@ -4,7 +4,7 @@ platform:
     - hardware/google/pixel-sepolicy
 
 includes:
-  - snippets/pixel/common.yml
+  - common.yml
 
 filters:
   partitions:
