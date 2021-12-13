@@ -38,6 +38,11 @@ filters:
     # Is this really necessary?
     - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
 
+  sepolicy_dirs:
+    match:
+      # ramdump debugging
+      - hardware/google/pixel-sepolicy/ramdump
+
   files:
     match:
       # Pixel 2020
