@@ -5,9 +5,11 @@ import { listPart } from '../blobs/file-list'
 import { parsePartOverlayApks } from '../blobs/overlays'
 import { loadPartitionProps } from '../blobs/props'
 import { loadPartVintfInfo } from '../blobs/vintf'
+import { parseModuleInfo } from '../build/soong-info'
 import { serializeSystemState, SystemState } from '../config/system-state'
 import { parsePartContexts } from '../selinux/contexts'
-import { startActionSpinner, stopActionSpinner } from '../util/cli'
+import { withSpinner } from '../util/cli'
+import { readFile } from '../util/fs'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export default class CollectState extends Command {
@@ -16,7 +18,8 @@ export default class CollectState extends Command {
   static flags = {
     help: flags.help({char: 'h'}),
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
-    customRoot: flags.string({char: 'c', description: 'path to root of custom compiled system (out/target/product/$device)', required: true}),
+    device: flags.string({char: 'd', description: 'name of target device', required: true}),
+    root: flags.string({char: 'r', description: 'path to AOSP build output directory (out/)', default: 'out'}),
   }
 
   static args = [
@@ -24,45 +27,47 @@ export default class CollectState extends Command {
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, customRoot}, args: {output_path: outPath}} = this.parse(CollectState)
+    let {flags: {aapt2: aapt2Path, device, root}, args: {output_path: outPath}} = this.parse(CollectState)
 
+    let systemRoot = `${root}/target/product/${device}`
+    let moduleInfoPath = `${systemRoot}/module-info.json`
     let state = {
       partitionFiles: {},
     } as SystemState
 
     // Files
-    let spinner = startActionSpinner('Enumerating files')
-    for (let partition of ALL_SYS_PARTITIONS) {
-      spinner.text = partition
-
-      let files = await listPart(partition, customRoot)
-      if (files == null) continue
-
-      state.partitionFiles[partition] = files
-    }
-    stopActionSpinner(spinner)
+    await withSpinner('Enumerating files', async (spinner) => {
+      for (let partition of ALL_SYS_PARTITIONS) {
+        spinner.text = partition
+  
+        let files = await listPart(partition, systemRoot)
+        if (files == null) continue
+  
+        state.partitionFiles[partition] = files
+      }
+    })
 
     // Props
-    spinner = startActionSpinner('Extracting properties')
-    state.partitionProps = await loadPartitionProps(customRoot)
-    stopActionSpinner(spinner)
+    state.partitionProps = await withSpinner('Extracting properties', () =>
+      loadPartitionProps(systemRoot))
 
     // SELinux contexts
-    spinner = startActionSpinner('Extracting SELinux contexts')
-    state.partitionSecontexts = await parsePartContexts(customRoot)
-    stopActionSpinner(spinner)
+    state.partitionSecontexts = await withSpinner('Extracting SELinux contexts', () =>
+      parsePartContexts(systemRoot))
 
     // Overlays
-    spinner = startActionSpinner('Extracting overlays')
-    state.partitionOverlays = await parsePartOverlayApks(aapt2Path, customRoot, path => {
-      spinner.text = path
-    })
-    stopActionSpinner(spinner)
+    state.partitionOverlays = await withSpinner('Extracting overlays', (spinner) =>
+      parsePartOverlayApks(aapt2Path, systemRoot, path => {
+        spinner.text = path
+      }))
 
     // vintf info
-    spinner = startActionSpinner('Extracting vintf manifests')
-    state.partitionVintfInfo = await loadPartVintfInfo(customRoot)
-    stopActionSpinner(spinner)
+    state.partitionVintfInfo = await withSpinner('Extracting vintf manifests', () =>
+      loadPartVintfInfo(systemRoot))
+
+    // Module info
+    state.moduleInfo = await withSpinner('Parsing module info', async () =>
+      parseModuleInfo(await readFile(moduleInfoPath)))
 
     // Write
     await fs.writeFile(outPath, serializeSystemState(state))

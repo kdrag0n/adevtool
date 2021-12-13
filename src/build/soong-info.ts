@@ -3,16 +3,18 @@ export interface TargetModuleInfo {
   path: Array<string>
   tags: Array<string>
   installed: Array<string>
-  compatibility_suites: Array<string>
-  auto_test_config: Array<string>
-  module_name: string
-  test_config: Array<string>
-  dependencies: Array<string>
   srcs: Array<string>
-  srcjars: Array<string>
-  classes_jar: Array<string>
-  test_mainline_modules: Array<string>
-  is_unit_test: string
+
+  // Removed to reduce size in SystemState
+  compatibility_suites?: Array<string>
+  auto_test_config?: Array<string>
+  module_name?: string
+  test_config?: Array<string>
+  dependencies?: Array<string>
+  srcjars?: Array<string>
+  classes_jar?: Array<string>
+  test_mainline_modules?: Array<string>
+  is_unit_test?: string
 }
 
 export type SoongModuleInfo = Map<string, TargetModuleInfo>
@@ -28,5 +30,19 @@ export function removeSelfModules(modulesMap: SoongModuleInfo, proprietaryDir: s
     if (module.path.find(p => p == proprietaryDir) != undefined) {
       modulesMap.delete(moduleName)
     }
+  }
+}
+
+export function minimizeModules(info: SoongModuleInfo) {
+  for (let module of info.values()) {
+    delete module.compatibility_suites
+    delete module.auto_test_config
+    delete module.module_name
+    delete module.test_config
+    delete module.dependencies
+    delete module.srcjars
+    delete module.classes_jar
+    delete module.test_mainline_modules
+    delete module.is_unit_test
   }
 }

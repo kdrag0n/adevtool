@@ -1,6 +1,7 @@
 import { PartResValues } from "../blobs/overlays"
 import { PartitionProps } from "../blobs/props"
 import { PartitionVintfInfo } from "../blobs/vintf"
+import { minimizeModules, SoongModuleInfo } from "../build/soong-info"
 import { SelinuxPartContexts } from "../selinux/contexts"
 
 const STATE_VERSION = 1
@@ -11,6 +12,7 @@ export interface SystemState {
   partitionSecontexts: SelinuxPartContexts
   partitionOverlays: PartResValues
   partitionVintfInfo: PartitionVintfInfo
+  moduleInfo: SoongModuleInfo
 }
 
 type SerializedSystemState = {
@@ -18,6 +20,8 @@ type SerializedSystemState = {
 } & SystemState
 
 export function serializeSystemState(state: SystemState) {
+  minimizeModules(state.moduleInfo)
+
   let diskState = {
     version: STATE_VERSION,
     ...state,
