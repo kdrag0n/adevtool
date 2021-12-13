@@ -19,6 +19,12 @@ export interface TargetModuleInfo {
 
 export type SoongModuleInfo = Map<string, TargetModuleInfo>
 
+const EXCLUDE_MODULE_CLASSES = new Set([
+  "NATIVE_TESTS",
+  "FAKE",
+  "ROBOLECTRIC",
+])
+
 export function parseModuleInfo(info: string) {
   return new Map(Object.entries(JSON.parse(info))) as SoongModuleInfo
 }
@@ -34,7 +40,12 @@ export function removeSelfModules(modulesMap: SoongModuleInfo, proprietaryDir: s
 }
 
 export function minimizeModules(info: SoongModuleInfo) {
-  for (let module of info.values()) {
+  for (let [key, module] of info.entries()) {
+    if (module.class.every(cl => EXCLUDE_MODULE_CLASSES.has(cl))) {
+      info.delete(key)
+      continue
+    }
+
     delete module.compatibility_suites
     delete module.auto_test_config
     delete module.module_name
