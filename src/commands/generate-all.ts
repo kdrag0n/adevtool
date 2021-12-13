@@ -174,7 +174,7 @@ async function resolveSepolicyDirs(
 
   // Diff; reversed custom->stock order to get *missing* contexts
   let ctxDiffs = diffPartContexts(customContexts, stockContexts)
-  let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts)
+  let ctxResolutions = resolvePartContextDiffs(ctxDiffs, sourceContexts, config.filters.sepolicy_dirs)
 
   // Add APEX labels
   if (ctxResolutions.has('vendor')) {

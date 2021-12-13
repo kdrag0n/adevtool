@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs'
 import path from 'path'
+import { Filters, filterValue } from '../config/filters'
 
 import { exists, listFilesRecursive, readFile } from '../util/fs'
 import { parseLines } from '../util/parse'
@@ -78,7 +78,11 @@ export function diffPartContexts(pctxRef: SelinuxPartContexts, pctxNew: SelinuxP
   return partDiffs
 }
 
-export function resolvePartContextDiffs(pctxDiffs: SelinuxPartContexts, sourceContexts: SelinuxContexts) {
+export function resolvePartContextDiffs(
+  pctxDiffs: SelinuxPartContexts,
+  sourceContexts: SelinuxContexts,
+  filters: Filters | null = null,
+) {
   let partSepolicyDirs: SelinuxPartResolutions = new Map<string, SelinuxDiffResolutions>()
   for (let [partition, diffs] of Object.entries(pctxDiffs)) {
     let buildDirs = new Set<string>()
@@ -88,7 +92,10 @@ export function resolvePartContextDiffs(pctxDiffs: SelinuxPartContexts, sourceCo
       if (sourceContexts.has(context)) {
         let sourceFile = sourceContexts.get(context)!
         let sourceDir = sourceFile.split('/').slice(0, -1).join('/')
-        buildDirs.add(sourceDir)
+
+        if (filters != null && filterValue(filters, sourceDir)) {
+          buildDirs.add(sourceDir)
+        }
       } else {
         missingContexts.push(context)
       }

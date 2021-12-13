@@ -43,9 +43,10 @@ export interface DeviceConfig {
   filters: {
     props: Filters
     overlays: Filters
-    overlay_files: Filters,
+    overlay_files: Filters
     partitions: Filters
     presigned: Filters
+    sepolicy_dirs: Filters
     files: Filters
   }
 }
@@ -86,6 +87,7 @@ const DEFAULT_CONFIG_BASE = {
       ...structuredClone(EMPTY_FILTERS),
       mode: FilterMode.Include,
     },
+    sepolicy_dirs: structuredClone(EMPTY_FILTERS),
     files: structuredClone(EMPTY_FILTERS),
   },
 }
