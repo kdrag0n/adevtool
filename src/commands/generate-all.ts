@@ -6,7 +6,7 @@ import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { loadDeviceConfig } from '../config/device'
 import { parseSystemState, SystemState } from '../config/system-state'
-import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
+import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, PropResults, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
 import { SelinuxPartResolutions } from '../selinux/contexts'
 import { withSpinner } from '../util/cli'
 import { readFile, withTempDir } from '../util/fs'
@@ -46,7 +46,7 @@ export default class GenerateFull extends Command {
 
     // 1. Diff files
     await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, config, namedEntries, customState, stockSrc, customSrc))
+      enumerateFiles(spinner, config.filters.files, namedEntries, customState, stockSrc, customSrc))
 
     // 2. Overrides
     let buildPkgs: string[] = []
