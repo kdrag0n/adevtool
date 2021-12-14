@@ -52,6 +52,7 @@ export interface DeviceMakefile {
 
   props?: PartitionProps
   fingerprint?: string
+  enforceRros?: string
 }
 
 export interface ProductsMakefile {
@@ -209,6 +210,10 @@ export function serializeDeviceMakefile(mk: DeviceMakefile) {
 
   if (mk.fingerprint != undefined) {
     blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT := ${mk.fingerprint}`)
+  }
+
+  if (mk.enforceRros != undefined) {
+    blocks.push(`PRODUCT_ENFORCE_RRO_TARGETS := ${mk.enforceRros}`)
   }
 
   return finishBlocks(blocks)
