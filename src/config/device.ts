@@ -47,6 +47,7 @@ export interface DeviceConfig {
     partitions: Filters
     presigned: Filters
     sepolicy_dirs: Filters
+    dep_files: Filters
     files: Filters
   }
 }
@@ -58,6 +59,11 @@ const EMPTY_FILTERS = {
   prefix: [],
   suffix: [],
   regex: [],
+} as SerializedFilters
+// Same, but defaults to inclusion list
+const EMPTY_INCLUDE_FILTERS = {
+  ...structuredClone(EMPTY_FILTERS),
+  mode: FilterMode.Include,
 } as SerializedFilters
 
 const DEFAULT_CONFIG_BASE = {
@@ -83,11 +89,9 @@ const DEFAULT_CONFIG_BASE = {
     overlays: structuredClone(EMPTY_FILTERS),
     overlay_files: structuredClone(EMPTY_FILTERS),
     partitions: structuredClone(EMPTY_FILTERS),
-    presigned: {
-      ...structuredClone(EMPTY_FILTERS),
-      mode: FilterMode.Include,
-    },
+    presigned: structuredClone(EMPTY_INCLUDE_FILTERS),
     sepolicy_dirs: structuredClone(EMPTY_FILTERS),
+    dep_files: structuredClone(EMPTY_INCLUDE_FILTERS),
     files: structuredClone(EMPTY_FILTERS),
   },
 }
