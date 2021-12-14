@@ -322,8 +322,10 @@ export async function generateBuildFiles(
   }
 
   // Dump list
-  let fileList = serializeBlobList(entries)
-  await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList + '\n')
+  if (entries.length > 0) {
+    let fileList = serializeBlobList(entries)
+    await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList + '\n')
+  }
 
   await writeBuildFiles(build, dirs)
 }

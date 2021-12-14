@@ -131,7 +131,7 @@ include $(BUILD_PREBUILT)`)
 }
 
 function addContBlock(blocks: Array<string>, variable: String, items: Array<string> | undefined) {
-  if (items != undefined) {
+  if (items != undefined && items.length > 0) {
     blocks.push(`${variable} += \\
     ${items.join(CONT_SEPARATOR)}`)
   }
