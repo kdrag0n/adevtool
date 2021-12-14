@@ -37,6 +37,7 @@ export interface ModulesMakefile {
 }
 
 export interface BoardMakefile {
+  buildPartitions?: Array<string>
   abOtaPartitions?: Array<string>
 
   boardInfo?: string
@@ -143,17 +144,17 @@ export function serializeBoardMakefile(mk: BoardMakefile) {
   blocks.push('BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true')
 
   // Build vendor?
-  if (mk.abOtaPartitions?.includes('vendor')) {
+  if (mk.buildPartitions?.includes('vendor')) {
     blocks.push('BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4')
   }
 
   // Build DLKM partitions?
-  if (mk.abOtaPartitions?.includes('vendor_dlkm')) {
+  if (mk.buildPartitions?.includes('vendor_dlkm')) {
     blocks.push(`BOARD_USES_VENDOR_DLKMIMAGE := true
 BOARD_VENDOR_DLKMIMAGE_FILE_SYSTEM_TYPE := ext4
 TARGET_COPY_OUT_VENDOR_DLKM := vendor_dlkm`)
   }
-  if (mk.abOtaPartitions?.includes('odm_dlkm')) {
+  if (mk.buildPartitions?.includes('odm_dlkm')) {
     blocks.push(`BOARD_USES_ODM_DLKIMAGE := true
 BOARD_ODM_DLKIMAGE_FILE_SYSTEM_TYPE := ext4
 TARGET_COPY_OUT_ODM_DLKM := odm_dlkm`)
