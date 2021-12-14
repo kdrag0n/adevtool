@@ -37,14 +37,14 @@ async function enumerateFiles(
   config: DeviceConfig,
   namedEntries: Map<string, BlobEntry>,
   customState: SystemState | null,
-  stockRoot: string,
-  customRoot: string,
+  stockSrc: string,
+  customSrc: string,
 ) {
   for (let partition of ALL_SYS_PARTITIONS) {
-    let filesRef = await listPart(partition, stockRoot, config.filters.files)
+    let filesRef = await listPart(partition, stockSrc, config.filters.files)
     if (filesRef == null) continue
     let filesNew = customState != null ? customState.partitionFiles[partition] :
-      await listPart(partition, customRoot, config.filters.files)
+      await listPart(partition, customSrc, config.filters.files)
     if (filesNew == null) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
@@ -85,10 +85,10 @@ async function updatePresigned(
   config: DeviceConfig,
   entries: BlobEntry[],
   aapt2Path: string,
-  stockRoot: string,
+  stockSrc: string,
 ) {
   let presignedPkgs = await parsePresignedRecursive(config.platform.sepolicy_dirs)
-  await updatePresignedBlobs(aapt2Path, stockRoot, presignedPkgs, entries, entry => {
+  await updatePresignedBlobs(aapt2Path, stockSrc, presignedPkgs, entries, entry => {
     spinner.text = entry.srcPath
   }, config.filters.presigned)
 }
@@ -98,9 +98,9 @@ async function flattenApexs(
   entries: BlobEntry[],
   dirs: VendorDirectories,
   tmp: TempState,
-  stockRoot: string,
+  stockSrc: string,
 ) {
-  let apex = await flattenAllApexs(entries, stockRoot, tmp, (progress) => {
+  let apex = await flattenAllApexs(entries, stockSrc, tmp, (progress) => {
     spinner.text = progress
   })
 
@@ -114,11 +114,11 @@ async function flattenApexs(
 async function extractProps(
   config: DeviceConfig,
   customState: SystemState | null,
-  stockRoot: string,
-  customRoot: string,
+  stockSrc: string,
+  customSrc: string,
 ) {
-  let stockProps = await loadPartitionProps(stockRoot)
-  let customProps = customState?.partitionProps ?? await loadPartitionProps(customRoot)
+  let stockProps = await loadPartitionProps(stockSrc)
+  let customProps = customState?.partitionProps ?? await loadPartitionProps(customSrc)
 
   // Filters
   for (let props of stockProps.values()) {
@@ -155,12 +155,12 @@ async function resolveSepolicyDirs(
   config: DeviceConfig,
   customState: SystemState | null,
   dirs: VendorDirectories,
-  stockRoot: string,
-  customRoot: string,
+  stockSrc: string,
+  customSrc: string,
 ) {
   // Built contexts
-  let stockContexts = await parsePartContexts(stockRoot)
-  let customContexts = customState?.partitionSecontexts ?? await parsePartContexts(customRoot)
+  let stockContexts = await parsePartContexts(stockSrc)
+  let customContexts = customState?.partitionSecontexts ?? await parsePartContexts(customSrc)
 
   // Contexts from AOSP
   let sourceContexts: SelinuxContexts = new Map<string, string>()
@@ -190,15 +190,15 @@ async function extractOverlays(
   customState: SystemState | null,
   dirs: VendorDirectories,
   aapt2Path: string,
-  stockRoot: string,
-  customRoot: string,
+  stockSrc: string,
+  customSrc: string,
 ) {
-  let stockOverlays = await parsePartOverlayApks(aapt2Path, stockRoot, path => {
+  let stockOverlays = await parsePartOverlayApks(aapt2Path, stockSrc, path => {
     spinner.text = path
   }, config.filters.overlay_files)
 
   let customOverlays = customState?.partitionOverlays ??
-    await parsePartOverlayApks(aapt2Path, customRoot, path => {
+    await parsePartOverlayApks(aapt2Path, customSrc, path => {
       spinner.text = path
     }, config.filters.overlay_files)
 
@@ -209,11 +209,11 @@ async function extractOverlays(
 async function extractVintfManifests(
   customState: SystemState | null,
   dirs: VendorDirectories,
-  stockRoot: string,
-  customRoot: string,
+  stockSrc: string,
+  customSrc: string,
 ) {
-  let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customRoot)
-  let stockVintf = await loadPartVintfInfo(stockRoot)
+  let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customSrc)
+  let stockVintf = await loadPartVintfInfo(stockSrc)
   let missingHals = diffPartVintfManifests(customVintf, stockVintf)
 
   return await writePartVintfManifests(missingHals, dirs.vintf)
@@ -248,9 +248,9 @@ async function generateBuildFiles(
   fwPaths: string[] | null,
   vintfManifestPaths: Map<string, string> | null,
   sepolicyResolutions: SelinuxPartResolutions | null,
-  stockRoot: string,
+  stockSrc: string,
 ) {
-  let build = await generateBuild(entries, config.device.name, config.device.vendor, stockRoot, dirs)
+  let build = await generateBuild(entries, config.device.name, config.device.vendor, stockSrc, dirs)
 
   // Add rules to build overridden modules and overlays, then re-sort
   build.deviceMakefile!.packages!.push(...buildPkgs)
@@ -311,8 +311,8 @@ export default class GenerateFull extends Command {
   static flags = {
     help: flags.help({char: 'h'}),
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
-    stockRoot: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
-    customRoot: flags.string({char: 'c', description: 'path to root of custom compiled system (out/target/product/$device) or JSON state file', required: true}),
+    stockSrc: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
+    customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', required: true}),
     factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware)'}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
@@ -322,14 +322,14 @@ export default class GenerateFull extends Command {
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, stockRoot, customRoot, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
+    let {flags: {aapt2: aapt2Path, stockSrc, customSrc, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
 
     let config = await loadDeviceConfig(configPath)
 
-    // customRoot might point to a system state JSON
+    // customSrc might point to a system state JSON
     let customState: SystemState | null = null
-    if ((await fs.stat(customRoot)).isFile()) {
-      customState = parseSystemState(await readFile(customRoot))
+    if ((await fs.stat(customSrc)).isFile()) {
+      customState = parseSystemState(await readFile(customSrc))
     }
 
     // Each step will modify this. Key = combined part path
@@ -340,7 +340,7 @@ export default class GenerateFull extends Command {
 
     // 1. Diff files
     await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, config, namedEntries, customState, stockRoot, customRoot))
+      enumerateFiles(spinner, config, namedEntries, customState, stockSrc, customSrc))
 
     // 2. Overrides
     let buildPkgs: string[] = []
@@ -355,7 +355,7 @@ export default class GenerateFull extends Command {
     // 3. Presigned
     if (config.generate.presigned) {
       await withSpinner('Marking apps as presigned', (spinner) =>
-        updatePresigned(spinner, config, entries, aapt2Path, stockRoot))
+        updatePresigned(spinner, config, entries, aapt2Path, stockSrc))
     }
 
     // Create tmp dir in case we extract APEXs
@@ -363,33 +363,33 @@ export default class GenerateFull extends Command {
       // 4. Flatten APEX modules
       if (config.generate.flat_apex) {
         entries = await withSpinner('Flattening APEX modules', (spinner) =>
-          flattenApexs(spinner, entries, dirs, tmp, stockRoot))
+          flattenApexs(spinner, entries, dirs, tmp, stockSrc))
       }
 
       // 5. Extract
       // Copy blobs (this has its own spinner)
       if (config.generate.files && !skipCopy) {
-        await copyBlobs(entries, stockRoot, dirs.proprietary)
+        await copyBlobs(entries, stockSrc, dirs.proprietary)
       }
 
       // 6. Props
       let propResults: PropResults | null = null
       if (config.generate.props) {
         propResults = await withSpinner('Extracting properties', () =>
-          extractProps(config, customState, stockRoot, customRoot))
+          extractProps(config, customState, stockSrc, customSrc))
       }
 
       // 7. SELinux policies
       let sepolicyResolutions: SelinuxPartResolutions | null = null
       if (config.generate.sepolicy_dirs) {
         sepolicyResolutions = await withSpinner('Adding missing SELinux policies', () =>
-          resolveSepolicyDirs(config, customState, dirs, stockRoot, customRoot))
+          resolveSepolicyDirs(config, customState, dirs, stockSrc, customSrc))
       }
 
       // 8. Overlays
       if (config.generate.overlays) {
         let overlayPkgs = await withSpinner('Extracting overlays', (spinner) =>
-          extractOverlays(spinner, config, customState, dirs, aapt2Path, stockRoot, customRoot))
+          extractOverlays(spinner, config, customState, dirs, aapt2Path, stockSrc, customSrc))
         buildPkgs.push(...overlayPkgs)
       }
 
@@ -397,7 +397,7 @@ export default class GenerateFull extends Command {
       let vintfManifestPaths: Map<string, string> | null = null
       if (config.generate.vintf) {
         vintfManifestPaths = await withSpinner('Extracting vintf manifests', () =>
-          extractVintfManifests(customState, dirs, stockRoot, customRoot))
+          extractVintfManifests(customState, dirs, stockSrc, customSrc))
       }
 
       // 10. Firmware
@@ -414,7 +414,7 @@ export default class GenerateFull extends Command {
       // 11. Build files
       await withSpinner('Generating build files', () =>
         generateBuildFiles(config, dirs, entries, buildPkgs, propResults, fwPaths,
-          vintfManifestPaths, sepolicyResolutions, stockRoot))
+          vintfManifestPaths, sepolicyResolutions, stockSrc))
     })
   }
 }
