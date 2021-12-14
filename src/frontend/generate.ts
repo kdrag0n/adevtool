@@ -13,7 +13,7 @@ import { diffPartVintfManifests, loadPartVintfInfo, writePartVintfManifests } fr
 import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
 import { DeviceConfig } from '../config/device'
-import { filterKeys, filterValue } from '../config/filters'
+import { filterKeys, Filters, filterValue } from '../config/filters'
 import { SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts, SelinuxPartResolutions } from '../selinux/contexts'
@@ -21,27 +21,28 @@ import { generateFileContexts } from '../selinux/labels'
 import { readFile, TempState } from '../util/fs'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
-interface PropResults {
+export interface PropResults {
   stockProps: PartitionProps
-  missingProps: PartitionProps
+  missingProps?: PartitionProps
 
-  fingerprint: string
+  fingerprint?: string
   missingOtaParts: Array<string>
 }
 
 export async function enumerateFiles(
   spinner: ora.Ora,
-  config: DeviceConfig,
+  filters: Filters,
   namedEntries: Map<string, BlobEntry>,
   customState: SystemState | null,
   stockSrc: string,
-  customSrc: string,
+  customSrc: string | null,
 ) {
   for (let partition of ALL_SYS_PARTITIONS) {
-    let filesRef = await listPart(partition, stockSrc, config.filters.files)
+    let filesRef = await listPart(partition, stockSrc, filters)
     if (filesRef == null) continue
     let filesNew = customState != null ? customState.partitionFiles[partition] :
-      await listPart(partition, customSrc, config.filters.files)
+      (customSrc != null ? await listPart(partition, customSrc, filters) :
+        [])
     if (filesNew == null) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
@@ -113,10 +114,12 @@ export async function extractProps(
   config: DeviceConfig,
   customState: SystemState | null,
   stockSrc: string,
-  customSrc: string,
+  customSrc: string | null,
 ) {
   let stockProps = await loadPartitionProps(stockSrc)
-  let customProps = customState?.partitionProps ?? await loadPartitionProps(customSrc)
+  let customProps = customState?.partitionProps ?? (customSrc != null ?
+    await loadPartitionProps(customSrc) :
+    new Map<string, Map<string, string>>())
 
   // Filters
   for (let props of stockProps.values()) {
@@ -126,17 +129,20 @@ export async function extractProps(
     filterKeys(config.filters.props, props)
   }
 
-  // Diff
-  let propChanges = diffPartitionProps(stockProps, customProps)
-  let missingProps = new Map(Array.from(propChanges.entries())
-    .map(([part, props]) => [part, props.removed]))
-
   // Fingerprint for SafetyNet
   let fingerprint = stockProps.get('system')!.get('ro.system.build.fingerprint')!
 
+  // Diff
+  let missingProps: PartitionProps | undefined = undefined
+  if (customProps != null) {
+    let propChanges = diffPartitionProps(stockProps, customProps)
+    missingProps = new Map(Array.from(propChanges.entries())
+      .map(([part, props]) => [part, props.removed]))
+  }
+
   // A/B OTA partitions
   let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
-  let customOtaParts = new Set(customProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(','))
+  let customOtaParts = new Set(customProps.get('product')?.get('ro.product.ab_ota_partitions')?.split(',') ?? [])
   let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p) &&
     filterValue(config.filters.partitions, p))
 
@@ -247,6 +253,7 @@ export async function generateBuildFiles(
   vintfManifestPaths: Map<string, string> | null,
   sepolicyResolutions: SelinuxPartResolutions | null,
   stockSrc: string,
+  addAbOtaParts: boolean = true,
 ) {
   let build = await generateBuild(entries, config.device.name, config.device.vendor, stockSrc, dirs)
 
@@ -268,7 +275,7 @@ export async function generateBuildFiles(
     ...(propResults != null && propResults.missingOtaParts.length > 0 &&
       {
         buildPartitions: propResults.missingOtaParts,
-        abOtaPartitions: propResults.missingOtaParts,
+        ...(addAbOtaParts && { abOtaPartitions: propResults.missingOtaParts }),
       }),
     ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
   }
