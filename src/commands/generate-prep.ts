@@ -3,7 +3,8 @@ import { Command, flags } from '@oclif/command'
 import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
-import { loadDeviceConfig } from '../config/device'
+import { EMPTY_INCLUDE_FILTERS, loadDeviceConfig } from '../config/device'
+import { parseFilters } from '../config/filters'
 import { enumerateFiles, extractProps, generateBuildFiles, PropResults } from '../frontend/generate'
 import { withSpinner } from '../util/cli'
 
@@ -33,7 +34,8 @@ export default class GeneratePrep extends Command {
 
     // 1. Diff files
     await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, config.filters.dep_files, namedEntries, null, stockSrc, null))
+      enumerateFiles(spinner, config.filters.dep_files, null, namedEntries, null,
+        stockSrc, null))
 
     // After this point, we only need entry objects
     let entries = Array.from(namedEntries.values())

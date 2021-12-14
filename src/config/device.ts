@@ -53,7 +53,7 @@ export interface DeviceConfig {
 }
 
 // Untyped because this isn't a full config
-const EMPTY_FILTERS = {
+export const EMPTY_FILTERS = {
   mode: FilterMode.Exclude,
   match: [],
   prefix: [],
@@ -61,7 +61,7 @@ const EMPTY_FILTERS = {
   regex: [],
 } as SerializedFilters
 // Same, but defaults to inclusion list
-const EMPTY_INCLUDE_FILTERS = {
+export const EMPTY_INCLUDE_FILTERS = {
   ...structuredClone(EMPTY_FILTERS),
   mode: FilterMode.Include,
 } as SerializedFilters

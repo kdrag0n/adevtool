@@ -13,7 +13,7 @@ import { diffPartVintfManifests, loadPartVintfInfo, writePartVintfManifests } fr
 import { findOverrideModules } from '../build/overrides'
 import { parseModuleInfo, removeSelfModules } from '../build/soong-info'
 import { DeviceConfig } from '../config/device'
-import { filterKeys, Filters, filterValue } from '../config/filters'
+import { filterKeys, Filters, filterValue, filterValues } from '../config/filters'
 import { SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts, SelinuxPartResolutions } from '../selinux/contexts'
@@ -32,6 +32,7 @@ export interface PropResults {
 export async function enumerateFiles(
   spinner: ora.Ora,
   filters: Filters,
+  forceIncludeFilters: Filters | null,
   namedEntries: Map<string, BlobEntry>,
   customState: SystemState | null,
   stockSrc: string,
@@ -46,6 +47,14 @@ export async function enumerateFiles(
     if (filesNew == null) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
+
+    // Evaluate force-include filters and merge forced files from ref
+    if (forceIncludeFilters != null) {
+      let forcedFiles = filterValues(forceIncludeFilters, filesRef)
+      missingFiles.push(...forcedFiles)
+      // Re-sort
+      missingFiles.sort((a, b) => a.localeCompare(b))
+    }
 
     for (let combinedPartPath of missingFiles) {
       let entry = combinedPartPathToEntry(partition, combinedPartPath)

@@ -46,7 +46,8 @@ export default class GenerateFull extends Command {
 
     // 1. Diff files
     await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, config.filters.files, namedEntries, customState, stockSrc, customSrc))
+      enumerateFiles(spinner, config.filters.files, config.filters.dep_files,
+        namedEntries, customState, stockSrc, customSrc))
 
     // 2. Overrides
     let buildPkgs: string[] = []
