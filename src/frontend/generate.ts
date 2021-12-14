@@ -254,6 +254,7 @@ export async function generateBuildFiles(
   sepolicyResolutions: SelinuxPartResolutions | null,
   stockSrc: string,
   addAbOtaParts: boolean = true,
+  enforceAllRros: boolean = false,
 ) {
   let build = await generateBuild(entries, config.device.name, config.device.vendor, stockSrc, dirs)
 
@@ -278,6 +279,11 @@ export async function generateBuildFiles(
         ...(addAbOtaParts && { abOtaPartitions: propResults.missingOtaParts }),
       }),
     ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
+  }
+
+  // Enforce RROs?
+  if (enforceAllRros) {
+    build.deviceMakefile.enforceRros = '*'
   }
 
   // Add firmware
