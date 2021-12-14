@@ -8,7 +8,7 @@ import { withSpinner } from "../util/cli"
 import { readFile } from "../util/fs"
 import { ALL_SYS_PARTITIONS } from "../util/partitions"
 
-const STATE_VERSION = 1
+const STATE_VERSION = 2
 
 export interface SystemState {
   partitionFiles: { [part: string]: Array<string> }
