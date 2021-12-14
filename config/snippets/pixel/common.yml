@@ -35,7 +35,7 @@ filters:
 
     # Needs same signature as EuiccSupportPixel
     - product/priv-app/EuiccGoogle/EuiccGoogle.apk
-    # Is this really necessary?
+    # TODO: is this really necessary?
     - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
 
   sepolicy_dirs:
