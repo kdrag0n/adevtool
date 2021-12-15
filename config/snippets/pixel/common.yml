@@ -13,7 +13,6 @@ includes:
 
   # Pixel-exclusive features that need additional support
   - dreamliner.yml
-  - flipendo.yml
   - turbo.yml
 
 filters:

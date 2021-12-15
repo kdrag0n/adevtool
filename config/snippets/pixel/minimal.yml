@@ -1,3 +1,9 @@
+# Minimal non-GMS builds for privacy
+
+includes:
+  # Pixel-exclusive features that need additional support
+  - flipendo.yml
+
 # TODO: Add more exclusions
 filters:
   files:
