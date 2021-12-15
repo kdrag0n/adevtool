@@ -6,7 +6,3 @@ filters:
 
     prefix:
       - system_ext/priv-app/TurboAdapter/
-
-  sepolicy_dirs:
-    match:
-      - hardware/google/pixel-sepolicy/turbo_adapter
