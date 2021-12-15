@@ -30,13 +30,67 @@ filters:
 
   presigned:
     match:
-    # Updated by Play Store
-    - product/priv-app/CarrierServices/CarrierServices.apk
+      # Needs same signature as EuiccSupportPixel
+      - product/priv-app/EuiccGoogle/EuiccGoogle.apk
+      # TODO: is this really necessary?
+      - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
 
-    # Needs same signature as EuiccSupportPixel
-    - product/priv-app/EuiccGoogle/EuiccGoogle.apk
-    # TODO: is this really necessary?
-    - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
+      # Apps updated by Play Store on stock
+      # (most of these aren't bundled, but it doesn't hurt to keep a full list)
+      - product/app/arcore/arcore.apk
+      - product/app/CalculatorGooglePrebuilt/CalculatorGooglePrebuilt.apk
+      - product/app/CalendarGooglePrebuilt/CalendarGooglePrebuilt.apk
+      - product/app/Chrome-Stub/Chrome-Stub.apk
+      - product/app/DevicePolicyPrebuilt/DevicePolicyPrebuilt.apk
+      - product/app/Drive/Drive.apk
+      - product/app/GoogleContacts/GoogleContacts.apk
+      - product/app/GoogleTTS/GoogleTTS.apk
+      - product/app/LatinIMEGooglePrebuilt/LatinIMEGooglePrebuilt.apk
+      - product/app/Maps/Maps.apk
+      - product/app/Photos/Photos.apk
+      - product/app/PrebuiltDeskClockGoogle/PrebuiltDeskClockGoogle.apk
+      - product/app/PrebuiltGmail/PrebuiltGmail.apk
+      - product/app/SoundPickerPrebuilt/SoundPickerPrebuilt.apk
+      - product/app/talkback/talkback.apk
+      - product/app/Videos/Videos.apk
+      - product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
+      - product/app/WebViewGoogle-Stub/WebViewGoogle-Stub.apk
+      - product/app/YouTube/YouTube.apk
+      - product/app/YouTubeMusicPrebuilt/YouTubeMusicPrebuilt.apk
+      - product/priv-app/AndroidAutoStubPrebuilt/AndroidAutoStubPrebuilt.apk
+      - product/priv-app/CarrierServices/CarrierServices.apk
+      - product/priv-app/DeviceIntelligenceNetworkPrebuilt/DeviceIntelligenceNetworkPrebuilt.apk
+      - product/priv-app/DreamlinerPrebuilt/DreamlinerPrebuilt.apk
+      - product/priv-app/EuiccGoogle/EuiccGoogle.apk
+      - product/priv-app/FilesPrebuilt/FilesPrebuilt.apk
+      - product/priv-app/GCS/GCS.apk
+      - product/priv-app/GoogleCamera/GoogleCamera.apk
+      - product/priv-app/GoogleDialer/GoogleDialer.apk
+      - product/priv-app/GoogleRestorePrebuilt/GoogleRestorePrebuilt.apk
+      - product/priv-app/HelpRtcPrebuilt/HelpRtcPrebuilt.apk
+      - product/priv-app/MaestroPrebuilt/MaestroPrebuilt.apk
+      - product/priv-app/OdadPrebuilt/OdadPrebuilt.apk
+      - product/priv-app/Phonesky/Phonesky.apk
+      - product/priv-app/PixelLiveWallpaperPrebuilt/PixelLiveWallpaperPrebuilt.apk
+      - product/priv-app/PrebuiltBugle/PrebuiltBugle.apk
+      - product/priv-app/PrebuiltGmsCore/PrebuiltGmsCoreSc.apk
+      - product/priv-app/RecorderPrebuilt/RecorderPrebuilt.apk
+      - product/priv-app/SafetyHubPrebuilt/SafetyHubPrebuilt.apk
+      - product/priv-app/SCONE/SCONE.apk
+      - product/priv-app/ScribePrebuilt/ScribePrebuilt.apk
+      - product/priv-app/SecurityHubPrebuilt/SecurityHubPrebuilt.apk
+      - product/priv-app/SettingsIntelligenceGooglePrebuilt/SettingsIntelligenceGooglePrebuilt.apk
+      - product/priv-app/TipsPrebuilt/TipsPrebuilt.apk
+      - product/priv-app/TurboPrebuilt/TurboPrebuilt.apk
+      - product/priv-app/Velvet/Velvet.apk
+      - product/priv-app/WellbeingPrebuilt/WellbeingPrebuilt.apk
+      - system/app/CaptivePortalLoginGoogle/CaptivePortalLoginGoogle.apk
+      - system/priv-app/DocumentsUIGoogle/DocumentsUIGoogle.apk
+      - system/priv-app/NetworkStackGoogle/NetworkStackGoogle.apk
+
+    prefix:
+      # Another app updated by Play Store on stock
+      - product/priv-app/DevicePersonalizationPrebuiltPixel
 
   sepolicy_dirs:
     match:
