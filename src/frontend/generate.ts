@@ -290,11 +290,6 @@ export async function generateBuildFiles(
     ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
   }
 
-  // Enforce RROs?
-  if (enforceAllRros) {
-    build.deviceMakefile.enforceRros = '*'
-  }
-
   // Add firmware
   if (fwPaths != null) {
     build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(dirs.out, p))
@@ -318,6 +313,14 @@ export async function generateBuildFiles(
     }
     build.productsMakefile = {
       products: [productName],
+    }
+  }
+
+  // Enforce RROs?
+  if (enforceAllRros) {
+    build.deviceMakefile.enforceRros = '*'
+    if (build.productMakefile != undefined) {
+      build.productMakefile.enforceRros = '*'
     }
   }
 

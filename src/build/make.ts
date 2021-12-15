@@ -67,6 +67,8 @@ export interface ProductMakefile {
   model: string
   brand: string
   manufacturer: string
+
+  enforceRros?: string
 }
 
 function startBlocks() {
@@ -221,18 +223,22 @@ export function serializeDeviceMakefile(mk: DeviceMakefile) {
 }
 
 export function serializeProductMakefile(mk: ProductMakefile) {
-  // Use a raw template for simplicity
-  return `${MAKEFILE_HEADER}
+  let blocks = startBlocks()
 
-# Inherit AOSP product
-$(call inherit-product, ${mk.baseProductPath})
+  blocks.push(`# Inherit AOSP product
+$(call inherit-product, ${mk.baseProductPath})`)
 
-# Match stock product info
+  blocks.push(`# Match stock product info
 PRODUCT_NAME := ${mk.name}
 PRODUCT_MODEL := ${mk.model}
 PRODUCT_BRAND := ${mk.brand}
-PRODUCT_MANUFACTURER := ${mk.manufacturer}
-`
+PRODUCT_MANUFACTURER := ${mk.manufacturer}`)
+
+  if (mk.enforceRros != undefined) {
+    blocks.push(`PRODUCT_ENFORCE_RRO_TARGETS := ${mk.enforceRros}`)
+  }
+
+  return finishBlocks(blocks)
 }
 
 export function serializeProductsMakefile(mk: ProductsMakefile) {
