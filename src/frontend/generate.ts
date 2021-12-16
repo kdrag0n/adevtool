@@ -64,6 +64,7 @@ export async function enumerateFiles(
 
 export async function resolveOverrides(
   config: DeviceConfig,
+  customState: SystemState,
   dirs: VendorDirectories,
   namedEntries: Map<string, BlobEntry>,
 ) {
@@ -71,9 +72,7 @@ export async function resolveOverrides(
   let targetPaths = Array.from(namedEntries.keys())
     .map(cPartPath => `${targetPrefix}${cPartPath}`)
 
-  // TODO: switch to custom state
-  let moduleInfoPath = `${targetPrefix}module-info.json`
-  let modulesMap = parseModuleInfo(await readFile(moduleInfoPath))
+  let modulesMap = customState.moduleInfo
   removeSelfModules(modulesMap, dirs.proprietary)
   let {modules: builtModules, builtPaths} = findOverrideModules(targetPaths, modulesMap)
 

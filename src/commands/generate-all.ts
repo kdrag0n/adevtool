@@ -55,7 +55,7 @@ export default class GenerateFull extends Command {
     let buildPkgs: string[] = []
     if (config.generate.overrides) {
       let builtModules = await withSpinner('Replacing blobs with buildable modules', () =>
-        resolveOverrides(config, dirs, namedEntries))
+        resolveOverrides(config, customState, dirs, namedEntries))
       buildPkgs.push(...builtModules)
     }
     // After this point, we only need entry objects
