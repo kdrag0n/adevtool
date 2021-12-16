@@ -34,17 +34,14 @@ export async function enumerateFiles(
   filters: Filters,
   forceIncludeFilters: Filters | null,
   namedEntries: Map<string, BlobEntry>,
-  customState: SystemState | null,
+  customState: SystemState,
   stockSrc: string,
-  customSrc: string | null,
 ) {
   for (let partition of ALL_SYS_PARTITIONS) {
     let filesRef = await listPart(partition, stockSrc, filters)
     if (filesRef == null) continue
-    let filesNew = customState != null ? customState.partitionFiles[partition] :
-      (customSrc != null ? await listPart(partition, customSrc, filters) :
-        [])
-    if (filesNew == null) continue
+    let filesNew = customState.partitionFiles[partition]
+    if (filesNew == undefined) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
 
@@ -121,14 +118,11 @@ export async function flattenApexs(
 
 export async function extractProps(
   config: DeviceConfig,
-  customState: SystemState | null,
+  customState: SystemState,
   stockSrc: string,
-  customSrc: string | null,
 ) {
   let stockProps = await loadPartitionProps(stockSrc)
-  let customProps = customState?.partitionProps ?? (customSrc != null ?
-    await loadPartitionProps(customSrc) :
-    new Map<string, Map<string, string>>())
+  let customProps = customState.partitionProps
 
   // Filters
   for (let props of stockProps.values()) {
@@ -166,14 +160,13 @@ export async function extractProps(
 
 export async function resolveSepolicyDirs(
   config: DeviceConfig,
-  customState: SystemState | null,
+  customState: SystemState,
   dirs: VendorDirectories,
   stockSrc: string,
-  customSrc: string,
 ) {
   // Built contexts
   let stockContexts = await parsePartContexts(stockSrc)
-  let customContexts = customState?.partitionSecontexts ?? await parsePartContexts(customSrc)
+  let customContexts = customState.partitionSecontexts
 
   // Contexts from AOSP
   let sourceContexts: SelinuxContexts = new Map<string, string>()
@@ -200,32 +193,26 @@ export async function resolveSepolicyDirs(
 export async function extractOverlays(
   spinner: ora.Ora,
   config: DeviceConfig,
-  customState: SystemState | null,
+  customState: SystemState,
   dirs: VendorDirectories,
   aapt2Path: string,
   stockSrc: string,
-  customSrc: string,
 ) {
   let stockOverlays = await parsePartOverlayApks(aapt2Path, stockSrc, path => {
     spinner.text = path
   }, config.filters.overlay_files)
-
-  let customOverlays = customState?.partitionOverlays ??
-    await parsePartOverlayApks(aapt2Path, customSrc, path => {
-      spinner.text = path
-    }, config.filters.overlay_files)
+  let customOverlays = customState.partitionOverlays
 
   let missingOverlays = diffPartOverlays(stockOverlays, customOverlays, config.filters.overlays)
   return await serializePartOverlays(missingOverlays, dirs.overlays)
 }
 
 export async function extractVintfManifests(
-  customState: SystemState | null,
+  customState: SystemState,
   dirs: VendorDirectories,
   stockSrc: string,
-  customSrc: string,
 ) {
-  let customVintf = customState?.partitionVintfInfo ?? await loadPartVintfInfo(customSrc)
+  let customVintf = customState.partitionVintfInfo
   let stockVintf = await loadPartVintfInfo(stockSrc)
   let missingHals = diffPartVintfManifests(customVintf, stockVintf)
 

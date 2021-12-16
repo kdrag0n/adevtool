@@ -5,7 +5,7 @@ import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { loadDeviceConfig } from '../config/device'
-import { parseSystemState, SystemState } from '../config/system-state'
+import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
 import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, PropResults, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
 import { SelinuxPartResolutions } from '../selinux/contexts'
 import { withSpinner } from '../util/cli'
@@ -32,10 +32,12 @@ export default class GenerateFull extends Command {
 
     let config = await loadDeviceConfig(configPath)
 
-    // customSrc might point to a system state JSON
-    let customState: SystemState | null = null
+    // customSrc can point to a system state JSON or out/
+    let customState: SystemState
     if ((await fs.stat(customSrc)).isFile()) {
       customState = parseSystemState(await readFile(customSrc))
+    } else {
+      customState = await collectSystemState(config.device.name, customSrc, aapt2Path)
     }
 
     // Each step will modify this. Key = combined part path
@@ -47,7 +49,7 @@ export default class GenerateFull extends Command {
     // 1. Diff files
     await withSpinner('Enumerating files', (spinner) =>
       enumerateFiles(spinner, config.filters.files, config.filters.dep_files,
-        namedEntries, customState, stockSrc, customSrc))
+        namedEntries, customState, stockSrc))
 
     // 2. Overrides
     let buildPkgs: string[] = []
@@ -83,20 +85,20 @@ export default class GenerateFull extends Command {
       let propResults: PropResults | null = null
       if (config.generate.props) {
         propResults = await withSpinner('Extracting properties', () =>
-          extractProps(config, customState, stockSrc, customSrc))
+          extractProps(config, customState, stockSrc))
       }
 
       // 7. SELinux policies
       let sepolicyResolutions: SelinuxPartResolutions | null = null
       if (config.generate.sepolicy_dirs) {
         sepolicyResolutions = await withSpinner('Adding missing SELinux policies', () =>
-          resolveSepolicyDirs(config, customState, dirs, stockSrc, customSrc))
+          resolveSepolicyDirs(config, customState, dirs, stockSrc))
       }
 
       // 8. Overlays
       if (config.generate.overlays) {
         let overlayPkgs = await withSpinner('Extracting overlays', (spinner) =>
-          extractOverlays(spinner, config, customState, dirs, aapt2Path, stockSrc, customSrc))
+          extractOverlays(spinner, config, customState, dirs, aapt2Path, stockSrc))
         buildPkgs.push(...overlayPkgs)
       }
 
@@ -104,7 +106,7 @@ export default class GenerateFull extends Command {
       let vintfManifestPaths: Map<string, string> | null = null
       if (config.generate.vintf) {
         vintfManifestPaths = await withSpinner('Extracting vintf manifests', () =>
-          extractVintfManifests(customState, dirs, stockSrc, customSrc))
+          extractVintfManifests(customState, dirs, stockSrc))
       }
 
       // 10. Firmware
