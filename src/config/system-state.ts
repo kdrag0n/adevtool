@@ -8,14 +8,19 @@ import { withSpinner } from "../util/cli"
 import { readFile } from "../util/fs"
 import { ALL_SYS_PARTITIONS } from "../util/partitions"
 
-const STATE_VERSION = 2
+const STATE_VERSION = 3
 
 export interface SystemState {
+  deviceInfo: {
+    name: string
+  }
+
   partitionFiles: { [part: string]: Array<string> }
   partitionProps: PartitionProps
   partitionSecontexts: SelinuxPartContexts
   partitionOverlays: PartResValues
   partitionVintfInfo: PartitionVintfInfo
+
   moduleInfo: SoongModuleInfo
 }
 
@@ -63,6 +68,9 @@ export async function collectSystemState(device: string, outRoot: string, aapt2P
   let systemRoot = `${outRoot}/target/product/${device}`
   let moduleInfoPath = `${systemRoot}/module-info.json`
   let state = {
+    deviceInfo: {
+      name: device,
+    },
     partitionFiles: {},
   } as SystemState
 
