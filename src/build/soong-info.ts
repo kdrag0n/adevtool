@@ -4,11 +4,11 @@ export interface TargetModuleInfo {
   tags: Array<string>
   installed: Array<string>
   srcs: Array<string>
+  module_name: string
 
   // Removed to reduce size in SystemState
   compatibility_suites?: Array<string>
   auto_test_config?: Array<string>
-  module_name?: string
   test_config?: Array<string>
   dependencies?: Array<string>
   srcjars?: Array<string>
@@ -48,7 +48,6 @@ export function minimizeModules(info: SoongModuleInfo) {
 
     delete module.compatibility_suites
     delete module.auto_test_config
-    delete module.module_name
     delete module.test_config
     delete module.dependencies
     delete module.srcjars
