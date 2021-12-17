@@ -1,4 +1,5 @@
 import { Command, flags } from '@oclif/command'
+import chalk from 'chalk'
 
 import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
@@ -76,6 +77,12 @@ export default class GeneratePrep extends Command {
     let devices = await loadDevicesConfig(configPath)
 
     for (let config of devices) {
+      if (devices.length > 1) {
+        this.log(`
+${chalk.bold(chalk.blueBright(config.device.name))}
+`)
+      }
+
       await doDevice(config, stockSrc, buildId, skipCopy)
     }
   }
