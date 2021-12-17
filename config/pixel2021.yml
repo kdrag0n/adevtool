@@ -1,0 +1,5 @@
+type: device-list
+
+devices:
+  - raven.yml
+  - oriole.yml

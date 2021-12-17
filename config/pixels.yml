@@ -1,0 +1,6 @@
+type: device-list
+
+includes:
+  - pixel2019.yml
+  - pixel2020.yml
+  - pixel2021.yml

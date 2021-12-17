@@ -1,0 +1,5 @@
+type: device-list
+
+devices:
+  - redfin.yml
+  - bramble.yml

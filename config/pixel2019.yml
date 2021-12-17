@@ -1,0 +1,5 @@
+type: device-list
+
+devices:
+  - coral.yml
+  - flame.yml
