@@ -1,6 +1,10 @@
 device:
   vendor: google_devices
 
+platform:
+  sepolicy_dirs:
+    - hardware/google/pixel-sepolicy
+
 includes:
   - ../mainline_system.yml
   - ../gms.yml

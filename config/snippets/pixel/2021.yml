@@ -1,7 +1,6 @@
 platform:
   sepolicy_dirs:
     - device/google/gs101-sepolicy
-    - hardware/google/pixel-sepolicy
 
 includes:
   - common.yml
@@ -12,7 +11,7 @@ filters:
       # AOSP doesn't build chained vendor vbmeta by default
       - vbmeta_vendor
 
-      # Temporary: OTA firmware partitions, not currently supported
+      # TODO: add support for OTA firmware partitions
       - bl1
       - pbl
       - bl2
