@@ -3,32 +3,73 @@ import cliProgress from 'cli-progress'
 import fetch from 'node-fetch'
 import { promises as stream } from 'stream'
 import path from 'path'
+import _ from 'lodash'
 
-const VENDOR_INDEX_URL = 'https://developers.google.com/android/drivers'
-const VENDOR_URL_PREFIX = 'https://dl.google.com/dl/android/aosp/google_devices'
+const DEV_INDEX_URL = 'https://developers.google.com/android'
+const DL_URL_PREFIX = 'https://dl.google.com/dl/android/aosp/'
 
-async function getUrl(type: string, buildId: string, device: string) {
-  if (type == 'vendor') {
-    let resp = await fetch(VENDOR_INDEX_URL)
-    let index = await resp.text()
+interface ImageTypeInfo {
+  indexPath: string
+  filePattern: string
+  cookie?: string
+}
 
-    // TODO: parse HTML properly
-    let pattern = new RegExp(`"(${VENDOR_URL_PREFIX}-${device}-${buildId.toLowerCase()}-[a-z9-9.-_]+)">`)
-    let match = index.match(pattern)
-    if (match == null) {
-      throw new Error(`Image not found: ${type}, ${buildId}, ${device}`)
-    }
+export enum ImageType {
+  Ota = 'ota',
+  Factory = 'factory',
+  Vendor = 'vendor',
+}
 
-    return match[1]
+const IMAGE_TYPES: Record<ImageType, ImageTypeInfo> = {
+  [ImageType.Factory]: {
+    indexPath: 'images',
+    filePattern: 'DEVICE-BUILDID',
+    cookie: 'devsite_wall_acks=nexus-image-tos',
+  },
+  [ImageType.Ota]: {
+    indexPath: 'ota',
+    filePattern: 'DEVICE-ota-BUILDID',
+    cookie: 'devsite_wall_acks=nexus-ota-tos',
+  },
+  [ImageType.Vendor]: {
+    indexPath: 'drivers',
+    filePattern: 'google_devices-DEVICE-BUILDID',
+  },
+}
+
+async function getUrl(type: ImageType, buildId: string, device: string) {
+  let { indexPath, filePattern, cookie } = IMAGE_TYPES[type]
+
+  let resp = await fetch(`${DEV_INDEX_URL}/${indexPath}`, cookie != undefined ? {
+    headers: {
+      Cookie: cookie,
+    },
+  } : undefined)
+  let index = await resp.text()
+
+  let filePrefix = filePattern.replace('DEVICE', device)
+    .replace('BUILDID', buildId == 'latest' ? '' : buildId.toLowerCase() + '-')
+  let urlPrefix = DL_URL_PREFIX + filePrefix
+
+  let pattern = new RegExp(`"(${_.escapeRegExp(urlPrefix)}.+?)"`, 'g')
+  let matches = Array.from(index.matchAll(pattern))
+  if (matches.length == 0) {
+    throw new Error(`Image not found: ${type}, ${buildId}, ${device}`)
+  }
+
+  if (buildId == 'latest') {
+    return matches
+      .map(m => m[1])
+      .sort((a, b) => b.localeCompare(a))[0]
   } else {
-    // TODO: implement factory and ota
-    throw new Error(`Unsupported type ${type}`)
+    return matches[0][1]
   }
 }
 
-export async function downloadFile(type: string, buildId: string, device: string, outDir: string) {
+export async function downloadFile(type: ImageType, buildId: string, device: string, outDir: string) {
   let url = await getUrl(type, buildId, device)
 
+  console.log(`    ${url}`)
   let resp = await fetch(url)
   let name = path.basename(url)
   if (!resp.ok) {
