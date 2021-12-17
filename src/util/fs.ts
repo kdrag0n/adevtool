@@ -37,7 +37,7 @@ export async function exists(path: string) {
 
 export async function withTempDir<Return>(callback: (tmp: TempState) => Promise<Return>) {
   let tmp = os.tmpdir()
-  let rand = `${Math.random()}`.slice(2)
+  let rand = `${Math.random()}`.slice(2, 10)
   let dir = `${tmp}/${TMP_PREFIX}${rand}`
 
   await fs.rm(dir, { force: true, recursive: true })
