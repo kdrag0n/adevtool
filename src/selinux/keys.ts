@@ -124,11 +124,6 @@ export async function readKeysConfRecursive(root: string) {
 }
 
 export function resolveKeys(srcKeys: Array<KeyInfo>, srcMacPerms: Array<MacSigner>, compiledMacPerms: Array<MacSigner>) {
-  console.log({
-    srcKeys: srcKeys,
-    srcMacPerms: srcMacPerms,
-    compiledMacPerms: compiledMacPerms,
-  })
   // Build key ID -> paths map
   let keyToPaths = new Map(srcKeys.map(k => [k.keyId, Array.from(k.certPaths.values())]))
 
@@ -156,10 +151,6 @@ export async function writeMappedKeys(keys: Map<Uint8Array, Iterable<string>>) {
   for (let [cert, paths] of keys.entries()) {
     let serialized = serializeCert(cert)
     for (let path of paths) {
-      console.log({
-        path: path,
-        cert: serialized,
-      })
       await fs.writeFile(path, serialized)
     }
   }
