@@ -11,22 +11,22 @@ export class NodeFileReader {
   }
 
   async close() {
-    const fh = await this.file
+    let fh = await this.file
     await fh.close()
   }
 
   async getLength() {
     if (this.length == undefined) {
-      const fh = await this.file
-      const stat = await fh.stat()
+      let fh = await this.file
+      let stat = await fh.stat()
       this.length = stat.size
     }
     return this.length
   }
 
   async read(offset: number, length: number) {
-    const fh = await this.file
-    const data = new Uint8Array(length)
+    let fh = await this.file
+    let data = new Uint8Array(length)
     await fh.read(data, 0, length, offset)
     return data
   }
