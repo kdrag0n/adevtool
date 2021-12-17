@@ -6,6 +6,7 @@ import { BlobEntry } from '../blobs/entry'
 import { loadDeviceConfig } from '../config/device'
 import { enumerateFiles, extractProps, generateBuildFiles, PropResults } from '../frontend/generate'
 import { withSpinner } from '../util/cli'
+import { withTempDir } from '../util/fs'
 
 export default class GeneratePrep extends Command {
   static description = 'generate vendor parts to prepare for reference AOSP build (e.g. for collect-state)'
@@ -25,38 +26,41 @@ export default class GeneratePrep extends Command {
 
     let config = await loadDeviceConfig(configPath)
 
-    // Each step will modify this. Key = combined part path
-    let namedEntries = new Map<string, BlobEntry>()
+    // tmp may be needed for mounting/extracting stock images
+    await withTempDir(async (tmp) => {
+      // Each step will modify this. Key = combined part path
+      let namedEntries = new Map<string, BlobEntry>()
 
-    // Prepare output directories
-    let dirs = await createVendorDirs(config.device.vendor, config.device.name)
+      // Prepare output directories
+      let dirs = await createVendorDirs(config.device.vendor, config.device.name)
 
-    // 1. Diff files
-    await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, config.filters.dep_files, null, namedEntries, null,
-        stockSrc, null))
+      // 1. Diff files
+      await withSpinner('Enumerating files', (spinner) =>
+        enumerateFiles(spinner, config.filters.dep_files, null, namedEntries, null,
+          stockSrc))
 
-    // After this point, we only need entry objects
-    let entries = Array.from(namedEntries.values())
+      // After this point, we only need entry objects
+      let entries = Array.from(namedEntries.values())
 
-    // 2. Extract
-    // Copy blobs (this has its own spinner)
-    if (config.generate.files && !skipCopy) {
-      await copyBlobs(entries, stockSrc, dirs.proprietary)
-    }
+      // 2. Extract
+      // Copy blobs (this has its own spinner)
+      if (config.generate.files && !skipCopy) {
+        await copyBlobs(entries, stockSrc, dirs.proprietary)
+      }
 
-    // 3. Props
-    let propResults: PropResults | null = null
-    if (config.generate.props) {
-      propResults = await withSpinner('Extracting properties', () =>
-        extractProps(config, null, stockSrc, null))
-      delete propResults.missingProps
-      delete propResults.fingerprint
-    }
+      // 3. Props
+      let propResults: PropResults | null = null
+      if (config.generate.props) {
+        propResults = await withSpinner('Extracting properties', () =>
+          extractProps(config, null, stockSrc))
+        delete propResults.missingProps
+        delete propResults.fingerprint
+      }
 
-    // 4. Build files
-    await withSpinner('Generating build files', () =>
-      generateBuildFiles(config, dirs, entries, [], propResults, null, null, null,
-        stockSrc, false, true))
+      // 4. Build files
+      await withSpinner('Generating build files', () =>
+        generateBuildFiles(config, dirs, entries, [], propResults, null, null, null,
+          stockSrc, false, true))
+    })
   }
 }

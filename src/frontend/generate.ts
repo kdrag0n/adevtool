@@ -34,13 +34,13 @@ export async function enumerateFiles(
   filters: Filters,
   forceIncludeFilters: Filters | null,
   namedEntries: Map<string, BlobEntry>,
-  customState: SystemState,
+  customState: SystemState | null,
   stockSrc: string,
 ) {
   for (let partition of ALL_SYS_PARTITIONS) {
     let filesRef = await listPart(partition, stockSrc, filters)
     if (filesRef == null) continue
-    let filesNew = customState.partitionFiles[partition]
+    let filesNew = customState?.partitionFiles[partition] ?? []
     if (filesNew == undefined) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
@@ -117,11 +117,11 @@ export async function flattenApexs(
 
 export async function extractProps(
   config: DeviceConfig,
-  customState: SystemState,
+  customState: SystemState | null,
   stockSrc: string,
 ) {
   let stockProps = await loadPartitionProps(stockSrc)
-  let customProps = customState.partitionProps
+  let customProps = customState?.partitionProps ?? new Map<string, Map<string, string>>()
 
   // Filters
   for (let props of stockProps.values()) {
