@@ -9,6 +9,7 @@ const TMP_PREFIX = 'adevtool-'
 export interface TempState {
   dir: string
   mounts: Array<string>
+  rootTmp?: TempState
 }
 
 // https://stackoverflow.com/a/45130990
@@ -58,6 +59,20 @@ export async function withTempDir<Return>(callback: (tmp: TempState) => Promise<
   }
 }
 
+export async function createSubTmp(tmp: TempState, subpath: string) {
+  await fs.mkdir(`${tmp.dir}/${subpath}`, { recursive: true })
+
+  return {
+    ...tmp,
+    dir: `${tmp.dir}/${subpath}`,
+    rootTmp: tmp.rootTmp ?? tmp,
+  } as TempState
+}
+
 export async function readFile(path: string) {
   return await fs.readFile(path, { encoding: 'utf8' })
+}
+
+export async function mount(imgPath: string, mountpoint: string) {
+  await run(`mount -t ext4 -o ro ${imgPath} ${mountpoint}`)
 }
