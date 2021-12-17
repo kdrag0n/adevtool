@@ -40,35 +40,35 @@ export default class GenerateFull extends Command {
       customState = await collectSystemState(config.device.name, customSrc, aapt2Path)
     }
 
-    // Each step will modify this. Key = combined part path
-    let namedEntries = new Map<string, BlobEntry>()
-
-    // Prepare output directories
-    let dirs = await createVendorDirs(config.device.vendor, config.device.name)
-
-    // 1. Diff files
-    await withSpinner('Enumerating files', (spinner) =>
-      enumerateFiles(spinner, config.filters.files, config.filters.dep_files,
-        namedEntries, customState, stockSrc))
-
-    // 2. Overrides
-    let buildPkgs: string[] = []
-    if (config.generate.overrides) {
-      let builtModules = await withSpinner('Replacing blobs with buildable modules', () =>
-        resolveOverrides(config, customState, dirs, namedEntries))
-      buildPkgs.push(...builtModules)
-    }
-    // After this point, we only need entry objects
-    let entries = Array.from(namedEntries.values())
-
-    // 3. Presigned
-    if (config.generate.presigned) {
-      await withSpinner('Marking apps as presigned', (spinner) =>
-        updatePresigned(spinner, config, entries, aapt2Path, stockSrc))
-    }
-
-    // Create tmp dir in case we extract APEXs
+    // tmp may be needed for mounting/extracting stock images and/or APEX flattening
     await withTempDir(async (tmp) => {
+      // Each step will modify this. Key = combined part path
+      let namedEntries = new Map<string, BlobEntry>()
+
+      // Prepare output directories
+      let dirs = await createVendorDirs(config.device.vendor, config.device.name)
+
+      // 1. Diff files
+      await withSpinner('Enumerating files', (spinner) =>
+        enumerateFiles(spinner, config.filters.files, config.filters.dep_files,
+          namedEntries, customState, stockSrc))
+
+      // 2. Overrides
+      let buildPkgs: string[] = []
+      if (config.generate.overrides) {
+        let builtModules = await withSpinner('Replacing blobs with buildable modules', () =>
+          resolveOverrides(config, customState, dirs, namedEntries))
+        buildPkgs.push(...builtModules)
+      }
+      // After this point, we only need entry objects
+      let entries = Array.from(namedEntries.values())
+
+      // 3. Presigned
+      if (config.generate.presigned) {
+        await withSpinner('Marking apps as presigned', (spinner) =>
+          updatePresigned(spinner, config, entries, aapt2Path, stockSrc))
+      }
+
       // 4. Flatten APEX modules
       if (config.generate.flat_apex) {
         entries = await withSpinner('Flattening APEX modules', (spinner) =>
