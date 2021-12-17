@@ -41,6 +41,7 @@ async function mountImg(
     let sparseTmp = await createSubTmp(mountTmp.rootTmp!, `sparse_img/${path.basename(path.dirname(img))}`)
     let rawImg = `${sparseTmp.dir}/${path.basename(img)}`
     await run(`simg2img ${img} ${rawImg}`)
+    await fs.rm(img)
     img = rawImg
   }
 
@@ -79,6 +80,9 @@ async function wrapLeafFile(
   if (path.basename(file) == 'payload.bin') {
     spinner.text = `extracting OTA images: ${file}`
     await run(`cd ${imagesTmp.dir}; payload-dumper-go ${file}`)
+    if (file.startsWith(tmp.dir)) {
+      await fs.rm(file)
+    }
 
     let extractedDir = (await fs.readdir(imagesTmp.dir))[0]
     let imagesPath = `${imagesTmp.dir}/${extractedDir}`
@@ -110,6 +114,9 @@ async function wrapLeafFile(
     // Extract image files
     spinner.text = `extracting images: ${file}`
     await run(`unzip -d ${imagesTmp.dir} ${file}`)
+    if (file.startsWith(tmp.dir)) {
+      await fs.rm(file)
+    }
     return await searchLeafDir(imagesTmp.dir, factoryZip, null, null, tmp, spinner)
   } else {
     throw new Error(`File '${file}' has unknown format`)
