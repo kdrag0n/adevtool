@@ -4,8 +4,7 @@ import * as unzipit from 'unzipit'
 
 import { enumerateSelinuxLabels, SelinuxFileLabels } from '../selinux/labels'
 import { ProgressCallback } from '../util/cli'
-import { listFilesRecursive, TempState } from '../util/fs'
-import { run } from '../util/process'
+import { createSubTmp, listFilesRecursive, mount, TempState } from '../util/fs'
 import { NodeFileReader } from '../util/zip'
 import { BlobEntry } from './entry'
 import { combinedPartPathToEntry } from './file-list'
@@ -33,7 +32,7 @@ async function listPayload(
   // Mount
   let mountpoint = `${tmp.dir}/payload`
   await fs.mkdir(mountpoint)
-  await run(`mount -t ext4 -o ro ${imgPath} ${mountpoint}`)
+  await mount(imgPath, mountpoint)
   tmp.mounts.push(mountpoint)
 
   // Extract files, including apex_metadata.pb
@@ -121,9 +120,11 @@ export async function flattenAllApexs(
       continue
     }
 
-    // Flatten and add new entries
     let apexPath = `${srcDir}/${entry.srcPath}`
-    let apex = await flattenApex(entry.partition, apexPath, tmp, progressCallback)
+    let subTmp = await createSubTmp(tmp, `flat_apex/${entry.srcPath}`)
+
+    // Flatten and add new entries
+    let apex = await flattenApex(entry.partition, apexPath, subTmp, progressCallback)
     apex.entries.forEach(e => entries.add(e))
     Array.from(apex.labels.entries())
       .forEach(([path, context]) => labels.set(path, context))
