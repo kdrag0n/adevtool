@@ -8,7 +8,7 @@ import { withSpinner } from "../util/cli"
 import { readFile } from "../util/fs"
 import { ALL_SYS_PARTITIONS } from "../util/partitions"
 
-const STATE_VERSION = 3
+const STATE_VERSION = 4
 
 export interface SystemState {
   deviceInfo: {
