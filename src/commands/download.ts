@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import { promises as fs } from 'fs'
 import chalk from 'chalk'
-import { downloadFile, ImageType } from '../images/download'
+import { downloadFile, ImageType, IndexCache } from '../images/download'
 
 const IMAGE_TYPE_MAP: { [type: string]: ImageType } = {
   'factory': ImageType.Factory,
@@ -28,6 +28,7 @@ export default class Download extends Command {
 
     await fs.mkdir(out, { recursive: true })
 
+    let cache: IndexCache = {}
     for (let device of flags.device) {
       this.log(chalk.greenBright(`${device}`))
 
@@ -40,7 +41,7 @@ export default class Download extends Command {
 
         for (let buildId of flags.buildId) {
           this.log(chalk.bold(chalk.blueBright(`  ${prettyType} - ${buildId.toUpperCase()}`)))
-          await downloadFile(typeEnum, buildId, device, out)
+          await downloadFile(typeEnum, buildId, device, out, cache)
         }
       }
     }

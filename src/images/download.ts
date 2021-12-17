@@ -20,6 +20,8 @@ export enum ImageType {
   Vendor = 'vendor',
 }
 
+export type IndexCache = { [type in ImageType]?: string }
+
 const IMAGE_TYPES: Record<ImageType, ImageTypeInfo> = {
   [ImageType.Factory]: {
     indexPath: 'images',
@@ -37,15 +39,20 @@ const IMAGE_TYPES: Record<ImageType, ImageTypeInfo> = {
   },
 }
 
-async function getUrl(type: ImageType, buildId: string, device: string) {
+async function getUrl(type: ImageType, buildId: string, device: string, cache: IndexCache) {
   let { indexPath, filePattern, cookie } = IMAGE_TYPES[type]
 
-  let resp = await fetch(`${DEV_INDEX_URL}/${indexPath}`, cookie != undefined ? {
-    headers: {
-      Cookie: cookie,
-    },
-  } : undefined)
-  let index = await resp.text()
+  let index = cache[type]
+  if (index == undefined) {
+    let resp = await fetch(`${DEV_INDEX_URL}/${indexPath}`, cookie != undefined ? {
+      headers: {
+        Cookie: cookie,
+      },
+    } : undefined)
+
+    index = await resp.text()
+    cache[type] = index
+  }
 
   let filePrefix = filePattern.replace('DEVICE', device)
     .replace('BUILDID', buildId == 'latest' ? '' : buildId.toLowerCase() + '-')
@@ -66,8 +73,14 @@ async function getUrl(type: ImageType, buildId: string, device: string) {
   }
 }
 
-export async function downloadFile(type: ImageType, buildId: string, device: string, outDir: string) {
-  let url = await getUrl(type, buildId, device)
+export async function downloadFile(
+  type: ImageType,
+  buildId: string,
+  device: string,
+  outDir: string,
+  cache: IndexCache = {},
+) {
+  let url = await getUrl(type, buildId, device, cache)
 
   console.log(`    ${url}`)
   let resp = await fetch(url)
