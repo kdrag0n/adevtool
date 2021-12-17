@@ -19,9 +19,9 @@ export default class GenerateFull extends Command {
     help: flags.help({char: 'h'}),
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
     buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
-    stockSrc: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
+    stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
     customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', default: 'out'}),
-    factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware)'}),
+    factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware if stockSrc is not factory images)'}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
 
@@ -46,8 +46,12 @@ export default class GenerateFull extends Command {
     await withTempDir(async (tmp) => {
       // Prepare stock system source
       let wrapBuildId = buildId == undefined ? null : buildId
-      stockSrc = await withSpinner('Extracting stock system source', (spinner) =>
+      let wrapped = await withSpinner('Extracting stock system source', (spinner) =>
         wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, tmp, spinner))
+      stockSrc = wrapped.src!
+      if (wrapped.factoryZip != null && factoryZip == undefined) {
+        factoryZip = wrapped.factoryZip
+      }
 
       // Each step will modify this. Key = combined part path
       let namedEntries = new Map<string, BlobEntry>()

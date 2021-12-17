@@ -32,8 +32,9 @@ export default class GeneratePrep extends Command {
     await withTempDir(async (tmp) => {
       // Prepare stock system source
       let wrapBuildId = buildId == undefined ? null : buildId
-      stockSrc = await withSpinner('Extracting stock system source', (spinner) =>
+      let wrapped = await withSpinner('Extracting stock system source', (spinner) =>
         wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, tmp, spinner))
+      stockSrc = wrapped.src!
 
       // Each step will modify this. Key = combined part path
       let namedEntries = new Map<string, BlobEntry>()

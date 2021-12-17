@@ -8,6 +8,11 @@ import { run } from '../util/process'
 import { isSparseImage } from '../util/sparse'
 import { listZipFiles } from '../util/zip'
 
+export interface WrappedSource {
+  src: string | null
+  factoryZip: string | null
+}
+
 async function containsParts(src: string, suffix: string = '') {
   // If any sys partitions are present
   for (let part of ALL_SYS_PARTITIONS) {
@@ -62,11 +67,12 @@ async function mountParts(
   }
 }
 
-async function wrapFileSrc(
+async function wrapLeafFile(
   file: string,
+  factoryZip: string | null,
   tmp: TempState,
   spinner: ora.Ora,
-): Promise<string | null> {
+): Promise<WrappedSource> {
   let imagesTmp = await createSubTmp(tmp, `src_images/${path.basename(file)}`)
 
   // Extract images from OTA payload
@@ -76,7 +82,7 @@ async function wrapFileSrc(
 
     let extractedDir = (await fs.readdir(imagesTmp.dir))[0]
     let imagesPath = `${imagesTmp.dir}/${extractedDir}`
-    return await searchLeafDir(imagesPath, null, null, tmp, spinner)
+    return await searchLeafDir(imagesPath, factoryZip, null, null, tmp, spinner)
   }
 
   let files = await listZipFiles(file)
@@ -89,7 +95,7 @@ async function wrapFileSrc(
     spinner.text = `extracting factory images: ${file}`
     let imagesFile = `${imagesTmp.dir}/${imagesEntry}`
     await run(`unzip -d ${imagesTmp.dir} ${file} ${imagesEntry}`)
-    return await wrapFileSrc(imagesFile, tmp, spinner)
+    return await wrapLeafFile(imagesFile, file, tmp, spinner)
   } else if (files.find(f => f == 'payload.bin') != undefined) {
     // OTA package
 
@@ -97,14 +103,14 @@ async function wrapFileSrc(
     spinner.text = `extracting OTA payload: ${file}`
     let payloadFile = `${imagesTmp.dir}/payload.bin`
     await run(`unzip -d ${imagesTmp.dir} ${file} payload.bin`)
-    return await wrapFileSrc(payloadFile, tmp, spinner)
+    return await wrapLeafFile(payloadFile, factoryZip, tmp, spinner)
   } else if (files.find(f => f.endsWith('.img') && ALL_SYS_PARTITIONS.has(f.replace('.img', '')))) {
     // Images zip
 
     // Extract image files
     spinner.text = `extracting images: ${file}`
     await run(`unzip -d ${imagesTmp.dir} ${file}`)
-    return await searchLeafDir(imagesTmp.dir, null, null, tmp, spinner)
+    return await searchLeafDir(imagesTmp.dir, factoryZip, null, null, tmp, spinner)
   } else {
     throw new Error(`File '${file}' has unknown format`)
   }
@@ -112,48 +118,55 @@ async function wrapFileSrc(
 
 async function searchLeafDir(
   src: string,
+  factoryZip: string | null,
   device: string | null,
   buildId: string | null,
   tmp: TempState,
   spinner: ora.Ora,
-): Promise<string | null> {
+): Promise<WrappedSource> {
   if (!(await exists(src))) {
-    return null
+    return {
+      src: null,
+      factoryZip: null,
+    }
   }
 
   if (await containsParts(src)) {
     // Root of mounted images
-    return src
+    return { src, factoryZip }
   } else if (await containsParts(src, '.img.raw')) {
     // Mount raw images: <images>.img.raw
 
     // Mount the images
     let mountTmp = await createSubTmp(tmp, `sysroot/${path.basename(src)}`)
     await mountParts(src, mountTmp, spinner, '.img.raw')
-    return mountTmp.dir
+    return { src: mountTmp.dir, factoryZip }
   } else if (await containsParts(src, '.img')) {
     // Mount potentially-sparse images: <images>.img
 
     // Mount the images
     let mountTmp = await createSubTmp(tmp, `sysroot/${path.basename(src)}`)
     await mountParts(src, mountTmp, spinner)
-    return mountTmp.dir
+    return { src: mountTmp.dir, factoryZip }
   } else if (device != null && buildId != null) {
     let imagesZip = `${src}/image-${device}-${buildId}.zip`
     if (await exists(imagesZip)) {
       // Factory images - nested images package: image-$device-$buildId.zip
-      return await wrapFileSrc(imagesZip, tmp, spinner)
+      return await wrapLeafFile(imagesZip, factoryZip, tmp, spinner)
     }
 
-    let factoryZip = (await fs.readdir(src))
+    let factoryPath = (await fs.readdir(src))
       .find(f => f.startsWith(`${device}-${buildId}-factory-`))
-    if (factoryZip != undefined) {
+    if (factoryPath != undefined) {
       // Factory images zip
-      return await wrapFileSrc(`${src}/${factoryZip}`, tmp, spinner)
+      return await wrapLeafFile(`${src}/${factoryPath}`, factoryPath, tmp, spinner)
     }
   }
 
-  return null
+  return {
+    src: null,
+    factoryZip: null,
+  }
 }
 
 export async function wrapSystemSrc(
@@ -162,7 +175,7 @@ export async function wrapSystemSrc(
   buildId: string | null,
   tmp: TempState,
   spinner: ora.Ora,
-) {
+): Promise<WrappedSource> {
   let stat = await fs.stat(src)
   if (stat.isDirectory()) {
     // Directory
@@ -183,10 +196,10 @@ export async function wrapSystemSrc(
     }
 
     for (let dir of tryDirs) {
-      let wrapped = await searchLeafDir(dir, device, buildId, tmp, spinner)
+      let { src: wrapped, factoryZip } = await searchLeafDir(dir, null, device, buildId, tmp, spinner)
       if (wrapped != null) {
         spinner.text = wrapped.startsWith(tmp.dir) ? path.relative(tmp.dir, wrapped) : wrapped
-        return wrapped
+        return { src: wrapped, factoryZip }
       }
     }
 
@@ -195,10 +208,10 @@ export async function wrapSystemSrc(
     // File
 
     // Attempt to extract factory images or OTA
-    let wrapped = await wrapFileSrc(src, tmp, spinner)
+    let { src: wrapped, factoryZip } = await wrapLeafFile(src, null, tmp, spinner)
     if (wrapped != null) {
       spinner.text = wrapped.startsWith(tmp.dir) ? path.relative(tmp.dir, wrapped) : wrapped
-      return wrapped
+      return { src: wrapped, factoryZip }
     }
   }
 
