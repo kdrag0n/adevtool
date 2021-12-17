@@ -48,11 +48,12 @@ async function mountParts(
   src: string,
   mountTmp: TempState,
   spinner: ora.Ora,
+  suffix: string = '.img',
 ) {
   let mountRoot = mountTmp.dir
 
   for (let part of ALL_SYS_PARTITIONS) {
-    let img = `${src}/${part}.img`
+    let img = `${src}/${part}${suffix}`
     if (await exists(img)) {
       let partPath = `${mountRoot}/${part}`
       await fs.mkdir(partPath)
@@ -123,8 +124,15 @@ async function searchLeafDir(
   if (await containsParts(src)) {
     // Root of mounted images
     return src
+  } else if (await containsParts(src, '.img.raw')) {
+    // Mount raw images: <images>.img.raw
+
+    // Mount the images
+    let mountTmp = await createSubTmp(tmp, `sysroot/${src}`)
+    await mountParts(src, mountTmp, spinner, '.img.raw')
+    return mountTmp.dir
   } else if (await containsParts(src, '.img')) {
-    // Mount images: <images>.img
+    // Mount potentially-sparse images: <images>.img
 
     // Mount the images
     let mountTmp = await createSubTmp(tmp, `sysroot/${src}`)
