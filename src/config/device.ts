@@ -52,6 +52,14 @@ export interface DeviceConfig {
   }
 }
 
+interface DeviceListConfig {
+  type: ConfigType.DeviceList
+  devices: string[] // config paths
+
+  // Not part of the final config
+  // includes: string[]
+}
+
 // Untyped because this isn't a full config
 export const EMPTY_FILTERS = {
   mode: FilterMode.Exclude,
@@ -101,7 +109,7 @@ function mergeConfigs(base: any, overlay: any) {
     if (_.isArray(a)) {
       return a.concat(b)
     }
-  }) as DeviceConfig
+  })
 }
 
 async function loadOverlaysRecursive(overlays: any[], rootDir: string, root: any) {
@@ -120,7 +128,7 @@ async function loadOverlaysRecursive(overlays: any[], rootDir: string, root: any
 
 // No dedicated parse function as this requires loading includes and overlaying
 // them in the correct order
-export async function loadDevicesConfig(configPath: string) {
+async function loadAndMergeConfig(configPath: string) {
   // TODO: type definition for structuredClone
   let base = structuredClone(DEFAULT_CONFIG_BASE) // deep copy to avoid mutating base
 
@@ -138,5 +146,27 @@ export async function loadDevicesConfig(configPath: string) {
 
   // Finally, cast it to the parsed config type
   delete merged.includes
-  return [merged as DeviceConfig]
+  return merged
+}
+
+export async function loadDevicesConfig(configPath: string) {
+  let merged = await loadAndMergeConfig(configPath)
+  let type = merged.type
+  delete merged.type
+
+  if (type == ConfigType.Device) {
+    return [merged as DeviceConfig]
+  } else if (type == ConfigType.DeviceList) {
+    // Load all the device configs
+    let list = merged as DeviceListConfig
+    let devices: DeviceConfig[] = []
+    for (let devicePath of list.devices) {
+      devicePath = path.resolve(path.dirname(configPath), devicePath)
+      devices.push(await loadAndMergeConfig(devicePath))
+    }
+
+    return devices
+  } else {
+    throw new Error(`Unknown config type ${type}`)
+  }
 }
