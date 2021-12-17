@@ -5,9 +5,9 @@ import YAML from 'yaml'
 import { readFile } from '../util/fs'
 import { FilterMode, Filters, parseFilters, SerializedFilters } from './filters'
 
-export interface DeviceInfo {
-  name: string
-  vendor: string
+export enum ConfigType {
+  Device = 'device',
+  DeviceList = 'device-list',
 }
 
 export interface DeviceConfig {
@@ -120,7 +120,7 @@ async function loadOverlaysRecursive(overlays: any[], rootDir: string, root: any
 
 // No dedicated parse function as this requires loading includes and overlaying
 // them in the correct order
-export async function loadDeviceConfig(configPath: string) {
+export async function loadDevicesConfig(configPath: string) {
   // TODO: type definition for structuredClone
   let base = structuredClone(DEFAULT_CONFIG_BASE) // deep copy to avoid mutating base
 
@@ -138,5 +138,5 @@ export async function loadDeviceConfig(configPath: string) {
 
   // Finally, cast it to the parsed config type
   delete merged.includes
-  return merged as DeviceConfig
+  return [merged as DeviceConfig]
 }
