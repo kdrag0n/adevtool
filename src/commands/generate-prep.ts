@@ -79,6 +79,7 @@ export default class GeneratePrep extends Command {
     for (let config of devices) {
       if (devices.length > 1) {
         this.log(`
+
 ${chalk.bold(chalk.blueBright(config.device.name))}
 `)
       }
