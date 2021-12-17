@@ -188,18 +188,21 @@ export async function wrapSystemSrc(
     // Directory
 
     let tryDirs = [
-      src,
-      `${src}/${device}`,
       ...(buildId != null && [
         `${src}/${buildId}`,
         `${src}/${device}/${buildId}`,
         `${src}/${buildId}/${device}`,
       ] || []),
+      `${src}/${device}`,
+      src,
     ]
 
-    // Also try to find extracted factory images: device-buildId
+    // Also try to find extracted factory images first: device-buildId
     if (buildId != null) {
-      tryDirs.push(...tryDirs.map(p => `${p}/${device}-${buildId}`))
+      tryDirs = [
+        ...tryDirs.map(p => `${p}/${device}-${buildId}`),
+        ...tryDirs,
+      ]
     }
 
     for (let dir of tryDirs) {
