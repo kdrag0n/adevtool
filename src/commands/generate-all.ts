@@ -7,6 +7,7 @@ import { BlobEntry } from '../blobs/entry'
 import { loadDeviceConfig } from '../config/device'
 import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
 import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, PropResults, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
+import { wrapSystemSrc } from '../frontend/source'
 import { SelinuxPartResolutions } from '../selinux/contexts'
 import { withSpinner } from '../util/cli'
 import { readFile, withTempDir } from '../util/fs'
@@ -17,6 +18,7 @@ export default class GenerateFull extends Command {
   static flags = {
     help: flags.help({char: 'h'}),
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
+    buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
     stockSrc: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
     customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', default: 'out'}),
     factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware)'}),
@@ -28,7 +30,7 @@ export default class GenerateFull extends Command {
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, stockSrc, customSrc, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
+    let {flags: {aapt2: aapt2Path, buildId, stockSrc, customSrc, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
 
     let config = await loadDeviceConfig(configPath)
 
@@ -42,6 +44,11 @@ export default class GenerateFull extends Command {
 
     // tmp may be needed for mounting/extracting stock images and/or APEX flattening
     await withTempDir(async (tmp) => {
+      // Prepare stock system source
+      let wrapBuildId = buildId == undefined ? null : buildId
+      stockSrc = await withSpinner('Extracting stock system source', (spinner) =>
+        wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, tmp, spinner))
+
       // Each step will modify this. Key = combined part path
       let namedEntries = new Map<string, BlobEntry>()
 

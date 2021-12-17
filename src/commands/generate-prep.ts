@@ -5,6 +5,7 @@ import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { loadDeviceConfig } from '../config/device'
 import { enumerateFiles, extractProps, generateBuildFiles, PropResults } from '../frontend/generate'
+import { wrapSystemSrc } from '../frontend/source'
 import { withSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
 
@@ -13,6 +14,7 @@ export default class GeneratePrep extends Command {
 
   static flags = {
     help: flags.help({char: 'h'}),
+    buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
     stockSrc: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
@@ -22,12 +24,17 @@ export default class GeneratePrep extends Command {
   ]
 
   async run() {
-    let {flags: {stockSrc, skipCopy}, args: {config: configPath}} = this.parse(GeneratePrep)
+    let {flags: {buildId, stockSrc, skipCopy}, args: {config: configPath}} = this.parse(GeneratePrep)
 
     let config = await loadDeviceConfig(configPath)
 
     // tmp may be needed for mounting/extracting stock images
     await withTempDir(async (tmp) => {
+      // Prepare stock system source
+      let wrapBuildId = buildId == undefined ? null : buildId
+      stockSrc = await withSpinner('Extracting stock system source', (spinner) =>
+        wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, tmp, spinner))
+
       // Each step will modify this. Key = combined part path
       let namedEntries = new Map<string, BlobEntry>()
 
