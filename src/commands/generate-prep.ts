@@ -15,7 +15,7 @@ export default class GeneratePrep extends Command {
   static flags = {
     help: flags.help({char: 'h'}),
     buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
-    stockSrc: flags.string({char: 's', description: 'path to root of mounted stock system images (./system_ext, ./product, etc.)', required: true}),
+    stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
   }
 
