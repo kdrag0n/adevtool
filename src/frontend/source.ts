@@ -33,7 +33,7 @@ async function mountImg(
   // Convert sparse image to raw
   if (await isSparseImage(img)) {
     spinner.text = `converting sparse image: ${img}`
-    let sparseTmp = await createSubTmp(mountTmp.rootTmp!, `sparse_img/${path.dirname(img)}`)
+    let sparseTmp = await createSubTmp(mountTmp.rootTmp!, `sparse_img/${path.basename(path.dirname(img))}`)
     let rawImg = `${sparseTmp.dir}/${path.basename(img)}`
     await run(`simg2img ${img} ${rawImg}`)
     img = rawImg
@@ -67,11 +67,11 @@ async function wrapFileSrc(
   tmp: TempState,
   spinner: ora.Ora,
 ): Promise<string | null> {
-  let imagesTmp = await createSubTmp(tmp, `src_images/${file}`)
+  let imagesTmp = await createSubTmp(tmp, `src_images/${path.basename(file)}`)
 
   // Extract images from OTA payload
   if (path.basename(file) == 'payload.bin') {
-    spinner.text = `extracting images: ${file}`
+    spinner.text = `extracting OTA images: ${file}`
     await run(`cd ${imagesTmp.dir}; payload-dumper-go ${file}`)
 
     let extractedDir = (await fs.readdir(imagesTmp.dir))[0]
@@ -86,7 +86,7 @@ async function wrapFileSrc(
     // Factory images
 
     // Extract nested images zip
-    spinner.text = `extracting nested images: ${file}`
+    spinner.text = `extracting factory images: ${file}`
     let imagesFile = `${imagesTmp.dir}/${imagesEntry}`
     await run(`unzip -d ${imagesTmp.dir} ${file} ${imagesEntry}`)
     return await wrapFileSrc(imagesFile, tmp, spinner)
@@ -128,14 +128,14 @@ async function searchLeafDir(
     // Mount raw images: <images>.img.raw
 
     // Mount the images
-    let mountTmp = await createSubTmp(tmp, `sysroot/${src}`)
+    let mountTmp = await createSubTmp(tmp, `sysroot/${path.basename(src)}`)
     await mountParts(src, mountTmp, spinner, '.img.raw')
     return mountTmp.dir
   } else if (await containsParts(src, '.img')) {
     // Mount potentially-sparse images: <images>.img
 
     // Mount the images
-    let mountTmp = await createSubTmp(tmp, `sysroot/${src}`)
+    let mountTmp = await createSubTmp(tmp, `sysroot/${path.basename(src)}`)
     await mountParts(src, mountTmp, spinner)
     return mountTmp.dir
   } else if (device != null && buildId != null) {
