@@ -75,6 +75,7 @@ export const EMPTY_INCLUDE_FILTERS = {
 } as SerializedFilters
 
 const DEFAULT_CONFIG_BASE = {
+  type: ConfigType.Device,
   platform: {
     namespaces: [],
     sepolicy_dirs: [],
