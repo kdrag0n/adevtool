@@ -149,7 +149,7 @@ async function loadAndMergeConfig(configPath: string) {
   return merged
 }
 
-export async function loadDevicesConfig(configPath: string) {
+export async function loadDeviceConfigs(configPath: string) {
   let merged = await loadAndMergeConfig(configPath)
   let type = merged.type
   delete merged.type

@@ -5,7 +5,7 @@ import { promises as fs } from 'fs'
 import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
-import { DeviceConfig, loadDevicesConfig } from '../config/device'
+import { DeviceConfig, loadDeviceConfigs } from '../config/device'
 import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
 import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, PropResults, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
 import { wrapSystemSrc } from '../frontend/source'
@@ -143,7 +143,7 @@ export default class GenerateFull extends Command {
   async run() {
     let {flags: {aapt2: aapt2Path, buildId, stockSrc, customSrc, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
 
-    let devices = await loadDevicesConfig(configPath)
+    let devices = await loadDeviceConfigs(configPath)
 
     for (let config of devices) {
       if (devices.length > 1) {

@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
-import { DeviceConfig, loadDevicesConfig } from '../config/device'
+import { DeviceConfig, loadDeviceConfigs } from '../config/device'
 import { enumerateFiles, extractProps, generateBuildFiles, PropResults } from '../frontend/generate'
 import { wrapSystemSrc } from '../frontend/source'
 import { withSpinner } from '../util/cli'
@@ -74,7 +74,7 @@ export default class GeneratePrep extends Command {
   async run() {
     let {flags: {buildId, stockSrc, skipCopy}, args: {config: configPath}} = this.parse(GeneratePrep)
 
-    let devices = await loadDevicesConfig(configPath)
+    let devices = await loadDeviceConfigs(configPath)
 
     for (let config of devices) {
       if (devices.length > 1) {
