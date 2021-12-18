@@ -176,54 +176,70 @@ async function searchLeafDir(
   }
 }
 
-export async function wrapSystemSrc(
-  src: string,
-  device: string,
-  buildId: string | null,
-  tmp: TempState,
-  spinner: ora.Ora,
-): Promise<WrappedSource> {
-  let stat = await fs.stat(src)
-  if (stat.isDirectory()) {
-    // Directory
+class SourceResolver {
+  constructor(
+    readonly device: string,
+    readonly buildId: string | null,
+    readonly useTemp: boolean,
+    readonly tmp: TempState,
+    readonly spinner: ora.Ora,
+  ) {}
 
-    let tryDirs = [
-      ...(buildId != null && [
-        `${src}/${buildId}`,
-        `${src}/${device}/${buildId}`,
-        `${src}/${buildId}/${device}`,
-      ] || []),
-      `${src}/${device}`,
-      src,
-    ]
+  async wrapSystemSrc(src: string) {
+    let stat = await fs.stat(src)
+    if (stat.isDirectory()) {
+      // Directory
 
-    // Also try to find extracted factory images first: device-buildId
-    if (buildId != null) {
-      tryDirs = [
-        ...tryDirs.map(p => `${p}/${device}-${buildId}`),
-        ...tryDirs,
+      let tryDirs = [
+        ...(this.buildId != null && [
+          `${src}/${this.buildId}`,
+          `${src}/${this.device}/${this.buildId}`,
+          `${src}/${this.buildId}/${this.device}`,
+        ] || []),
+        `${src}/${this.device}`,
+        src,
       ]
-    }
 
-    for (let dir of tryDirs) {
-      let { src: wrapped, factoryZip } = await searchLeafDir(dir, null, device, buildId, tmp, spinner)
+      // Also try to find extracted factory images first: device-buildId
+      if (this.buildId != null) {
+        tryDirs = [
+          ...tryDirs.map(p => `${p}/${this.device}-${this.buildId}`),
+          ...tryDirs,
+        ]
+      }
+
+      for (let dir of tryDirs) {
+        let { src: wrapped, factoryZip } = await searchLeafDir(dir, null, this.device, this.buildId, this.tmp, this.spinner)
+        if (wrapped != null) {
+          this.spinner.text = wrapped.startsWith(this.tmp.dir) ? path.relative(this.tmp.dir, wrapped) : wrapped
+          return { src: wrapped, factoryZip }
+        }
+      }
+
+      throw new Error(`No supported source format found in '${src}'`)
+    } else if (stat.isFile()) {
+      // File
+
+      // Attempt to extract factory images or OTA
+      let { src: wrapped, factoryZip } = await wrapLeafFile(src, null, this.tmp, this.spinner)
       if (wrapped != null) {
-        spinner.text = wrapped.startsWith(tmp.dir) ? path.relative(tmp.dir, wrapped) : wrapped
+        this.spinner.text = wrapped.startsWith(this.tmp.dir) ? path.relative(this.tmp.dir, wrapped) : wrapped
         return { src: wrapped, factoryZip }
       }
     }
 
-    throw new Error(`No supported source format found in '${src}'`)
-  } else if (stat.isFile()) {
-    // File
-
-    // Attempt to extract factory images or OTA
-    let { src: wrapped, factoryZip } = await wrapLeafFile(src, null, tmp, spinner)
-    if (wrapped != null) {
-      spinner.text = wrapped.startsWith(tmp.dir) ? path.relative(tmp.dir, wrapped) : wrapped
-      return { src: wrapped, factoryZip }
-    }
+    throw new Error(`Source '${src}' has unknown type`)
   }
+}
 
-  throw new Error(`Source '${src}' has unknown type`)
+export async function wrapSystemSrc(
+  src: string,
+  device: string,
+  buildId: string | null,
+  useTemp: boolean,
+  tmp: TempState,
+  spinner: ora.Ora,
+): Promise<WrappedSource> {
+  let resolver = new SourceResolver(device, buildId, useTemp, tmp, spinner)
+  return await resolver.wrapSystemSrc(src)
 }
