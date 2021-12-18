@@ -11,6 +11,7 @@ export interface SerializedFilters {
   match: string[]
   prefix: string[]
   suffix: string[]
+  substring: string[]
   regex: string[]
 }
 
@@ -21,6 +22,7 @@ export interface Filters {
   match: Set<string>
   prefix: string[]
   suffix: string[]
+  substring: string[]
   regex: RegExp[]
 }
 
@@ -33,6 +35,7 @@ export function parseFilters(src: SerializedFilters) {
     match: new Set(src.match),
     prefix: src.prefix,
     suffix: src.suffix,
+    substring: src.substring,
     regex: src.regex.map(pat => new RegExp(pat)),
   } as Filters
 }
@@ -41,6 +44,7 @@ function _matchFilters(filters: Filters, value: string) {
   return filters.match.has(value) ||
     filters.prefix.find(prefix => value.startsWith(prefix)) != undefined ||
     filters.suffix.find(suffix => value.endsWith(suffix)) != undefined ||
+    filters.substring.find(substring => value.includes(substring)) != undefined ||
     filters.regex.find(regex => value.match(regex)) != null
 }
 

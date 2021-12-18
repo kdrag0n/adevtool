@@ -66,6 +66,7 @@ export const EMPTY_FILTERS = {
   match: [],
   prefix: [],
   suffix: [],
+  substring: [],
   regex: [],
 } as SerializedFilters
 // Same, but defaults to inclusion list
