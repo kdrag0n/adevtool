@@ -17,7 +17,7 @@ filters:
       - product/priv-app/DeviceIntelligenceNetworkPrebuilt
       - product/priv-app/DevicePersonalizationPrebuilt
 
-  overlays:
+  overlay_keys:
     prefix:
       # System app delegation
       - android:string/config_default

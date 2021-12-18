@@ -167,7 +167,7 @@ filters:
       - product/tts/google/
       - product/wallpaper/
 
-  overlays:
+  overlay_keys:
     match:
       - android:bool/config_enableGeolocationTimeZoneDetection
       - android:bool/config_enablePrimaryLocationTimeZoneProvider
