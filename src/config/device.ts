@@ -42,7 +42,8 @@ export interface DeviceConfig {
 
   filters: {
     props: Filters
-    overlays: Filters
+    overlay_keys: Filters
+    overlay_values: Filters
     overlay_files: Filters
     partitions: Filters
     presigned: Filters
@@ -96,7 +97,8 @@ const DEFAULT_CONFIG_BASE = {
   },
   filters: {
     props: structuredClone(EMPTY_FILTERS),
-    overlays: structuredClone(EMPTY_FILTERS),
+    overlay_keys: structuredClone(EMPTY_FILTERS),
+    overlay_values: structuredClone(EMPTY_FILTERS),
     overlay_files: structuredClone(EMPTY_FILTERS),
     partitions: structuredClone(EMPTY_FILTERS),
     presigned: structuredClone(EMPTY_INCLUDE_FILTERS),

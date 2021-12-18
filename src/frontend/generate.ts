@@ -202,7 +202,7 @@ export async function extractOverlays(
   }, config.filters.overlay_files)
   let customOverlays = customState.partitionOverlays
 
-  let missingOverlays = diffPartOverlays(stockOverlays, customOverlays, config.filters.overlays)
+  let missingOverlays = diffPartOverlays(stockOverlays, customOverlays, config.filters.overlay_keys)
   return await serializePartOverlays(missingOverlays, dirs.overlays)
 }
 
