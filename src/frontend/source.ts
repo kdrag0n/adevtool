@@ -126,7 +126,7 @@ class SourceResolver {
       // Extract nested images zip
       this.spinner.text = `extracting factory images: ${file}`
       let imagesFile = `${imagesTmp.dir}/${imagesEntry}`
-      await run(`unzip -d ${imagesTmp.dir} ${file} ${imagesEntry}`)
+      await run(`unzip -d ${imagesTmp.dir} ${file}`)
       return await this.wrapLeafFile(imagesFile, file)
     } else if (files.find(f => f == 'payload.bin') != undefined) {
       // OTA package
