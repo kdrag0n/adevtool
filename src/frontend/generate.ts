@@ -204,7 +204,21 @@ export async function extractOverlays(
 
   let missingOverlays = diffPartOverlays(stockOverlays, customOverlays,
     config.filters.overlay_keys, config.filters.overlay_values)
-  return await serializePartOverlays(missingOverlays, dirs.overlays)
+
+  // Generate RROs and get a list of modules to build
+  let buildPkgs = await serializePartOverlays(missingOverlays, dirs.overlays)
+
+  // Dump overlay key and value lists
+  if (buildPkgs.length > 0) {
+    for (let [part, overlays] of Object.entries(missingOverlays)) {
+      let overlayList = Array.from(overlays.entries())
+        .map(([k, v]) => `${k} = ${v}`)
+        .join('\n')
+      await fs.writeFile(`${dirs.overlays}/${part}.txt`, overlayList + '\n')
+    }
+  }
+
+  return buildPkgs
 }
 
 export async function extractVintfManifests(
@@ -311,7 +325,7 @@ export async function generateBuildFiles(
     }
   }
 
-  // Dump list
+  // Dump blob list
   if (entries.length > 0) {
     let fileList = serializeBlobList(entries)
     await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList + '\n')
