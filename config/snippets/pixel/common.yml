@@ -21,10 +21,18 @@ includes:
 
 filters:
   props:
+    prefix:
+      # Debug
+      - log.tag.
+
     match:
-      # Misc
+      # Debug
       - ro.llkd.enable
+
+      # APEX
       - ro.apex.updatable
+
+      # Misc
       - keyguard.no_require_sim
       - ro.com.android.prov_mobiledata
       - ro.control_privapp_permissions
