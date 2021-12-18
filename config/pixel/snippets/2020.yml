@@ -40,5 +40,7 @@ filters:
       - vendor/lib/libfastcvopt.so
       - vendor/lib64/libfastcvopt.so
 
-      # Required for compatibility matrix
-      #- vendor/etc/vintf/manifest/c2_manifest_vendor.xml
+  overlay_files:
+    match:
+      # Workaround for aapt2 output parsing bug
+      - HbmSVManager__auto_generated_rro_vendor.apk
