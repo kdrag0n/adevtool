@@ -7,9 +7,8 @@ export const ANDROID_INFO = 'android-info.txt'
 
 export type FirmwareImages = Map<string, ArrayBuffer>
 
-export async function extractFactoryFirmware(zipPath: string) {
-  let reader = new NodeFileReader(zipPath)
-  let images: FirmwareImages = new Map<string, ArrayBuffer>()
+async function extractFactoryZipFirmware(path: string, images: FirmwareImages) {
+  let reader = new NodeFileReader(path)
 
   try {
     let { entries } = await unzipit.unzip(reader)
@@ -22,11 +21,34 @@ export async function extractFactoryFirmware(zipPath: string) {
         images.set('radio.img', await entry.arrayBuffer())
       }
     }
-
-    return images
   } finally {
     await reader.close()
   }
+}
+
+async function extractFactoryDirFirmware(path: string, images: FirmwareImages) {
+  for (let file of await fs.readdir(path)) {
+    if (file.startsWith('bootloader-')) {
+      let buf = await fs.readFile(`${path}/${file}`)
+      images.set('bootloader.img', buf.buffer)
+    } else if (file.startsWith('radio-')) {
+      let buf = await fs.readFile(`${path}/${file}`)
+      images.set('radio.img', buf.buffer)
+    }
+  }
+}
+
+// Path can be a directory or zip
+export async function extractFactoryFirmware(path: string) {
+  let images: FirmwareImages = new Map<string, ArrayBuffer>()
+
+  if ((await fs.stat(path)).isDirectory()) {
+    await extractFactoryDirFirmware(path, images)
+  } else {
+    await extractFactoryZipFirmware(path, images)
+  }
+
+  return images
 }
 
 export async function writeFirmwareImages(images: FirmwareImages, fwDir: string) {
