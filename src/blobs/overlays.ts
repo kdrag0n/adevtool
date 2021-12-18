@@ -323,13 +323,16 @@ function shouldDeleteKey(filters: Filters, rawKey: string, { targetPkg, type, ke
   return false
 }
 
-function filterValues(filters: Filters, values: ResValues) {
+function filterValues(keyFilters: Filters, valueFilters: Filters, values: ResValues) {
   for (let [rawKey, value] of values.entries()) {
     let key = decodeResKey(rawKey)
 
-    if (shouldDeleteKey(filters, rawKey, key)) {
+    if (shouldDeleteKey(keyFilters, rawKey, key) ||
+        (typeof value == 'string' && !filterValue(valueFilters, value))) {
+      // Key/value filter
       values.delete(rawKey)
     } else if (DIFF_MAP_PACKAGES.has(key.targetPkg)) {
+      // Package map
       let targetPkg = DIFF_MAP_PACKAGES.get(key.targetPkg)!
       let newKey = encodeResKey({
         ...key,
@@ -342,15 +345,20 @@ function filterValues(filters: Filters, values: ResValues) {
   }
 }
 
-export function diffPartOverlays(pvRef: PartResValues, pvNew: PartResValues, filters: Filters) {
+export function diffPartOverlays(
+  pvRef: PartResValues,
+  pvNew: PartResValues,
+  keyFilters: Filters,
+  valueFilters: Filters,
+) {
   let missingPartValues: PartResValues = {}
   for (let [partition, valuesNew] of Object.entries(pvNew)) {
     let valuesRef = pvRef[partition]
     let missingValues: ResValues = new Map<string, ResValue>()
 
     // Filter values first
-    filterValues(filters, valuesRef)
-    filterValues(filters, valuesNew)
+    filterValues(keyFilters, valueFilters, valuesRef)
+    filterValues(keyFilters, valueFilters, valuesNew)
 
     // Find missing overlays
     for (let [key, refValue] of valuesRef.entries()) {
