@@ -20,7 +20,8 @@ const doDevice = (
   aapt2Path: string,
   buildId: string | undefined,
   factoryZip: string | undefined,
-  skipCopy: boolean | undefined,
+  skipCopy: boolean,
+  useTemp: boolean,
 ) => withTempDir(async (tmp) => {
   // customSrc can point to a system state JSON or out/
   let customState: SystemState
@@ -33,7 +34,7 @@ const doDevice = (
   // Prepare stock system source
   let wrapBuildId = buildId == undefined ? null : buildId
   let wrapped = await withSpinner('Extracting stock system source', (spinner) =>
-    wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, tmp, spinner))
+    wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, useTemp, tmp, spinner))
   stockSrc = wrapped.src!
   if (wrapped.factoryZip != null && factoryZip == undefined) {
     factoryZip = wrapped.factoryZip
@@ -133,7 +134,8 @@ export default class GenerateFull extends Command {
     stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
     customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', default: 'out'}),
     factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware if stockSrc is not factory images)'}),
-    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
+    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files', default: false}),
+    useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false})
   }
 
   static args = [
@@ -141,7 +143,15 @@ export default class GenerateFull extends Command {
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, buildId, stockSrc, customSrc, factoryZip, skipCopy}, args: {config: configPath}} = this.parse(GenerateFull)
+    let {flags: {
+      aapt2: aapt2Path,
+      buildId,
+      stockSrc,
+      customSrc,
+      factoryZip,
+      skipCopy,
+      useTemp,
+    }, args: {config: configPath}} = this.parse(GenerateFull)
 
     let devices = await loadDeviceConfigs(configPath)
 
@@ -154,7 +164,7 @@ ${chalk.bold(chalk.blueBright(config.device.name))}
       }
 
       await doDevice(config, stockSrc, customSrc, aapt2Path, buildId, factoryZip,
-        skipCopy)
+        skipCopy, useTemp)
     }
   }
 }

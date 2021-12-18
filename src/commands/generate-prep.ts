@@ -14,12 +14,13 @@ const doDevice = (
   config: DeviceConfig,
   stockSrc: string,
   buildId: string | undefined,
-  skipCopy: boolean | undefined,
+  skipCopy: boolean,
+  useTemp: boolean,
 ) => withTempDir(async (tmp) => {
   // Prepare stock system source
   let wrapBuildId = buildId == undefined ? null : buildId
   let wrapped = await withSpinner('Extracting stock system source', (spinner) =>
-    wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, tmp, spinner))
+    wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, useTemp, tmp, spinner))
   stockSrc = wrapped.src!
 
   // Each step will modify this. Key = combined part path
@@ -64,7 +65,8 @@ export default class GeneratePrep extends Command {
     help: flags.help({char: 'h'}),
     buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
     stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
-    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
+    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files', default: false}),
+    useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false})
   }
 
   static args = [
@@ -72,7 +74,12 @@ export default class GeneratePrep extends Command {
   ]
 
   async run() {
-    let {flags: {buildId, stockSrc, skipCopy}, args: {config: configPath}} = this.parse(GeneratePrep)
+    let {flags: {
+      buildId,
+      stockSrc,
+      skipCopy,
+      useTemp,
+    }, args: {config: configPath}} = this.parse(GeneratePrep)
 
     let devices = await loadDeviceConfigs(configPath)
 
@@ -85,7 +92,7 @@ ${chalk.bold(chalk.blueBright(config.device.name))}
 `)
       }
 
-      jobs.push(doDevice(config, stockSrc, buildId, skipCopy))
+      jobs.push(doDevice(config, stockSrc, buildId, skipCopy, useTemp))
     }
 
     await Promise.all(jobs)
