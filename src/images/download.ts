@@ -6,12 +6,12 @@ import path from 'path'
 import _ from 'lodash'
 
 const DEV_INDEX_URL = 'https://developers.google.com/android'
+const DEV_COOKIE = 'devsite_wall_acks=nexus-image-tos,nexus-ota-tos'
 const DL_URL_PREFIX = 'https://dl.google.com/dl/android/aosp/'
 
 interface ImageTypeInfo {
   indexPath: string
   filePattern: string
-  cookie?: string
 }
 
 export enum ImageType {
@@ -26,12 +26,10 @@ const IMAGE_TYPES: Record<ImageType, ImageTypeInfo> = {
   [ImageType.Factory]: {
     indexPath: 'images',
     filePattern: 'DEVICE-BUILDID',
-    cookie: 'devsite_wall_acks=nexus-image-tos',
   },
   [ImageType.Ota]: {
     indexPath: 'ota',
     filePattern: 'DEVICE-ota-BUILDID',
-    cookie: 'devsite_wall_acks=nexus-ota-tos',
   },
   [ImageType.Vendor]: {
     indexPath: 'drivers',
@@ -40,15 +38,15 @@ const IMAGE_TYPES: Record<ImageType, ImageTypeInfo> = {
 }
 
 async function getUrl(type: ImageType, buildId: string, device: string, cache: IndexCache) {
-  let { indexPath, filePattern, cookie } = IMAGE_TYPES[type]
+  let { indexPath, filePattern } = IMAGE_TYPES[type]
 
   let index = cache[type]
   if (index == undefined) {
-    let resp = await fetch(`${DEV_INDEX_URL}/${indexPath}`, cookie != undefined ? {
+    let resp = await fetch(`${DEV_INDEX_URL}/${indexPath}`, {
       headers: {
-        Cookie: cookie,
+        Cookie: DEV_COOKIE,
       },
-    } : undefined)
+    })
 
     index = await resp.text()
     cache[type] = index
