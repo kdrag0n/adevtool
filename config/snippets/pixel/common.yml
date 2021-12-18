@@ -179,8 +179,6 @@ filters:
       - android:string/harmful_app_warning_title
       - com.google.android.permissioncontroller/PermissionControllerStyles:string/help_app_permissions
       - com.google.android.networkstack/NetworkStackConfig:bool/config_dhcp_client_hostname
-      - android:string/config_defaultDndAccessPackages
-      - android:string/config_primaryLocationTimeZoneProviderPackageName
       - android:string/config_secondaryLocationTimeZoneProviderPackageName
       - android:string/config_servicesExtensionPackage
       - android:bool/config_swipe_up_gesture_setting_available
@@ -220,7 +218,6 @@ filters:
       - com.android.systemui:string/config_screenshotEditor
       - com.android.phone:string-array/config_countries_to_enable_shortcut_view
       - com.android.phone:string/dialer_default_class
-      - com.android.phone:string/platform_number_verification_package
       - com.android.server.telecom:bool/config_hspa_data_distinguishable
       - com.android.server.telecom:string/call_diagnostic_service_package_name
       - com.android.server.telecom:string/dialer_default_class
@@ -245,7 +242,6 @@ filters:
       - android:string/config_defaultGallery
       - android:string/config_defaultListenerAccessPackages
       - android:string/config_defaultMusic
-      - android:string/config_defaultNetworkRecommendationProviderPackage
       - android:string/config_defaultSms
       - android:string/config_defaultAugmentedAutofillService
       - android:string/config_defaultBugReportHandlerApp

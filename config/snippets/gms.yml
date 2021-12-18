@@ -70,3 +70,7 @@ filters:
       - product/priv-app/PrebuiltGmsCore/
       - product/usr/share/ime/google/
       - product/usr/srec/
+
+  overlay_values:
+    substring:
+      - com.google.android.gms
