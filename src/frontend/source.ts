@@ -38,16 +38,36 @@ class SourceResolver {
     readonly spinner: ora.Ora,
   ) {}
 
+  // Dummy TempState that just returns the path, but with managed mountpoints
+  private createStaticTmp(path: string) {
+    return {
+      ...this.tmp,
+      dir: path,
+    } as TempState
+  }
+
+  // Dynamically switch between static and real sub-temp, depending on useTemp
+  private async createDynamicTmp(tmpPath: string, absPath: string) {
+    if (this.useTemp) {
+      return await createSubTmp(this.tmp, tmpPath)
+    } else {
+      return this.createStaticTmp(absPath)
+    }
+  }
+
   private async mountImg(
     img: string,
     dest: string,
-    mountTmp: TempState,
   ) {
     // Convert sparse image to raw
     if (await isSparseImage(img)) {
       this.spinner.text = `converting sparse image: ${img}`
-      let sparseTmp = await createSubTmp(mountTmp.rootTmp!, `sparse_img/${path.basename(path.dirname(img))}`)
-      let rawImg = `${sparseTmp.dir}/${path.basename(img)}`
+      let sparseTmp = await this.createDynamicTmp(
+        `sparse_img/${path.basename(path.dirname(img))}`,
+        path.dirname(img),
+      )
+
+      let rawImg = `${sparseTmp.dir}/${path.basename(img)}.raw`
       await run(`simg2img ${img} ${rawImg}`)
       await fs.rm(img)
       img = rawImg
@@ -55,7 +75,7 @@ class SourceResolver {
 
     this.spinner.text = `mounting: ${img}`
     await mount(img, dest)
-    mountTmp.mounts.push(dest)
+    this.tmp.mounts.push(dest)
   }
 
   private async mountParts(
@@ -70,7 +90,7 @@ class SourceResolver {
       if (await exists(img)) {
         let partPath = `${mountRoot}/${part}`
         await fs.mkdir(partPath)
-        await this.mountImg(img, partPath, mountTmp)
+        await this.mountImg(img, partPath)
       }
     }
   }
@@ -79,7 +99,10 @@ class SourceResolver {
     file: string,
     factoryZip: string | null,
   ): Promise<WrappedSource> {
-    let imagesTmp = await createSubTmp(this.tmp, `src_images/${path.basename(file)}`)
+    let imagesTmp = await this.createDynamicTmp(
+      `src_images/${path.basename(file)}`,
+      path.dirname(file),
+    )
 
     // Extract images from OTA payload
     if (path.basename(file) == 'payload.bin') {
