@@ -15,5 +15,4 @@ filters:
       - system/priv-app/TagGoogle/TagGoogle.apk
 
     prefix:
-      - system/apex/com.android.
-      - system/apex/com.google.android.
+      - system/apex/
