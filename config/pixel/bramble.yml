@@ -5,4 +5,4 @@ platform:
   product_makefile: device/google/bramble/aosp_bramble.mk
 
 includes:
-  - snippets/pixel/2020.yml
+  - snippets/2020.yml

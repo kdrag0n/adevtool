@@ -6,8 +6,8 @@ platform:
     - hardware/google/pixel-sepolicy
 
 includes:
-  - ../mainline_system.yml
-  - ../gms.yml
+  - ../../snippets/mainline_system.yml
+  - ../../snippets/gms.yml
 
   # Irrelevant stock feature: silent factory OTAs
   - factoryota.yml
