@@ -66,7 +66,8 @@ export default class GeneratePrep extends Command {
     buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
     stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files', default: false}),
-    useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false})
+    useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false}),
+    parallel: flags.boolean({char: 'p', description: 'generate devices in parallel (causes buggy progress spinners)', default: false}),
   }
 
   static args = [
@@ -79,6 +80,7 @@ export default class GeneratePrep extends Command {
       stockSrc,
       skipCopy,
       useTemp,
+      parallel,
     }, args: {config: configPath}} = this.parse(GeneratePrep)
 
     let devices = await loadDeviceConfigs(configPath)
@@ -92,7 +94,12 @@ ${chalk.bold(chalk.blueBright(config.device.name))}
 `)
       }
 
-      jobs.push(doDevice(config, stockSrc, buildId, skipCopy, useTemp))
+      let job = doDevice(config, stockSrc, buildId, skipCopy, useTemp)
+      if (parallel) {
+        jobs.push(job)
+      } else {
+        await job
+      }
     }
 
     await Promise.all(jobs)

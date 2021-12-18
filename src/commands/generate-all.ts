@@ -135,7 +135,8 @@ export default class GenerateFull extends Command {
     customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', default: 'out'}),
     factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware if stockSrc is not factory images)'}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files', default: false}),
-    useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false})
+    useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false}),
+    parallel: flags.boolean({char: 'p', description: 'generate devices in parallel (causes buggy progress spinners)', default: false}),
   }
 
   static args = [
@@ -151,10 +152,12 @@ export default class GenerateFull extends Command {
       factoryZip,
       skipCopy,
       useTemp,
+      parallel,
     }, args: {config: configPath}} = this.parse(GenerateFull)
 
     let devices = await loadDeviceConfigs(configPath)
 
+    let jobs = []
     for (let config of devices) {
       if (devices.length > 1) {
         this.log(`
@@ -163,8 +166,15 @@ ${chalk.bold(chalk.blueBright(config.device.name))}
 `)
       }
 
-      await doDevice(config, stockSrc, customSrc, aapt2Path, buildId, factoryZip,
-        skipCopy, useTemp)
+      let job = doDevice(config, stockSrc, customSrc, aapt2Path, buildId,
+        factoryZip, skipCopy, useTemp)
+      if (parallel) {
+        jobs.push(job)
+      } else {
+        await job
+      }
     }
+
+    await Promise.all(jobs)
   }
 }
