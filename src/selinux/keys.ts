@@ -123,7 +123,11 @@ export async function readKeysConfRecursive(root: string) {
   return keys
 }
 
-export function resolveKeys(srcKeys: Array<KeyInfo>, srcMacPerms: Array<MacSigner>, compiledMacPerms: Array<MacSigner>) {
+export function resolveKeys(
+  srcKeys: Array<KeyInfo>,
+  srcMacPerms: Array<MacSigner>,
+  compiledMacPerms: Array<MacSigner>,
+) {
   // Build key ID -> paths map
   let keyToPaths = new Map(srcKeys.map(k => [k.keyId, Array.from(k.certPaths.values())]))
 
@@ -132,7 +136,8 @@ export function resolveKeys(srcKeys: Array<KeyInfo>, srcMacPerms: Array<MacSigne
     .map(s => [s.seinfoId, keyToPaths.get(s.cert as string)!]))
 
   // Build cert -> paths map
-  return new Map(compiledMacPerms.filter(s => seinfoToPaths.has(s.seinfoId) && s.cert instanceof Uint8Array)
+  return new Map(compiledMacPerms
+    .filter(s => seinfoToPaths.has(s.seinfoId) && s.cert instanceof Uint8Array)
     .map(s => [s.cert as Uint8Array, seinfoToPaths.get(s.seinfoId)!]))
 }
 
