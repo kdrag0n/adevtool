@@ -28,8 +28,8 @@ export default class Download extends Command {
 
     await fs.mkdir(out, { recursive: true })
 
-    this.log(chalk.bold(chalk.redBright("By downloading images, you agree to Google's terms and conditions:")))
-    this.log(chalk.red(`    - https://developers.google.com/android/images#legal
+    this.log(chalk.bold(chalk.yellowBright("By downloading images, you agree to Google's terms and conditions:")))
+    this.log(chalk.yellow(`    - https://developers.google.com/android/images#legal
     - https://developers.google.com/android/ota#legal
     - https://policies.google.com/terms
 
