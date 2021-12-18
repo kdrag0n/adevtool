@@ -151,6 +151,9 @@ filters:
       - system_ext/priv-app/UvExposureReporter/UvExposureReporter.apk
       - system_ext/priv-app/WallpaperPickerGoogleRelease/WallpaperPickerGoogleRelease.apk
 
+      # Pixel 2019: Soli radar
+      - system_ext/priv-app/OsloFeedback/OsloFeedback.apk
+
       # Pixel 2021
       - product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
       - product/etc/permissions/com.google.android.odad.xml
