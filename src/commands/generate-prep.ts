@@ -76,6 +76,7 @@ export default class GeneratePrep extends Command {
 
     let devices = await loadDeviceConfigs(configPath)
 
+    let jobs = []
     for (let config of devices) {
       if (devices.length > 1) {
         this.log(`
@@ -84,7 +85,9 @@ ${chalk.bold(chalk.blueBright(config.device.name))}
 `)
       }
 
-      await doDevice(config, stockSrc, buildId, skipCopy)
+      jobs.push(doDevice(config, stockSrc, buildId, skipCopy))
     }
+
+    await Promise.all(jobs)
   }
 }

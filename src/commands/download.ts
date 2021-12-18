@@ -32,12 +32,11 @@ export default class Download extends Command {
     this.log(chalk.yellow(`    - https://developers.google.com/android/images#legal
     - https://developers.google.com/android/ota#legal
     - https://policies.google.com/terms
-
 `))
 
     let cache: IndexCache = {}
     for (let device of flags.device) {
-      this.log(chalk.greenBright(`${device}`))
+      this.log(chalk.greenBright(`\n${device}`))
 
       for (let type of flags.type) {
         let typeEnum = IMAGE_TYPE_MAP[type]
