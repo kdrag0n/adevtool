@@ -10,7 +10,7 @@ import { listZipFiles } from '../util/zip'
 
 export interface WrappedSource {
   src: string | null
-  factoryZip: string | null
+  factoryPath: string | null
 }
 
 async function containsParts(src: string, suffix: string = '') {
@@ -97,7 +97,7 @@ class SourceResolver {
 
   private async wrapLeafFile(
     file: string,
-    factoryZip: string | null,
+    factoryPath: string | null,
   ): Promise<WrappedSource> {
     let imagesTmp = await this.createDynamicTmp(
       `src_images/${path.basename(file)}`,
@@ -114,7 +114,7 @@ class SourceResolver {
 
       let extractedDir = (await fs.readdir(imagesTmp.dir))[0]
       let imagesPath = `${imagesTmp.dir}/${extractedDir}`
-      return await this.searchLeafDir(imagesPath, factoryZip)
+      return await this.searchLeafDir(imagesPath, factoryPath)
     }
 
     let files = await listZipFiles(file)
@@ -135,7 +135,7 @@ class SourceResolver {
       this.spinner.text = `extracting OTA payload: ${file}`
       let payloadFile = `${imagesTmp.dir}/payload.bin`
       await run(`unzip -d ${imagesTmp.dir} ${file} payload.bin`)
-      return await this.wrapLeafFile(payloadFile, factoryZip)
+      return await this.wrapLeafFile(payloadFile, factoryPath)
     } else if (files.find(f => f.endsWith('.img') && ALL_SYS_PARTITIONS.has(f.replace('.img', '')))) {
       // Images zip
 
@@ -145,7 +145,7 @@ class SourceResolver {
       if (file.startsWith(this.tmp.dir)) {
         await fs.rm(file)
       }
-      return await this.searchLeafDir(imagesTmp.dir, factoryZip)
+      return await this.searchLeafDir(imagesTmp.dir, factoryPath)
     } else {
       throw new Error(`File '${file}' has unknown format`)
     }
@@ -153,37 +153,37 @@ class SourceResolver {
 
   private async searchLeafDir(
     src: string,
-    factoryZip: string | null,
+    factoryPath: string | null,
   ): Promise<WrappedSource> {
     if (!(await exists(src))) {
       return {
         src: null,
-        factoryZip: null,
+        factoryPath: null,
       }
     }
 
     if (await containsParts(src)) {
       // Root of mounted images
-      return { src, factoryZip }
+      return { src, factoryPath }
     } else if (await containsParts(src, '.img.raw')) {
       // Mount raw images: <images>.img.raw
 
       // Mount the images
       let mountTmp = await createSubTmp(this.tmp, `sysroot/${path.basename(src)}`)
       await this.mountParts(src, mountTmp, '.img.raw')
-      return { src: mountTmp.dir, factoryZip }
+      return { src: mountTmp.dir, factoryPath: factoryPath || src }
     } else if (await containsParts(src, '.img')) {
       // Mount potentially-sparse images: <images>.img
 
       // Mount the images
       let mountTmp = await createSubTmp(this.tmp, `sysroot/${path.basename(src)}`)
       await this.mountParts(src, mountTmp)
-      return { src: mountTmp.dir, factoryZip }
+      return { src: mountTmp.dir, factoryPath: factoryPath || src }
     } else if (this.device != null && this.buildId != null) {
       let imagesZip = `${src}/image-${this.device}-${this.buildId}.zip`
       if (await exists(imagesZip)) {
         // Factory images - nested images package: image-$device-$buildId.zip
-        return await this.wrapLeafFile(imagesZip, factoryZip)
+        return await this.wrapLeafFile(imagesZip, factoryPath || src)
       }
 
       let factoryPath = (await fs.readdir(src))
@@ -196,7 +196,7 @@ class SourceResolver {
 
     return {
       src: null,
-      factoryZip: null,
+      factoryPath: null,
     }
   }
 
@@ -224,10 +224,10 @@ class SourceResolver {
       }
 
       for (let dir of tryDirs) {
-        let { src: wrapped, factoryZip } = await this.searchLeafDir(dir, null)
+        let { src: wrapped, factoryPath } = await this.searchLeafDir(dir, null)
         if (wrapped != null) {
           this.spinner.text = wrapped.startsWith(this.tmp.dir) ? path.relative(this.tmp.dir, wrapped) : wrapped
-          return { src: wrapped, factoryZip }
+          return { src: wrapped, factoryPath }
         }
       }
 
@@ -236,10 +236,10 @@ class SourceResolver {
       // File
 
       // Attempt to extract factory images or OTA
-      let { src: wrapped, factoryZip } = await this.wrapLeafFile(src, null)
+      let { src: wrapped, factoryPath } = await this.wrapLeafFile(src, null)
       if (wrapped != null) {
         this.spinner.text = wrapped.startsWith(this.tmp.dir) ? path.relative(this.tmp.dir, wrapped) : wrapped
-        return { src: wrapped, factoryZip }
+        return { src: wrapped, factoryPath }
       }
     }
 

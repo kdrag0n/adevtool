@@ -19,25 +19,25 @@ const doDevice = (
   customSrc: string,
   aapt2Path: string,
   buildId: string | undefined,
-  factoryZip: string | undefined,
+  factoryPath: string | undefined,
   skipCopy: boolean,
   useTemp: boolean,
 ) => withTempDir(async (tmp) => {
+  // Prepare stock system source
+  let wrapBuildId = buildId == undefined ? null : buildId
+  let wrapped = await withSpinner('Extracting stock system source', (spinner) =>
+    wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, useTemp, tmp, spinner))
+  stockSrc = wrapped.src!
+  if (wrapped.factoryPath != null && factoryPath == undefined) {
+    factoryPath = wrapped.factoryPath
+  }
+
   // customSrc can point to a system state JSON or out/
   let customState: SystemState
   if ((await fs.stat(customSrc)).isFile()) {
     customState = parseSystemState(await readFile(customSrc))
   } else {
     customState = await collectSystemState(config.device.name, customSrc, aapt2Path)
-  }
-
-  // Prepare stock system source
-  let wrapBuildId = buildId == undefined ? null : buildId
-  let wrapped = await withSpinner('Extracting stock system source', (spinner) =>
-    wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, useTemp, tmp, spinner))
-  stockSrc = wrapped.src!
-  if (wrapped.factoryZip != null && factoryZip == undefined) {
-    factoryZip = wrapped.factoryZip
   }
 
   // Each step will modify this. Key = combined part path
@@ -109,13 +109,13 @@ const doDevice = (
 
   // 10. Firmware
   let fwPaths: Array<string> | null = null
-  if (config.generate.factory_firmware && factoryZip != undefined) {
+  if (config.generate.factory_firmware && factoryPath != undefined) {
     if (propResults == null) {
       throw new Error('Factory firmware extraction depends on properties')
     }
 
     fwPaths = await withSpinner('Extracting firmware', () =>
-      extractFirmware(config, dirs, propResults!.stockProps, factoryZip!))
+      extractFirmware(config, dirs, propResults!.stockProps, factoryPath!))
   }
 
   // 11. Build files
@@ -133,7 +133,7 @@ export default class GenerateFull extends Command {
     buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
     stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
     customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', default: 'out'}),
-    factoryZip: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware if stockSrc is not factory images)'}),
+    factoryPath: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware if stockSrc is not factory images)'}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files', default: false}),
     useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false}),
     parallel: flags.boolean({char: 'p', description: 'generate devices in parallel (causes buggy progress spinners)', default: false}),
@@ -149,7 +149,7 @@ export default class GenerateFull extends Command {
       buildId,
       stockSrc,
       customSrc,
-      factoryZip,
+      factoryPath,
       skipCopy,
       useTemp,
       parallel,
@@ -167,7 +167,7 @@ ${chalk.bold(chalk.blueBright(config.device.name))}
       }
 
       let job = doDevice(config, stockSrc, customSrc, aapt2Path, buildId,
-        factoryZip, skipCopy, useTemp)
+        factoryPath, skipCopy, useTemp)
       if (parallel) {
         jobs.push(job)
       } else {

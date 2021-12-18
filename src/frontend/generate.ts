@@ -237,9 +237,9 @@ export async function extractFirmware(
   config: DeviceConfig,
   dirs: VendorDirectories,
   stockProps: PartitionProps,
-  factoryZip: string,
+  factoryPath: string,
 ) {
-  let fwImages = await extractFactoryFirmware(factoryZip)
+  let fwImages = await extractFactoryFirmware(factoryPath)
   let fwPaths = await writeFirmwareImages(fwImages, dirs.firmware)
 
   // Generate android-info.txt from device and versions
