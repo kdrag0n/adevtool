@@ -398,7 +398,8 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
     // Now serialize each (package,target)-partition combination
     for (let [pkgNameKey, values] of pkgValues.entries()) {
       let [targetPkg, targetName] = pkgNameKey.split('/')
-      let rroName = `${targetPkg}.auto_generated_rro_${partition}_adevtool__`
+      let genTarget = pkgNameKey.replace('/', '__')
+      let rroName = `${genTarget}.auto_generated_rro_${partition}_adevtool__`
 
       let bp = serializeBlueprint({
         modules: [{
@@ -456,7 +457,7 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
       let valuesXml = serializeXmlObject(valuesObj)
 
       // Write files
-      let overlayDir = `${overlaysDir}/${partition}_${targetPkg}`
+      let overlayDir = `${overlaysDir}/${partition}_${genTarget}`
       let resDir = `${overlayDir}/res/values`
       await fs.mkdir(resDir, { recursive: true })
       await fs.writeFile(`${overlayDir}/Android.bp`, bp)
