@@ -285,7 +285,7 @@ filters:
       - com.android.settings:string/unlock_disable_frp_
       - com.android.systemui:string/branded_
       # Some ROMs remove these keys from the device tree
-      - com.android.wifi.resources:integer/config_wifi_framework_wifi_score_
+      - com.android.wifi.resources/WifiCustomization:integer/config_wifi_framework_wifi_score_
 
       # Fonts, feedback, help
       - android:string/config_bodyFont
