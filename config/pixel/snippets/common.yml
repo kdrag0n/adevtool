@@ -26,6 +26,9 @@ filters:
       - log.tag.
 
     match:
+      # P19: AOD settings without Soli
+      - ro.vendor.aware_available
+
       # Debug
       - ro.llkd.enable
 
