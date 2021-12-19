@@ -29,3 +29,8 @@ filters:
       - .odex
       - .vdex
       - .prof
+
+  props:
+    match:
+      # Debug
+      - ro.adb.secure
