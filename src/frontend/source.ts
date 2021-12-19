@@ -186,11 +186,11 @@ class SourceResolver {
         return await this.wrapLeafFile(imagesZip, factoryPath || src)
       }
 
-      let factoryPath = (await fs.readdir(src))
+      let newFactoryPath = (await fs.readdir(src))
         .find(f => f.startsWith(`${this.device}-${this.buildId}-factory-`))
-      if (factoryPath != undefined) {
+      if (newFactoryPath != undefined) {
         // Factory images zip
-        return await this.wrapLeafFile(`${src}/${factoryPath}`, factoryPath)
+        return await this.wrapLeafFile(`${src}/${newFactoryPath}`, newFactoryPath)
       }
     }
 
