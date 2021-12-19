@@ -110,7 +110,7 @@ filters:
 
   files:
     match:
-      # Pixel 2020
+      # P20
       - product/app/DevicePolicyPrebuilt/DevicePolicyPrebuilt.apk
       - product/app/DeviceStatisticsService/DeviceStatisticsService.apk
       - product/app/DiagnosticsToolPrebuilt/DiagnosticsToolPrebuilt.apk
@@ -151,10 +151,10 @@ filters:
       - system_ext/priv-app/UvExposureReporter/UvExposureReporter.apk
       - system_ext/priv-app/WallpaperPickerGoogleRelease/WallpaperPickerGoogleRelease.apk
 
-      # Pixel 2019: Soli
+      # P19: Soli
       - system_ext/priv-app/OsloFeedback/OsloFeedback.apk
 
-      # Pixel 2021
+      # P21
       - product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
       - product/etc/permissions/com.google.android.odad.xml
 
@@ -163,10 +163,10 @@ filters:
       - product/app/WallpapersBReel
       - product/app/PixelWallpapers
 
-      # Pixel 2020
+      # P20
       - product/etc/security/
 
-      # Pixel 2021
+      # P21
       - product/tts/google/
       - product/wallpaper/
 
@@ -176,14 +176,14 @@ filters:
       - com.google.android.pixel.setupwizard/PixelSetupWizard:string/exit_to_action_in_initial_setup
       - com.google.android.pixel.setupwizard/PixelSetupWizard:string-array/deferred_medium_priority_actions
 
-      # Pixel 2019-2020: use peak refresh rate when possible
+      # P19-20: use peak refresh rate when possible
       - android:string-array/config_highRefreshRateBlacklist
 
-      # Pixel 2019: Soli
+      # P19: Soli
       - com.android.settings:string/other_gestures_category_title
       - com.google.android.pixel.setupwizard:bool/show_air_gestures_opt_in
 
-      # Pixel 2019: face unlock debugging
+      # P19: face unlock debugging
       - android:string-array/config_restrictedImagesServices
 
       # Misc
@@ -279,7 +279,7 @@ filters:
       - com.google.android.cellbroadcastservice
       - com.google.android.documentsui
 
-      # Pixel 2019: Soli
+      # P19: Soli
       - com.android.settings:drawable/aware_
       - com.android.settings:drawable/$aware_
       - com.android.settings:string/aware_
@@ -318,5 +318,5 @@ filters:
       - android:string/config_helpPackage
 
     substring:
-      # Pixel 2017-2019: Active Edge
+      # P17-19: Active Edge
       - elmyra
