@@ -32,3 +32,7 @@ filters:
       # Required by chre
       - vendor/lib/libsdsprpc.so
       - vendor/lib64/libsdsprpc.so
+
+  overlay_keys:
+    match:
+      - com.android.systemui:integer/config_keyguardRefreshRate
