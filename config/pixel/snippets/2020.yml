@@ -40,6 +40,13 @@ filters:
       - vendor/lib/libfastcvopt.so
       - vendor/lib64/libfastcvopt.so
 
+      # Needed to pass checkvintf
+      - vendor/etc/vintf/manifest/android.hardware.graphics.mapper-impl-qti-display.xml
+      - vendor/etc/vintf/manifest/c2_manifest_vendor.xml
+      - vendor/etc/vintf/manifest/pixel-display-default.xml
+      - vendor/etc/vintf/manifest/vendor.qti.hardware.display.allocator-service.xml
+      - vendor/etc/vintf/manifest/vendor.qti.hardware.display.composer-service.xml
+
   overlay_files:
     match:
       # Workaround for aapt2 output parsing bug
