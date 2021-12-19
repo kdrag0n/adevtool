@@ -1,10 +1,10 @@
 import { Command, flags } from '@oclif/command'
-import chalk from 'chalk'
 
 import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { DeviceConfig, loadDeviceConfigs } from '../config/device'
+import { forEachDevice } from '../frontend/devices'
 import { enumerateFiles, extractProps, generateBuildFiles, PropResults } from '../frontend/generate'
 import { wrapSystemSrc } from '../frontend/source'
 import { withSpinner } from '../util/cli'
@@ -85,23 +85,8 @@ export default class GeneratePrep extends Command {
 
     let devices = await loadDeviceConfigs(configPath)
 
-    let jobs = []
-    for (let config of devices) {
-      if (devices.length > 1) {
-        this.log(`
-
-${chalk.bold(chalk.blueBright(config.device.name))}
-`)
-      }
-
-      let job = doDevice(config, stockSrc, buildId, skipCopy, useTemp)
-      if (parallel) {
-        jobs.push(job)
-      } else {
-        await job
-      }
-    }
-
-    await Promise.all(jobs)
+    await forEachDevice(devices, parallel, async (config) => {
+      await doDevice(config, stockSrc, buildId, skipCopy, useTemp)
+    }, config => config.device.name)
   }
 }

@@ -14,11 +14,11 @@ import { findOverrideModules } from '../build/overrides'
 import { removeSelfModules } from '../build/soong-info'
 import { DeviceConfig } from '../config/device'
 import { filterKeys, Filters, filterValue, filterValues } from '../config/filters'
-import { SystemState } from '../config/system-state'
+import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
 import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts, SelinuxPartResolutions } from '../selinux/contexts'
 import { generateFileContexts } from '../selinux/labels'
-import { TempState } from '../util/fs'
+import { exists, readFile, TempState } from '../util/fs'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 export interface PropResults {
@@ -27,6 +27,25 @@ export interface PropResults {
 
   fingerprint?: string
   missingOtaParts: Array<string>
+}
+
+export async function loadCustomState(
+  config: DeviceConfig,
+  aapt2Path: string,
+  customSrc: string,
+) {
+  if ((await fs.stat(customSrc)).isFile()) {
+    return parseSystemState(await readFile(customSrc))
+  } else {
+    // Try <device>.json
+    let deviceSrc = `${customSrc}/${config.device.name}.json`
+    if (await exists(deviceSrc)) {
+      return parseSystemState(await readFile(deviceSrc))
+    }
+
+    // Otherwise, assume it's AOSP build output
+    return await collectSystemState(config.device.name, customSrc, aapt2Path)
+  }
 }
 
 export async function enumerateFiles(

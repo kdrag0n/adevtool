@@ -1,17 +1,15 @@
 import { Command, flags } from '@oclif/command'
-import chalk from 'chalk'
-import { promises as fs } from 'fs'
 
 import { createVendorDirs } from '../blobs/build'
 import { copyBlobs } from '../blobs/copy'
 import { BlobEntry } from '../blobs/entry'
 import { DeviceConfig, loadDeviceConfigs } from '../config/device'
-import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
-import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, PropResults, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
+import { forEachDevice } from '../frontend/devices'
+import { enumerateFiles, extractFirmware, extractOverlays, extractProps, extractVintfManifests, flattenApexs, generateBuildFiles, loadCustomState, PropResults, resolveOverrides, resolveSepolicyDirs, updatePresigned } from '../frontend/generate'
 import { wrapSystemSrc } from '../frontend/source'
 import { SelinuxPartResolutions } from '../selinux/contexts'
 import { withSpinner } from '../util/cli'
-import { readFile, withTempDir } from '../util/fs'
+import { withTempDir } from '../util/fs'
 
 const doDevice = (
   config: DeviceConfig,
@@ -32,13 +30,8 @@ const doDevice = (
     factoryPath = wrapped.factoryPath
   }
 
-  // customSrc can point to a system state JSON or out/
-  let customState: SystemState
-  if ((await fs.stat(customSrc)).isFile()) {
-    customState = parseSystemState(await readFile(customSrc))
-  } else {
-    customState = await collectSystemState(config.device.name, customSrc, aapt2Path)
-  }
+  // customSrc can point to a (directory containing) system state JSON or out/
+  let customState = await loadCustomState(config, aapt2Path, customSrc)
 
   // Each step will modify this. Key = combined part path
   let namedEntries = new Map<string, BlobEntry>()
@@ -132,7 +125,7 @@ export default class GenerateFull extends Command {
     aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
     buildId: flags.string({char: 'b', description: 'build ID of the stock images'}),
     stockSrc: flags.string({char: 's', description: 'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)', required: true}),
-    customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or JSON state file', default: 'out'}),
+    customSrc: flags.string({char: 'c', description: 'path to AOSP build output directory (out/) or (directory containing) JSON state file', default: 'out'}),
     factoryPath: flags.string({char: 'f', description: 'path to stock factory images zip (for extracting firmware if stockSrc is not factory images)'}),
     skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files', default: false}),
     useTemp: flags.boolean({char: 't', description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)', default: false}),
@@ -157,24 +150,9 @@ export default class GenerateFull extends Command {
 
     let devices = await loadDeviceConfigs(configPath)
 
-    let jobs = []
-    for (let config of devices) {
-      if (devices.length > 1) {
-        this.log(`
-
-${chalk.bold(chalk.blueBright(config.device.name))}
-`)
-      }
-
-      let job = doDevice(config, stockSrc, customSrc, aapt2Path, buildId,
+    await forEachDevice(devices, parallel, async (config) => {
+      await doDevice(config, stockSrc, customSrc, aapt2Path, buildId,
         factoryPath, skipCopy, useTemp)
-      if (parallel) {
-        jobs.push(job)
-      } else {
-        await job
-      }
-    }
-
-    await Promise.all(jobs)
+    }, config => config.device.name)
   }
 }
