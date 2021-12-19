@@ -322,3 +322,7 @@ filters:
     substring:
       # P17-19: Active Edge
       - elmyra
+
+    regex:
+      # Not all custom ROMs have Google Sans
+      - '^com\.google\.android\.pixel\.setupwizard/PixelSetupWizard:string/setup_.+_font_family$'
