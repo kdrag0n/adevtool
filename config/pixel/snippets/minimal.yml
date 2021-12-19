@@ -21,3 +21,6 @@ filters:
     prefix:
       # System app delegation
       - android:string/config_default
+
+      # Pixel SetupWizard
+      - com.google.android.pixel.setupwizard
