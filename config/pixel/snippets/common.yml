@@ -172,6 +172,10 @@ filters:
 
   overlay_keys:
     match:
+      # Pixel 2019-2020: use peak refresh rate when possible
+      - android:string-array/config_highRefreshRateBlacklist
+
+      # Misc
       - android:bool/config_enableGeolocationTimeZoneDetection
       - android:bool/config_enablePrimaryLocationTimeZoneProvider
       - android:bool/config_enableSecondaryLocationTimeZoneProvider
