@@ -6,6 +6,12 @@ includes:
 
 # TODO: Add more exclusions
 filters:
+  props:
+    prefix:
+      # SetupWizard
+      - ro.setupwizard.
+      - setupwizard.
+
   files:
     match:
       # Apps that crash without GMS

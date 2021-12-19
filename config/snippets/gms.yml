@@ -8,10 +8,6 @@ filters:
       - ro.error.receiver.system.apps
 
     prefix:
-      # SetupWizard
-      - ro.setupwizard.
-      - setupwizard.
-
       # Gboard
       - ro.com.google.ime.
       - ro.storage_manager.
