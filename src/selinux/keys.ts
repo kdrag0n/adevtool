@@ -141,10 +141,9 @@ export function resolveKeys(
     .map(s => [s.cert as Uint8Array, seinfoToPaths.get(s.seinfoId)!]))
 }
 
-function serializeCert(cert: Uint8Array) {
+function serializeCert(cert: Uint8Array, lineLength: number) {
   let base64 = Buffer.from(cert).toString('base64')
-  // Wrap to 76 chars to match Google's PEMs
-  let wrapped = base64.replace(/(.{76})/g, '$1\n')
+  let wrapped = base64.replace(new RegExp(`(.{${lineLength}})`, 'g'), '$1\n')
 
   return `-----BEGIN CERTIFICATE-----
 ${wrapped}
@@ -154,8 +153,10 @@ ${wrapped}
 
 export async function writeMappedKeys(keys: Map<Uint8Array, Iterable<string>>) {
   for (let [cert, paths] of keys.entries()) {
-    let serialized = serializeCert(cert)
     for (let path of paths) {
+      let lineLength = (await readFile(path)).split('\n')[1].length
+      let serialized = serializeCert(cert, lineLength)
+
       await fs.writeFile(path, serialized)
     }
   }
