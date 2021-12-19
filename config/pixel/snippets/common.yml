@@ -267,7 +267,6 @@ filters:
       - com.google.android.cellbroadcastreceiver
       - com.google.android.cellbroadcastservice
       - com.google.android.documentsui
-      - com.google.android.pixel.setupwizard
 
       # Misc keys
       - android:bool/config_assist
