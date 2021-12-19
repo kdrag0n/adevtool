@@ -31,6 +31,7 @@ filters:
 
       # Debug
       - ro.llkd.enable
+      - debug.sf.enable_egl_image_tracker
 
       # APEX
       - ro.apex.updatable
