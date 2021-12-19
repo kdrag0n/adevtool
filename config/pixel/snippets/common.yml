@@ -41,6 +41,8 @@ filters:
 
   presigned:
     match:
+      # eSIM (P19 doesn't have this in sepolicy)
+      - system_ext/priv-app/EuiccSupportPixel/EuiccSupportPixel.apk
       # Needs same signature as EuiccSupportPixel
       - product/priv-app/EuiccGoogle/EuiccGoogle.apk
       # TODO: is this really necessary?
