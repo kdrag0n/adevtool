@@ -5,8 +5,8 @@ import { KeyInfo, MacSigner, readKeysConfRecursive, readMacPermissionsRecursive,
 import { withSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
 
-export default class FixKeys extends Command {
-  static description = 'fix SELinux presigned app keys'
+export default class FixCerts extends Command {
+  static description = 'fix SELinux presigned app certificates'
 
   static flags = {
     help: flags.help({char: 'h'}),
@@ -18,7 +18,7 @@ export default class FixKeys extends Command {
   }
 
   async run() {
-    let {flags: {sepolicy: sepolicyDirs, device, buildId, stockSrc, useTemp}} = this.parse(FixKeys)
+    let {flags: {sepolicy: sepolicyDirs, device, buildId, stockSrc, useTemp}} = this.parse(FixCerts)
 
     await withTempDir(async (tmp) => {
       // Prepare stock system source
