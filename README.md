@@ -4,7 +4,7 @@ Android device support and bringup tool, designed for maximum automation and spe
 
 ## Features
 
-This tool automates the following tasks:
+This tool automates the following tasks for devices that mostly run AOSP out-of-the-box (e.g. Google Pixel):
 
 - Downloading factory images and full OTA packages
 - Generating a list of proprietary files
@@ -19,13 +19,17 @@ This tool automates the following tasks:
 - Generating resource overlays for device configs
 - Fixing privileged app signing certificates referenced in SELinux policies
 
-Google Pixel devices will benefit from the most automation, but several features can still be used to ease manual bringup on other devices:
+This typically results in better device support with fewer bugs and issues, and makes it possible to quickly add support for new devices.
 
-- Check SELinux policies to identify apps that should be presigned
+### Non-AOSP devices
+
+Pixel devices will benefit from the most automation, but several features can still be used to ease manual bringup on other devices:
+
+- Extract files from proprietary-files.txt **up to 10x faster than LineageOS extract-utils**
 - Compare a built system against stock images to find missing files, properties, and vendor interface declarations
-- Resolving overridden build rules from build warnings
-- Listing system files relevant to bringup (in all partitions)
-- Extracting files from proprietary-files.txt **up to 10x faster than LineageOS extract-utils**
+- List system files relevant to bringup (in all partitions)
+- Resolve overridden build rules from build warnings
+- Check SELinux policies to identify apps that should be presigned
 
 ## Installation
 
@@ -64,4 +68,4 @@ yarn global add adevtool
 
 ## License
 
-This tool is licensed under the [MIT license](LICENSE). Contributions are welcome!
+This tool is licensed under the [MIT license](LICENSE), ensuring that anyone is free to use it for any purpose in compliance with the license. Contributions are welcome!
