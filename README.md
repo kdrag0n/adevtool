@@ -1,70 +1,67 @@
-adevtool
-========
+# adevtool
 
-Android device support and bringup tool.
+Android device support and bringup tool, designed for maximum automation and speed.
 
-[![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/adevtool.svg)](https://npmjs.org/package/adevtool)
-[![Downloads/week](https://img.shields.io/npm/dw/adevtool.svg)](https://npmjs.org/package/adevtool)
-[![License](https://img.shields.io/npm/l/adevtool.svg)](https://github.com/kdrag0n/adevtool/blob/master/package.json)
+## Features
 
-<!-- toc -->
-* [Usage](#usage)
-* [Commands](#commands)
-<!-- tocstop -->
-# Usage
-<!-- usage -->
-```sh-session
-$ npm install -g adevtool
-$ adevtool COMMAND
-running command...
-$ adevtool (-v|--version|version)
-adevtool/0.0.0 linux-x64 node-v16.11.1
-$ adevtool --help [COMMAND]
-USAGE
-  $ adevtool COMMAND
-...
-```
-<!-- usagestop -->
-# Commands
-<!-- commands -->
-* [`adevtool hello [FILE]`](#adevtool-hello-file)
-* [`adevtool help [COMMAND]`](#adevtool-help-command)
+This tool automates the following tasks:
 
-## `adevtool hello [FILE]`
+- Downloading factory images and full OTA packages
+- Generating a list of proprietary files
+- Resolving overridden build rules and building modules from source (when possible)
+- Extracting, converting, and mounting factory images
+- Extracting proprietary files
+- Extracting bootloader and radio firmware
+- Finding and adding missing system properties
+- Overriding build fingerprint to help pass SafetyNet
+- Adding missing SELinux policies
+- Adding missing HALs to vendor interface manifests
+- Generating resource overlays for device configs
+- Fixing privileged app signing certificates referenced in SELinux policies
 
-describe the command here
+Google Pixel devices will benefit from the most automation, but several features can still be used to ease manual bringup on other devices:
 
-```
-USAGE
-  $ adevtool hello [FILE]
+- Check SELinux policies to identify apps that should be presigned
+- Compare a built system against stock images to find missing files, properties, and vendor interface declarations
+- Resolving overridden build rules from build warnings
+- Listing system files relevant to bringup (in all partitions)
+- Extracting files from proprietary-files.txt **up to 10x faster than LineageOS extract-utils**
 
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+## Installation
 
-EXAMPLE
-  $ adevtool hello
-  hello world from ./src/hello.ts!
+Pre-requisites:
+
+- [Node.js](https://nodejs.org/)
+- Optional:
+  - For converting sparse factory images: [simg2img](https://github.com/anestisb/android-simg2img)
+  - For extracting OTA packages: [payload-dumper-go](https://github.com/ssut/payload-dumper-go)
+  - For extracting OTAs or factory images: `unzip`
+  - For generating overlays: [AAPT2](https://developer.android.com/studio/command-line/aapt2) (included in AOSP and Android SDK)
+
+To run adevtool without installation:
+
+```bash
+npx adevtool
 ```
 
-_See code: [src/commands/hello.ts](https://github.com/kdrag0n/adevtool/blob/v0.0.0/src/commands/hello.ts)_
+To install adevtool globally using npm:
 
-## `adevtool help [COMMAND]`
-
-display help for adevtool
-
-```
-USAGE
-  $ adevtool help [COMMAND]
-
-ARGUMENTS
-  COMMAND  command to show help for
-
-OPTIONS
-  --all  see all commands in CLI
+```bash
+npm install -g adevtool
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.3/src/commands/help.ts)_
-<!-- commandsstop -->
+Using Yarn:
+
+```bash
+yarn global add adevtool
+```
+
+## Usage
+
+- [Bringing up a new Pixel device](docs/pixel-bringup.md)
+- [Generating or updating an existing device](docs/pixel-generate.md)
+- [Using individual bringup helper commands](docs/commands.md)
+
+## License
+
+This tool is licensed under the [MIT license](LICENSE). Contributions are welcome!
