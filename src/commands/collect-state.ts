@@ -27,11 +27,12 @@ export default class CollectState extends Command {
       parallel,
     }, args: {output_path: outPath}} = this.parse(CollectState)
 
+    let isDir = (await fs.stat(outPath)).isDirectory()
     await forEachDevice(devices, parallel, async (device) => {
       let state = await collectSystemState(device, outRoot, aapt2Path)
 
       // Write
-      let devicePath = devices.length > 1 ? `${outPath}/${device}.json` : outPath
+      let devicePath = isDir ? `${outPath}/${device}.json` : outPath
       await fs.writeFile(devicePath, serializeSystemState(state))
     })
   }
