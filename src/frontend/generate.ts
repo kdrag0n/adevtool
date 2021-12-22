@@ -89,6 +89,9 @@ export async function resolveOverrides(
 ) {
   let targetPrefix = `out/target/product/${config.device.name}/`
   let targetPaths = Array.from(namedEntries.keys())
+    // Never use existing modules for dep files (e.g. generated in prep) to avoid feedback loop
+    .filter(p => !filterValue(config.filters.dep_files, p))
+    // Convert to installed paths
     .map(cPartPath => `${targetPrefix}${cPartPath}`)
 
   let modulesMap = customState.moduleInfo
