@@ -30,3 +30,8 @@ filters:
 
       # Pixel SetupWizard
       - com.google.android.pixel.setupwizard
+
+  overlay_values:
+    substring:
+      # AiAi
+      - com.google.android.as
