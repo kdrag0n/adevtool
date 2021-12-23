@@ -64,7 +64,7 @@ yarn global add adevtool
 
 - [Bringing up a new Pixel device](docs/pixel-bringup.md)
 - [Generating or updating an existing device](docs/pixel-generate.md)
-- [Using individual bringup helper commands](docs/commands.md)
+- [Using individual helper commands](docs/commands.md)
 
 ## License
 
