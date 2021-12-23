@@ -14,8 +14,8 @@ export default class Download extends Command {
 
   static flags = {
     help: flags.help({char: 'h'}),
-    type: flags.string({char: 't', options: ['factory', 'ota', 'vendor'], description: 'type(s) of images to download', default: 'factory', multiple: true}),
-    buildId: flags.string({char: 'b', description: 'build ID(s) of the images to download', required: true, multiple: true}),
+    type: flags.string({char: 't', options: ['factory', 'ota', 'vendor'], description: 'type(s) of images to download', default: ['factory'], multiple: true}),
+    buildId: flags.string({char: 'b', description: 'build ID(s) of the images to download', required: true, multiple: true, default: ['latest']}),
     device: flags.string({char: 'd', description: 'device(s) to download images for', required: true, multiple: true}),
   }
 
