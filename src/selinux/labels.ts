@@ -13,13 +13,13 @@ export async function enumerateSelinuxLabels(root: string) {
   let lastPath = ''
   for (let line of parseLines(attrs, false)) {
     let match = line.match(/^# file: (.+)$/)
-    if (match != undefined) {
+    if (match !== undefined) {
       lastPath = match[1]
       continue
     }
 
     match = line.match(/^security.selinux="(.+)"$/)
-    if (match != undefined) {
+    if (match !== undefined) {
       let label = match[1]
       labels.set(lastPath, label)
       continue

@@ -36,12 +36,12 @@ const doDevice = (
 ) =>
   withTempDir(async tmp => {
     // Prepare stock system source
-    let wrapBuildId = buildId == undefined ? null : buildId
+    let wrapBuildId = buildId === undefined ? null : buildId
     let wrapped = await withSpinner('Extracting stock system source', spinner =>
       wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, useTemp, tmp, spinner),
     )
     stockSrc = wrapped.src!
-    if (wrapped.factoryPath != null && factoryPath == undefined) {
+    if (wrapped.factoryPath !== null && factoryPath === undefined) {
       factoryPath = wrapped.factoryPath
     }
 
@@ -122,8 +122,8 @@ const doDevice = (
 
     // 10. Firmware
     let fwPaths: Array<string> | null = null
-    if (config.generate.factory_firmware && factoryPath != undefined) {
-      if (propResults == null) {
+    if (config.generate.factory_firmware && factoryPath !== undefined) {
+      if (propResults === null) {
         throw new Error('Factory firmware extraction depends on properties')
       }
 

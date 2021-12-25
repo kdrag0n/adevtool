@@ -49,7 +49,7 @@ export default class FixCerts extends Command {
 
     await withTempDir(async tmp => {
       // Prepare stock system source
-      let wrapBuildId = buildId == undefined ? null : buildId
+      let wrapBuildId = buildId === undefined ? null : buildId
       let wrapped = await withSpinner('Extracting stock system source', spinner =>
         wrapSystemSrc(stockSrc, device, wrapBuildId, useTemp, tmp, spinner),
       )

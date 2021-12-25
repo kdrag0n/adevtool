@@ -29,7 +29,7 @@ export default class DiffFiles extends Command {
 
     for (let partition of ALL_SYS_PARTITIONS) {
       let filesRef = await listPart(partition, sourceRef)
-      if (filesRef == null) {
+      if (filesRef === null) {
         continue
       }
 

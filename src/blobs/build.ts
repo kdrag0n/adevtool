@@ -50,7 +50,7 @@ export interface VendorDirectories {
 
 function nameDepKey(entry: BlobEntry) {
   let ext = path.extname(entry.path)
-  return `${ext == '.xml' ? 1 : 0}${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
+  return `${ext === '.xml' ? 1 : 0}${entry.isNamedDependency ? 0 : 1}${entry.srcPath}`
 }
 
 export async function generateBuild(
@@ -107,12 +107,12 @@ export async function generateBuild(
       if (namedModules.has(name)) {
         let conflictModule = namedModules.get(name)!
         if (
-          conflictModule._type == TYPE_SHARED_LIBRARY &&
-          (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
-          conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)
+          conflictModule._type === TYPE_SHARED_LIBRARY &&
+          (conflictModule as SharedLibraryModule).compile_multilib === 'both' &&
+          conflictModule._entry?.path.split('/').at(-1) === pathParts.at(-1)
         ) {
           // Same partition = skip arch variant
-          if (conflictModule._entry?.partition == entry.partition) {
+          if (conflictModule._entry?.partition === entry.partition) {
             continue
           } else {
             // Fall back to PRODUCT_COPY_FILES for cross-partition conflicts.
@@ -196,37 +196,37 @@ export async function createVendorDirs(vendor: string, device: string) {
 }
 
 export async function writeBuildFiles(build: BuildFiles, dirs: VendorDirectories) {
-  if (build.rootBlueprint != undefined) {
+  if (build.rootBlueprint !== undefined) {
     let bp = serializeBlueprint(build.rootBlueprint)
     await fs.writeFile(`${dirs.out}/Android.bp`, bp)
   }
 
-  if (build.proprietaryBlueprint != undefined) {
+  if (build.proprietaryBlueprint !== undefined) {
     let bp = serializeBlueprint(build.proprietaryBlueprint)
     await fs.writeFile(`${dirs.proprietary}/Android.bp`, bp)
   }
 
-  if (build.modulesMakefile != undefined) {
+  if (build.modulesMakefile !== undefined) {
     let mk = serializeModulesMakefile(build.modulesMakefile)
     await fs.writeFile(`${dirs.out}/Android.mk`, mk)
   }
 
-  if (build.deviceMakefile != undefined) {
+  if (build.deviceMakefile !== undefined) {
     let mk = serializeDeviceMakefile(build.deviceMakefile)
     await fs.writeFile(`${dirs.proprietary}/device-vendor.mk`, mk)
   }
 
-  if (build.boardMakefile != undefined) {
+  if (build.boardMakefile !== undefined) {
     let mk = serializeBoardMakefile(build.boardMakefile)
     await fs.writeFile(`${dirs.proprietary}/BoardConfigVendor.mk`, mk)
   }
 
-  if (build.productMakefile != undefined) {
+  if (build.productMakefile !== undefined) {
     let mk = serializeProductMakefile(build.productMakefile)
     await fs.writeFile(`${dirs.out}/${build.productMakefile.name}.mk`, mk)
   }
 
-  if (build.productsMakefile != undefined) {
+  if (build.productsMakefile !== undefined) {
     let mk = serializeProductsMakefile(build.productsMakefile)
     await fs.writeFile(`${dirs.out}/AndroidProducts.mk`, mk)
   }

@@ -60,10 +60,10 @@ export default class Download extends Command {
 
       for (let type of flags.type) {
         let typeEnum = IMAGE_TYPE_MAP[type]
-        if (typeEnum == undefined) {
+        if (typeEnum === undefined) {
           throw new Error(`Unknown type ${type}`)
         }
-        let prettyType = type == 'ota' ? 'OTA' : type.charAt(0).toUpperCase() + type.slice(1)
+        let prettyType = type === 'ota' ? 'OTA' : type.charAt(0).toUpperCase() + type.slice(1)
 
         for (let buildId of flags.buildId) {
           this.log(chalk.bold(chalk.blueBright(`  ${prettyType} - ${buildId.toUpperCase()}`)))

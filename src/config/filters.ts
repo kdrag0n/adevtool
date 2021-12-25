@@ -30,7 +30,7 @@ export type PartFilters = Record<SysPartition, Filters>
 
 export function parseFilters(src: SerializedFilters) {
   return {
-    include: src.mode == FilterMode.Include,
+    include: src.mode === FilterMode.Include,
 
     match: new Set(src.match),
     prefix: src.prefix,
@@ -43,10 +43,10 @@ export function parseFilters(src: SerializedFilters) {
 function _matchFilters(filters: Filters, value: string) {
   return (
     filters.match.has(value) ||
-    filters.prefix.find(prefix => value.startsWith(prefix)) != undefined ||
-    filters.suffix.find(suffix => value.endsWith(suffix)) != undefined ||
-    filters.substring.find(substring => value.includes(substring)) != undefined ||
-    filters.regex.find(regex => value.match(regex)) != null
+    filters.prefix.find(prefix => value.startsWith(prefix)) !== undefined ||
+    filters.suffix.find(suffix => value.endsWith(suffix)) !== undefined ||
+    filters.substring.find(substring => value.includes(substring)) !== undefined ||
+    filters.regex.find(regex => value.match(regex)) !== null
   )
 }
 

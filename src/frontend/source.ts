@@ -88,7 +88,7 @@ class SourceResolver {
     let imagesTmp = await this.createDynamicTmp(`src_images/${path.basename(file)}`, path.dirname(file))
 
     // Extract images from OTA payload
-    if (path.basename(file) == 'payload.bin') {
+    if (path.basename(file) === 'payload.bin') {
       this.spinner.text = `extracting OTA images: ${file}`
       await run(`cd ${imagesTmp.dir}; payload-dumper-go ${file}`)
       if (file.startsWith(this.tmp.dir)) {
@@ -103,7 +103,7 @@ class SourceResolver {
     let files = await listZipFiles(file)
 
     let imagesEntry = files.find(f => f.includes('/image-') && f.endsWith('.zip'))
-    if (imagesEntry != undefined) {
+    if (imagesEntry !== undefined) {
       // Factory images
 
       // Extract nested images zip
@@ -112,7 +112,7 @@ class SourceResolver {
       await run(`unzip -d ${imagesTmp.dir} ${file}`)
       return await this.wrapLeafFile(imagesFile, file)
     }
-    if (files.find(f => f == 'payload.bin') != undefined) {
+    if (files.find(f => f === 'payload.bin') !== undefined) {
       // OTA package
 
       // Extract update_engine payload
@@ -163,7 +163,7 @@ class SourceResolver {
       await this.mountParts(src, mountTmp)
       return { src: mountTmp.dir, factoryPath: factoryPath || src }
     }
-    if (this.device != null && this.buildId != null) {
+    if (this.device !== null && this.buildId !== null) {
       let imagesZip = `${src}/image-${this.device}-${this.buildId}.zip`
       if (await exists(imagesZip)) {
         // Factory images - nested images package: image-$device-$buildId.zip
@@ -171,7 +171,7 @@ class SourceResolver {
       }
 
       let newFactoryPath = (await fs.readdir(src)).find(f => f.startsWith(`${this.device}-${this.buildId}-factory-`))
-      if (newFactoryPath != undefined) {
+      if (newFactoryPath !== undefined) {
         // Factory images zip
         return await this.wrapLeafFile(`${src}/${newFactoryPath}`, newFactoryPath)
       }
@@ -189,7 +189,7 @@ class SourceResolver {
       // Directory
 
       let tryDirs = [
-        ...((this.buildId != null && [
+        ...((this.buildId !== null && [
           `${src}/${this.buildId}`,
           `${src}/${this.device}/${this.buildId}`,
           `${src}/${this.buildId}/${this.device}`,
@@ -200,13 +200,13 @@ class SourceResolver {
       ]
 
       // Also try to find extracted factory images first: device-buildId
-      if (this.buildId != null) {
+      if (this.buildId !== null) {
         tryDirs = [...tryDirs.map(p => `${p}/${this.device}-${this.buildId}`), ...tryDirs]
       }
 
       for (let dir of tryDirs) {
         let { src: wrapped, factoryPath } = await this.searchLeafDir(dir, null)
-        if (wrapped != null) {
+        if (wrapped !== null) {
           this.spinner.text = wrapped.startsWith(this.tmp.dir) ? path.relative(this.tmp.dir, wrapped) : wrapped
           return { src: wrapped, factoryPath }
         }
@@ -218,7 +218,7 @@ class SourceResolver {
 
       // Attempt to extract factory images or OTA
       let { src: wrapped, factoryPath } = await this.wrapLeafFile(src, null)
-      if (wrapped != null) {
+      if (wrapped !== null) {
         this.spinner.text = wrapped.startsWith(this.tmp.dir) ? path.relative(this.tmp.dir, wrapped) : wrapped
         return { src: wrapped, factoryPath }
       }

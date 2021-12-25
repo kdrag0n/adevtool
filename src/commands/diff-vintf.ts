@@ -34,7 +34,7 @@ export default class DiffVintf extends Command {
 
     for (let partition of EXT_PARTITIONS) {
       let halsRef = vintfRef.get(partition)?.manifest
-      if (halsRef == null) {
+      if (halsRef === null) {
         continue
       }
 
@@ -50,7 +50,7 @@ export default class DiffVintf extends Command {
         getHalFqNames(newAdded).forEach(f => this.log(chalk.green(`    ${f}`)))
       }
 
-      if (outPath != undefined) {
+      if (outPath !== undefined) {
         let outManifest = serializeVintfHals(newRemoved)
         await fs.writeFile(outPath, outManifest)
       }

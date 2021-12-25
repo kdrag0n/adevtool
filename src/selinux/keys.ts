@@ -53,7 +53,7 @@ async function parseMacPermissions(xml: string) {
 export async function readMacPermissionsRecursive(root: string) {
   let signers = []
   for await (let file of listFilesRecursive(root)) {
-    if (path.basename(file) == 'mac_permissions.xml') {
+    if (path.basename(file) === 'mac_permissions.xml') {
       let xml = await readFile(file)
       signers.push(...(await parseMacPermissions(xml)))
     }
@@ -84,9 +84,9 @@ function parseKeysConf(conf: string) {
   let keys = []
   for (let line of parseLines(conf)) {
     let startBlock = line.match(/^\[@(.+)\]$/)
-    if (startBlock != undefined) {
+    if (startBlock !== undefined) {
       // Finish last block
-      if (curKeyId != null) {
+      if (curKeyId !== null) {
         keys.push({
           keyId: curKeyId,
           certPaths: curPaths!,
@@ -99,16 +99,16 @@ function parseKeysConf(conf: string) {
     }
 
     let pathLine = line.match(/^(.+)\s*:\s*(.+)$/)
-    if (pathLine != undefined) {
+    if (pathLine !== undefined) {
       let [_, buildType, path] = pathLine
-      if (curPaths != null) {
+      if (curPaths !== null) {
         curPaths.set(buildType, path)
       }
     }
   }
 
   // Finish last block
-  if (curKeyId != null) {
+  if (curKeyId !== null) {
     keys.push({
       keyId: curKeyId,
       certPaths: curPaths!,
@@ -121,7 +121,7 @@ function parseKeysConf(conf: string) {
 export async function readKeysConfRecursive(root: string) {
   let keys = []
   for await (let file of listFilesRecursive(root)) {
-    if (path.basename(file) == 'keys.conf') {
+    if (path.basename(file) === 'keys.conf') {
       let xml = await readFile(file)
       keys.push(...parseKeysConf(xml))
     }
