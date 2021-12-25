@@ -19,7 +19,7 @@ The factory images ZIP will be saved in `~/stock_images`. Full OTA packages are 
 
 ## 2. Collect state from a reference build
 
-**Skip to [step 3](#3-generate-vendor-module) if you already have a state file.**
+**Skip to [step 3](#3-generate-vendor-module) if you already have a state file. This is a one-time step.**
 
 To find missing files, properties, and overlays automatically, adevtool needs a reference build of AOSP to compare with the stock ROM. Navigate to the root of your AOSP tree and generate a vendor module to prepare for this:
 
@@ -62,10 +62,10 @@ In all other cases, you can reuse the same state file for future updates without
 Now that you have a reference state file, generating the actual vendor module is easy:
 
 ```bash
-adevtool generate-prep -s ~/stock_images -c ~/raven.json -b sq1d.211205.017 tools/adevtool/config/pixel/raven.yml
+adevtool generate-all -s ~/stock_images -c ~/raven.json -b sq1d.211205.017 tools/adevtool/config/pixel/raven.yml
 
 # For multiple devices
-adevtool generate-prep -s ~/stock_images -c ~/device_states -b sq1d.211205.017 tools/adevtool/config/pixel/2021.yml
+adevtool generate-all -s ~/stock_images -c ~/device_states -b sq1d.211205.017 tools/adevtool/config/pixel/2021.yml
 ```
 
 Replace `~/raven.json` with the path to your state file if you're building for a single device, or the directory containing your state files if you have multiple devices. Other arguments are the same as in previous steps.
