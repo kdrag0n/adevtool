@@ -67,10 +67,10 @@ export function decodeResKey(encoded: string) {
   let [key, flags] = kf.split('|')
 
   return {
-    targetPkg: targetPkg,
+    targetPkg,
     targetName: targetName != undefined ? targetName : null,
-    type: type,
-    key: key,
+    type,
+    key,
     flags: flags != undefined ? flags : null,
   } as ResKey
 }
@@ -83,8 +83,8 @@ function toResKey(
   flags: string | null,
 ) {
   return encodeResKey({
-    targetPkg: targetPkg,
-    targetName: targetName,
+    targetPkg,
+    targetName,
     type: type!,
     key: key!,
     flags: flags!,
@@ -109,9 +109,9 @@ function finishArray(
   let array = parseAaptJson(rawValue) as Array<ResValue>
 
   // Change to typed array?
-  if (typeof array[0] == 'string') {
+  if (typeof array[0] === 'string') {
     type = 'string-array'
-  } else if (typeof array[0] == 'number') {
+  } else if (typeof array[0] === 'number') {
     // Float arrays are just <array>, so check for integers
     if (array.find(v => !Number.isInteger(v)) == undefined) {
       type = 'integer-array'
@@ -329,7 +329,7 @@ function filterValues(keyFilters: Filters, valueFilters: Filters, values: ResVal
   for (let [rawKey, value] of values.entries()) {
     let key = decodeResKey(rawKey)
 
-    if (shouldDeleteKey(keyFilters, rawKey, key) || (typeof value == 'string' && !filterValue(valueFilters, value))) {
+    if (shouldDeleteKey(keyFilters, rawKey, key) || (typeof value === 'string' && !filterValue(valueFilters, value))) {
       // Key/value filter
       values.delete(rawKey)
     } else if (DIFF_MAP_PACKAGES.has(key.targetPkg)) {
@@ -337,7 +337,7 @@ function filterValues(keyFilters: Filters, valueFilters: Filters, values: ResVal
       let targetPkg = DIFF_MAP_PACKAGES.get(key.targetPkg)!
       let newKey = encodeResKey({
         ...key,
-        targetPkg: targetPkg,
+        targetPkg,
       })
 
       values.delete(rawKey)

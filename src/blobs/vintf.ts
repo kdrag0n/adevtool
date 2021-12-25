@@ -48,7 +48,7 @@ export async function parseVintfManifest(manifestXml: string) {
   return hals as Array<VintfHal>
 }
 
-export async function loadVintfManifest(root: string, partition: string, name: string = 'manifest') {
+export async function loadVintfManifest(root: string, partition: string, name = 'manifest') {
   let path = `${root}/${partition}/etc/vintf/${name}.xml`
   if (!(await exists(path))) {
     return null
@@ -65,8 +65,8 @@ export async function loadPartVintfInfo(root: string) {
     let matrix = await loadVintfManifest(root, partition, 'compatibility_matrix')
     if (manifest != null || matrix != null) {
       partInfo.set(partition, {
-        manifest: manifest,
-        matrix: matrix,
+        manifest,
+        matrix,
       })
     }
   }

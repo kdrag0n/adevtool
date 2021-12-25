@@ -39,16 +39,15 @@ export interface PropResults {
 export async function loadCustomState(config: DeviceConfig, aapt2Path: string, customSrc: string) {
   if ((await fs.stat(customSrc)).isFile()) {
     return parseSystemState(await readFile(customSrc))
-  } else {
-    // Try <device>.json
-    let deviceSrc = `${customSrc}/${config.device.name}.json`
-    if (await exists(deviceSrc)) {
-      return parseSystemState(await readFile(deviceSrc))
-    }
-
-    // Otherwise, assume it's AOSP build output
-    return await collectSystemState(config.device.name, customSrc, aapt2Path)
   }
+  // Try <device>.json
+  let deviceSrc = `${customSrc}/${config.device.name}.json`
+  if (await exists(deviceSrc)) {
+    return parseSystemState(await readFile(deviceSrc))
+  }
+
+  // Otherwise, assume it's AOSP build output
+  return await collectSystemState(config.device.name, customSrc, aapt2Path)
 }
 
 export async function enumerateFiles(
@@ -163,7 +162,7 @@ export async function extractProps(config: DeviceConfig, customState: SystemStat
   let fingerprint = stockProps.get('system')!.get('ro.system.build.fingerprint')!
 
   // Diff
-  let missingProps: PartitionProps | undefined = undefined
+  let missingProps: PartitionProps | undefined
   if (customProps != null) {
     let propChanges = diffPartitionProps(stockProps, customProps)
     missingProps = new Map(Array.from(propChanges.entries()).map(([part, props]) => [part, props.removed]))
@@ -249,7 +248,7 @@ export async function extractOverlays(
       let overlayList = Array.from(overlays.entries())
         .map(([k, v]) => `${k} = ${v}`)
         .join('\n')
-      await fs.writeFile(`${dirs.overlays}/${part}.txt`, overlayList + '\n')
+      await fs.writeFile(`${dirs.overlays}/${part}.txt`, `${overlayList}\n`)
     }
   }
 
@@ -294,8 +293,8 @@ export async function generateBuildFiles(
   vintfManifestPaths: Map<string, string> | null,
   sepolicyResolutions: SelinuxPartResolutions | null,
   stockSrc: string,
-  addAbOtaParts: boolean = true,
-  enforceAllRros: boolean = false,
+  addAbOtaParts = true,
+  enforceAllRros = false,
 ) {
   let build = await generateBuild(entries, config.device.name, config.device.vendor, stockSrc, dirs)
 
@@ -307,13 +306,13 @@ export async function generateBuildFiles(
   build.deviceMakefile = {
     props: propResults?.missingProps,
     fingerprint: propResults?.fingerprint,
-    ...(vintfManifestPaths != null && { vintfManifestPaths: vintfManifestPaths }),
+    ...(vintfManifestPaths != null && { vintfManifestPaths }),
     ...build.deviceMakefile,
   }
 
   // Add board parts
   build.boardMakefile = {
-    ...(sepolicyResolutions != null && { sepolicyResolutions: sepolicyResolutions }),
+    ...(sepolicyResolutions != null && { sepolicyResolutions }),
     ...(propResults != null &&
       propResults.missingOtaParts.length > 0 && {
         buildPartitions: propResults.missingOtaParts,
@@ -359,7 +358,7 @@ export async function generateBuildFiles(
   // Dump blob list
   if (entries.length > 0) {
     let fileList = serializeBlobList(entries)
-    await fs.writeFile(`${dirs.out}/proprietary-files.txt`, fileList + '\n')
+    await fs.writeFile(`${dirs.out}/proprietary-files.txt`, `${fileList}\n`)
   }
 
   await writeBuildFiles(build, dirs)

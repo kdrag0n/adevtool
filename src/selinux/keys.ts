@@ -41,8 +41,8 @@ async function parseMacPermissions(xml: string) {
       // Parse base64 cert or leave it as a reference
       let cert = rawSig.startsWith('@') ? rawSig.slice(1) : parseHex(rawSig)
       signers.push({
-        cert: cert,
-        seinfoId: seinfoId,
+        cert,
+        seinfoId,
       } as MacSigner)
     }
   }
@@ -140,7 +140,7 @@ export function resolveKeys(
 
   // Build seinfo -> paths map
   let seinfoToPaths = new Map(
-    srcMacPerms.filter(s => typeof s.cert == 'string').map(s => [s.seinfoId, keyToPaths.get(s.cert as string)!]),
+    srcMacPerms.filter(s => typeof s.cert === 'string').map(s => [s.seinfoId, keyToPaths.get(s.cert as string)!]),
   )
 
   // Build cert -> paths map

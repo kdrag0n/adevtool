@@ -87,10 +87,10 @@ export async function generateBuild(
 
       // Create link info
       symlinks.push({
-        moduleName: moduleName,
+        moduleName,
         linkPartition: entry.partition,
         linkSubpath: entry.path,
-        targetPath: targetPath,
+        targetPath,
       } as Symlink)
       continue
     } else if (blobNeedsSoong(entry, ext)) {
@@ -153,14 +153,14 @@ export async function generateBuild(
       modules: namedModules.values(),
     },
     modulesMakefile: {
-      device: device,
-      vendor: vendor,
-      symlinks: symlinks,
+      device,
+      vendor,
+      symlinks,
     },
     deviceMakefile: {
       namespaces: [dirs.out],
       packages: buildPackages,
-      copyFiles: copyFiles,
+      copyFiles,
     },
   } as BuildFiles
 }

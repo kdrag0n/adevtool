@@ -156,12 +156,13 @@ async function loadAndMergeConfig(configPath: string) {
 
 export async function loadDeviceConfigs(configPath: string) {
   let merged = await loadAndMergeConfig(configPath)
-  let type = merged.type
+  let { type } = merged
   delete merged.type
 
   if (type == ConfigType.Device) {
     return [merged as DeviceConfig]
-  } else if (type == ConfigType.DeviceList) {
+  }
+  if (type == ConfigType.DeviceList) {
     // Load all the device configs
     let list = merged as DeviceListConfig
     let devices: DeviceConfig[] = []
@@ -171,7 +172,6 @@ export async function loadDeviceConfigs(configPath: string) {
     }
 
     return devices
-  } else {
-    throw new Error(`Unknown config type ${type}`)
   }
+  throw new Error(`Unknown config type ${type}`)
 }

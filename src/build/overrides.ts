@@ -83,12 +83,12 @@ export function findOverrideModules(overridePaths: Iterable<string>, modulesMap:
 
   // Add final multilib modules
   multilibBoth.forEach(m => buildModules.add(m))
-  multilib32.forEach(m => buildModules.add(m + ':32'))
-  multilib64.forEach(m => buildModules.add(m + ':64'))
+  multilib32.forEach(m => buildModules.add(`${m}:32`))
+  multilib64.forEach(m => buildModules.add(`${m}:64`))
 
   return {
     modules: Array.from(buildModules).sort((a, b) => a.localeCompare(b)),
-    builtPaths: builtPaths,
-    missingPaths: missingPaths,
+    builtPaths,
+    missingPaths,
   } as OverrideModules
 }

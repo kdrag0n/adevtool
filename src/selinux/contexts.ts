@@ -101,7 +101,7 @@ export function resolvePartContextDiffs(
 
     partSepolicyDirs.set(partition, {
       sepolicyDirs: Array.from(buildDirs),
-      missingContexts: missingContexts,
+      missingContexts,
     } as SelinuxDiffResolutions)
   }
 

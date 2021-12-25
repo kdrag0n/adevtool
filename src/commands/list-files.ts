@@ -35,7 +35,7 @@ export default class ListFiles extends Command {
 
       // Save results
       let outPath = `${out}/${partition}.list`
-      await fs.writeFile(outPath, files.join('\n') + '\n')
+      await fs.writeFile(outPath, `${files.join('\n')}\n`)
     }
   }
 }

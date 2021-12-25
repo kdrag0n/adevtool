@@ -76,7 +76,7 @@ function startBlocks() {
 }
 
 function finishBlocks(blocks: Array<string>) {
-  return blocks.join('\n\n') + '\n'
+  return `${blocks.join('\n\n')}\n`
 }
 
 export function sanitizeBasename(path: string) {
@@ -129,7 +129,7 @@ include $(BUILD_PREBUILT)`)
   return finishBlocks(blocks)
 }
 
-function addContBlock(blocks: Array<string>, variable: String, items: Array<string> | undefined) {
+function addContBlock(blocks: Array<string>, variable: string, items: Array<string> | undefined) {
   if (items != undefined && items.length > 0) {
     blocks.push(`${variable} += \\
     ${items.join(CONT_SEPARATOR)}`)

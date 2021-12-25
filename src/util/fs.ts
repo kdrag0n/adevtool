@@ -43,7 +43,7 @@ export async function withTempDir<Return>(callback: (tmp: TempState) => Promise<
   await fs.rm(dir, { force: true, recursive: true })
   await fs.mkdir(dir)
   let state = {
-    dir: dir,
+    dir,
     mounts: [],
   } as TempState
 

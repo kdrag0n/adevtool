@@ -61,8 +61,8 @@ async function listPayload(
   )
 
   return {
-    entries: entries,
-    labels: labels,
+    entries,
+    labels,
   } as FlattenedApex
 }
 
@@ -100,8 +100,8 @@ export async function flattenApex(
     }
 
     return {
-      entries: entries,
-      labels: labels,
+      entries,
+      labels,
     } as FlattenedApex
   } finally {
     await reader.close()
@@ -135,6 +135,6 @@ export async function flattenAllApexs(
 
   return {
     entries: Array.from(entries),
-    labels: labels,
+    labels,
   } as FlattenedApex
 }

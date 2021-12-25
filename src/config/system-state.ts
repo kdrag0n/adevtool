@@ -44,9 +44,8 @@ export function serializeSystemState(state: SystemState) {
           _type: 'Map',
           data: Object.fromEntries(v.entries()),
         }
-      } else {
-        return v
       }
+      return v
     },
     2,
   )
@@ -56,9 +55,8 @@ export function parseSystemState(json: string) {
   let diskState = JSON.parse(json, (k, v) => {
     if (v?.hasOwnProperty('_type') && v?._type == 'Map') {
       return new Map(Object.entries(v.data))
-    } else {
-      return v
     }
+    return v
   }) as SerializedSystemState
 
   if (diskState.version != STATE_VERSION) {

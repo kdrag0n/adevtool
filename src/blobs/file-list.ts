@@ -25,11 +25,11 @@ export function parseFileList(list: string) {
     let [partition, path] = srcPathToPartPath(srcPath)
 
     entries.push({
-      partition: partition,
-      path: path,
-      srcPath: srcPath,
+      partition,
+      path,
+      srcPath,
       isPresigned: modifiers.includes('PRESIGNED'),
-      isNamedDependency: isNamedDependency,
+      isNamedDependency,
     } as BlobEntry)
   }
 
@@ -41,7 +41,7 @@ export async function listPart(
   partition: string,
   systemRoot: string,
   filters: Filters | null = null,
-  showSpinner: boolean = false,
+  showSpinner = false,
 ) {
   let partRoot = `${systemRoot}/${partition}`
   if (!(await exists(partRoot))) {
@@ -109,9 +109,9 @@ export function combinedPartPathToEntry(partition: string, combinedPartPath: str
   let srcPath = partPathToSrcPath(partition, partPath)
 
   return {
-    partition: partition,
+    partition,
     path: partPath,
-    srcPath: srcPath,
+    srcPath,
     isPresigned: false,
     // TODO
     isNamedDependency: false,

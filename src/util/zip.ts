@@ -4,6 +4,7 @@ import * as unzipit from 'unzipit'
 // https://greggman.github.io/unzipit/#loadafileasanarraybuffer
 export class NodeFileReader {
   length?: number
+
   file: Promise<fs.FileHandle>
 
   constructor(filename: string) {

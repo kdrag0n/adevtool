@@ -13,7 +13,7 @@ export interface WrappedSource {
   factoryPath: string | null
 }
 
-async function containsParts(src: string, suffix: string = '') {
+async function containsParts(src: string, suffix = '') {
   // If any sys partitions are present
   for (let part of ALL_SYS_PARTITIONS) {
     let path = `${src}/${part}${suffix}`
@@ -50,9 +50,8 @@ class SourceResolver {
   private async createDynamicTmp(tmpPath: string, absPath: string) {
     if (this.useTemp) {
       return await createSubTmp(this.tmp, tmpPath)
-    } else {
-      return this.createStaticTmp(absPath)
     }
+    return this.createStaticTmp(absPath)
   }
 
   private async mountImg(img: string, dest: string) {
@@ -72,7 +71,7 @@ class SourceResolver {
     this.tmp.mounts.push(dest)
   }
 
-  private async mountParts(src: string, mountTmp: TempState, suffix: string = '.img') {
+  private async mountParts(src: string, mountTmp: TempState, suffix = '.img') {
     let mountRoot = mountTmp.dir
 
     for (let part of ALL_SYS_PARTITIONS) {
@@ -112,7 +111,8 @@ class SourceResolver {
       let imagesFile = `${imagesTmp.dir}/${imagesEntry}`
       await run(`unzip -d ${imagesTmp.dir} ${file}`)
       return await this.wrapLeafFile(imagesFile, file)
-    } else if (files.find(f => f == 'payload.bin') != undefined) {
+    }
+    if (files.find(f => f == 'payload.bin') != undefined) {
       // OTA package
 
       // Extract update_engine payload
@@ -120,7 +120,8 @@ class SourceResolver {
       let payloadFile = `${imagesTmp.dir}/payload.bin`
       await run(`unzip -d ${imagesTmp.dir} ${file} payload.bin`)
       return await this.wrapLeafFile(payloadFile, factoryPath)
-    } else if (files.find(f => f.endsWith('.img') && ALL_SYS_PARTITIONS.has(f.replace('.img', '')))) {
+    }
+    if (files.find(f => f.endsWith('.img') && ALL_SYS_PARTITIONS.has(f.replace('.img', '')))) {
       // Images zip
 
       // Extract image files
@@ -130,9 +131,8 @@ class SourceResolver {
         await fs.rm(file)
       }
       return await this.searchLeafDir(imagesTmp.dir, factoryPath)
-    } else {
-      throw new Error(`File '${file}' has unknown format`)
     }
+    throw new Error(`File '${file}' has unknown format`)
   }
 
   private async searchLeafDir(src: string, factoryPath: string | null): Promise<WrappedSource> {
@@ -146,21 +146,24 @@ class SourceResolver {
     if (await containsParts(src)) {
       // Root of mounted images
       return { src, factoryPath }
-    } else if (await containsParts(src, '.img.raw')) {
+    }
+    if (await containsParts(src, '.img.raw')) {
       // Mount raw images: <images>.img.raw
 
       // Mount the images
       let mountTmp = await createSubTmp(this.tmp, `sysroot/${path.basename(src)}`)
       await this.mountParts(src, mountTmp, '.img.raw')
       return { src: mountTmp.dir, factoryPath: factoryPath || src }
-    } else if (await containsParts(src, '.img')) {
+    }
+    if (await containsParts(src, '.img')) {
       // Mount potentially-sparse images: <images>.img
 
       // Mount the images
       let mountTmp = await createSubTmp(this.tmp, `sysroot/${path.basename(src)}`)
       await this.mountParts(src, mountTmp)
       return { src: mountTmp.dir, factoryPath: factoryPath || src }
-    } else if (this.device != null && this.buildId != null) {
+    }
+    if (this.device != null && this.buildId != null) {
       let imagesZip = `${src}/image-${this.device}-${this.buildId}.zip`
       if (await exists(imagesZip)) {
         // Factory images - nested images package: image-$device-$buildId.zip

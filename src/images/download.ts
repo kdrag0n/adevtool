@@ -54,7 +54,7 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
 
   let filePrefix = filePattern
     .replace('DEVICE', device)
-    .replace('BUILDID', buildId == 'latest' ? '' : buildId.toLowerCase() + '-')
+    .replace('BUILDID', buildId == 'latest' ? '' : `${buildId.toLowerCase()}-`)
   let urlPrefix = DL_URL_PREFIX + filePrefix
 
   let pattern = new RegExp(`"(${_.escapeRegExp(urlPrefix)}.+?)"`, 'g')
@@ -65,9 +65,8 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
 
   if (buildId == 'latest') {
     return matches.map(m => m[1]).sort((a, b) => b.localeCompare(a))[0]
-  } else {
-    return matches[0][1]
   }
+  return matches[0][1]
 }
 
 export async function downloadFile(

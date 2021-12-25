@@ -287,7 +287,7 @@ export function blobToSoongModule(
   }
 
   return {
-    name: name,
+    name,
     owner: vendor,
     ...moduleSpecific,
     _entry: entry,
@@ -325,7 +325,7 @@ export function serializeModule(module: SoongModule) {
   // Add trailing comma to last prop
   let serialLines = serialized.split('\n')
   if (serialLines.length > 1) {
-    serialLines[serialLines.length - 2] = serialLines.at(-2) + ','
+    serialLines[serialLines.length - 2] = `${serialLines.at(-2)},`
     serialized = serialLines.join('\n')
   }
 

@@ -23,10 +23,9 @@ export interface BlobEntry {
 export function partPathToSrcPath(partition: string, path: string) {
   if (EXT_PARTITIONS.has(partition)) {
     return `${partition}/${path}`
-  } else {
-    // system
-    return path
   }
+  // system
+  return path
 }
 
 export function srcPathToPartPath(srcPath: string) {
