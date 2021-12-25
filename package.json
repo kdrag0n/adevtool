@@ -48,7 +48,9 @@
   ],
   "homepage": "https://github.com/kdrag0n/adevtool",
   "keywords": [
-    "oclif"
+    "android",
+    "device",
+    "automation"
   ],
   "license": "MIT",
   "main": "lib/index.js",
