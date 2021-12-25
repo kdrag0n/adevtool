@@ -60,8 +60,7 @@ export function blobNeedsSoong(entry: BlobEntry, ext: string) {
   }
 
   // Soong is also required for APKs, framework JARs, and vintf XMLs
-  if (ext == '.apk' || ext == '.jar' ||
-        (entry.path.startsWith('etc/vintf/') && ext == '.xml')) {
+  if (ext == '.apk' || ext == '.jar' || (entry.path.startsWith('etc/vintf/') && ext == '.xml')) {
     return true
   }
 

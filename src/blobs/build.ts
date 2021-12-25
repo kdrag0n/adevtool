@@ -1,8 +1,30 @@
 import path from 'path'
 import { promises as fs } from 'fs'
 
-import { blobToFileCopy, BoardMakefile, ModulesMakefile, DeviceMakefile, sanitizeBasename, serializeBoardMakefile, serializeModulesMakefile, serializeDeviceMakefile, Symlink, ProductsMakefile, ProductMakefile, serializeProductMakefile, serializeProductsMakefile } from '../build/make'
-import { blobToSoongModule, serializeBlueprint, SharedLibraryModule, SoongBlueprint, SoongModule, SPECIAL_FILE_EXTENSIONS, TYPE_SHARED_LIBRARY } from '../build/soong'
+import {
+  blobToFileCopy,
+  BoardMakefile,
+  ModulesMakefile,
+  DeviceMakefile,
+  sanitizeBasename,
+  serializeBoardMakefile,
+  serializeModulesMakefile,
+  serializeDeviceMakefile,
+  Symlink,
+  ProductsMakefile,
+  ProductMakefile,
+  serializeProductMakefile,
+  serializeProductsMakefile,
+} from '../build/make'
+import {
+  blobToSoongModule,
+  serializeBlueprint,
+  SharedLibraryModule,
+  SoongBlueprint,
+  SoongModule,
+  SPECIAL_FILE_EXTENSIONS,
+  TYPE_SHARED_LIBRARY,
+} from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
 
 export interface BuildFiles {
@@ -84,9 +106,11 @@ export async function generateBuild(
       let needsMakeFallback = false
       if (namedModules.has(name)) {
         let conflictModule = namedModules.get(name)!
-        if (conflictModule._type == TYPE_SHARED_LIBRARY &&
-              (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
-              conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)) {
+        if (
+          conflictModule._type == TYPE_SHARED_LIBRARY &&
+          (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
+          conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)
+        ) {
           // Same partition = skip arch variant
           if (conflictModule._entry?.partition == entry.partition) {
             continue

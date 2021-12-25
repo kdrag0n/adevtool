@@ -30,7 +30,9 @@ export async function enumerateSelinuxLabels(root: string) {
 }
 
 export function generateFileContexts(labels: SelinuxFileLabels) {
-  return Array.from(labels.entries())
-    .map(([path, context]) => `${_.escapeRegExp(path)} ${context}`)
-    .join('\n') + '\n'
+  return (
+    Array.from(labels.entries())
+      .map(([path, context]) => `${_.escapeRegExp(path)} ${context}`)
+      .join('\n') + '\n'
+  )
 }

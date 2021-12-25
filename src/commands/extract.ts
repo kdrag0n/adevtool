@@ -10,19 +10,22 @@ export default class Extract extends Command {
   static description = 'extract proprietary files'
 
   static flags = {
-    help: flags.help({char: 'h'}),
-    vendor: flags.string({char: 'v', description: 'device vendor/OEM name', required: true}),
-    device: flags.string({char: 'd', description: 'device codename', required: true}),
-    skipCopy: flags.boolean({char: 'k', description: 'skip file copying and only generate build files'}),
+    help: flags.help({ char: 'h' }),
+    vendor: flags.string({ char: 'v', description: 'device vendor/OEM name', required: true }),
+    device: flags.string({ char: 'd', description: 'device codename', required: true }),
+    skipCopy: flags.boolean({ char: 'k', description: 'skip file copying and only generate build files' }),
   }
 
   static args = [
-    {name: 'source', description: 'path to mounted factory images', required: true},
-    {name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list', required: true},
+    { name: 'source', description: 'path to mounted factory images', required: true },
+    { name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list', required: true },
   ]
 
   async run() {
-    let {args: {source, listPath}, flags: {vendor, device, skipCopy}} = this.parse(Extract)
+    let {
+      args: { source, listPath },
+      flags: { vendor, device, skipCopy },
+    } = this.parse(Extract)
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))

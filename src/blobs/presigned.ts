@@ -19,8 +19,7 @@ export async function parsePresignedRecursive(sepolicyDirs: Array<string>) {
     }
   }
 
-  return new Set(contexts.filter(c => c.seinfo != 'platform')
-    .map(c => c.name))
+  return new Set(contexts.filter(c => c.seinfo != 'platform').map(c => c.name))
 }
 
 async function getPkgName(aapt2Path: string, apkPath: string) {
@@ -45,8 +44,10 @@ export async function updatePresignedBlobs(
       entryCallback(entry)
     }
 
-    if ((filters != null && filterValue(filters, entry.srcPath)) ||
-        presignedPkgs.has(await getPkgName(aapt2Path, `${source}/${entry.srcPath}`))) {
+    if (
+      (filters != null && filterValue(filters, entry.srcPath)) ||
+      presignedPkgs.has(await getPkgName(aapt2Path, `${source}/${entry.srcPath}`))
+    ) {
       entry.isPresigned = true
       updatedEntries.push(entry)
     }
@@ -55,11 +56,7 @@ export async function updatePresignedBlobs(
   return updatedEntries
 }
 
-export async function enumeratePresignedBlobs(
-  aapt2Path: string,
-  source: string,
-  presignedPkgs: Set<string>,
-) {
+export async function enumeratePresignedBlobs(aapt2Path: string, source: string, presignedPkgs: Set<string>) {
   let presignedPaths = []
   for await (let file of listFilesRecursive(source)) {
     if (path.extname(file) != '.apk') {

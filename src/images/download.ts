@@ -52,7 +52,8 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
     cache[type] = index
   }
 
-  let filePrefix = filePattern.replace('DEVICE', device)
+  let filePrefix = filePattern
+    .replace('DEVICE', device)
     .replace('BUILDID', buildId == 'latest' ? '' : buildId.toLowerCase() + '-')
   let urlPrefix = DL_URL_PREFIX + filePrefix
 
@@ -63,9 +64,7 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
   }
 
   if (buildId == 'latest') {
-    return matches
-      .map(m => m[1])
-      .sort((a, b) => b.localeCompare(a))[0]
+    return matches.map(m => m[1]).sort((a, b) => b.localeCompare(a))[0]
   } else {
     return matches[0][1]
   }
@@ -87,9 +86,12 @@ export async function downloadFile(
     throw new Error(`Error ${resp.status}: ${resp.statusText}`)
   }
 
-  let bar = new cliProgress.SingleBar({
-    format: '    {bar} {percentage}% | {value}/{total} MB',
-  }, cliProgress.Presets.shades_classic)
+  let bar = new cliProgress.SingleBar(
+    {
+      format: '    {bar} {percentage}% | {value}/{total} MB',
+    },
+    cliProgress.Presets.shades_classic,
+  )
   let progress = 0
   let totalSize = parseInt(resp.headers.get('content-length') ?? '0') / 1e6
   bar.start(Math.round(totalSize), 0)

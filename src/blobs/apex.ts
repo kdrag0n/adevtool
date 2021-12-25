@@ -56,8 +56,9 @@ async function listPayload(
   // Get SELinux labels
   let labels = await enumerateSelinuxLabels(mountpoint)
   // Fix paths
-  labels = new Map(Array.from(labels.entries())
-    .map(([file, context]) => [`/${apexRoot}/${path.relative(mountpoint, file)}`, context]))
+  labels = new Map(
+    Array.from(labels.entries()).map(([file, context]) => [`/${apexRoot}/${path.relative(mountpoint, file)}`, context]),
+  )
 
   return {
     entries: entries,
@@ -126,8 +127,7 @@ export async function flattenAllApexs(
     // Flatten and add new entries
     let apex = await flattenApex(entry.partition, apexPath, subTmp, progressCallback)
     apex.entries.forEach(e => entries.add(e))
-    Array.from(apex.labels.entries())
-      .forEach(([path, context]) => labels.set(path, context))
+    Array.from(apex.labels.entries()).forEach(([path, context]) => labels.set(path, context))
 
     // Remove the APEX blob entry
     entries.delete(entry)

@@ -44,12 +44,12 @@ export async function listPart(
   showSpinner: boolean = false,
 ) {
   let partRoot = `${systemRoot}/${partition}`
-  if (!await exists(partRoot)) {
+  if (!(await exists(partRoot))) {
     return null
   }
 
   // Unwrap system-as-root
-  if (partition == 'system' && await exists(`${partRoot}/system`)) {
+  if (partition == 'system' && (await exists(`${partRoot}/system`))) {
     partRoot += '/system'
   }
   let refRoot = path.dirname(partRoot)

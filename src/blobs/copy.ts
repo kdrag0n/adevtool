@@ -20,7 +20,7 @@ export async function copyBlobs(entries: Iterable<BlobEntry>, srcDir: string, de
     }
 
     // Create directory structure
-    await fs.mkdir(path.dirname(outPath), {recursive: true})
+    await fs.mkdir(path.dirname(outPath), { recursive: true })
 
     // Some files need patching
     if (entry.path.endsWith('.xml')) {

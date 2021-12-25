@@ -30,7 +30,14 @@ async function parseMacPermissions(xml: string) {
   let signers = []
 
   if (doc.policy) {
-    for (let { $: { signature: rawSig }, seinfo: [{ $: { value: seinfoId }}]} of doc.policy.signer) {
+    for (let {
+      $: { signature: rawSig },
+      seinfo: [
+        {
+          $: { value: seinfoId },
+        },
+      ],
+    } of doc.policy.signer) {
       // Parse base64 cert or leave it as a reference
       let cert = rawSig.startsWith('@') ? rawSig.slice(1) : parseHex(rawSig)
       signers.push({
@@ -132,13 +139,16 @@ export function resolveKeys(
   let keyToPaths = new Map(srcKeys.map(k => [k.keyId, Array.from(k.certPaths.values())]))
 
   // Build seinfo -> paths map
-  let seinfoToPaths = new Map(srcMacPerms.filter(s => typeof s.cert == 'string')
-    .map(s => [s.seinfoId, keyToPaths.get(s.cert as string)!]))
+  let seinfoToPaths = new Map(
+    srcMacPerms.filter(s => typeof s.cert == 'string').map(s => [s.seinfoId, keyToPaths.get(s.cert as string)!]),
+  )
 
   // Build cert -> paths map
-  return new Map(compiledMacPerms
-    .filter(s => seinfoToPaths.has(s.seinfoId) && s.cert instanceof Uint8Array)
-    .map(s => [s.cert as Uint8Array, seinfoToPaths.get(s.seinfoId)!]))
+  return new Map(
+    compiledMacPerms
+      .filter(s => seinfoToPaths.has(s.seinfoId) && s.cert instanceof Uint8Array)
+      .map(s => [s.cert as Uint8Array, seinfoToPaths.get(s.seinfoId)!]),
+  )
 }
 
 function serializeCert(cert: Uint8Array, lineLength: number) {

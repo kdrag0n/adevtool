@@ -3,13 +3,7 @@ import util from 'util'
 import { BlobEntry, partPathToSrcPath } from '../blobs/entry'
 import { SOONG_HEADER } from '../util/headers'
 
-export const SPECIAL_FILE_EXTENSIONS = new Set([
-  '.so',
-  '.apk',
-  '.jar',
-  '.xml',
-  '.apex',
-])
+export const SPECIAL_FILE_EXTENSIONS = new Set(['.so', '.apk', '.jar', '.xml', '.apex'])
 
 export const TYPE_SHARED_LIBRARY = 'cc_prebuilt_library_shared'
 
@@ -89,24 +83,23 @@ export interface RroModule {
   theme?: string
 }
 
-export interface SoongNamespace {
-}
+export interface SoongNamespace {}
 
 export type SoongModuleSpecific = {
   // This is used initially, but deleted before serialization
   _type?: string
 } & (
-  SharedLibraryModule |
-  ExecutableModule |
-  ScriptModule |
-  ApkModule |
-  ApexModule |
-  JarModule |
-  EtcModule |
-  EtcXmlModule |
-  DspModule |
-  SoongNamespace |
-  RroModule
+  | SharedLibraryModule
+  | ExecutableModule
+  | ScriptModule
+  | ApkModule
+  | ApexModule
+  | JarModule
+  | EtcModule
+  | EtcXmlModule
+  | DspModule
+  | SoongNamespace
+  | RroModule
 )
 
 export type SoongModule = {
@@ -151,7 +144,8 @@ export function blobToSoongModule(
   // Type and info is based on file extension
   let moduleSpecific: SoongModuleSpecific
   // High-precedence extension-based types first
-  if (ext == '.sh') { // check before bin/ to catch .sh files in bin
+  if (ext == '.sh') {
+    // check before bin/ to catch .sh files in bin
     let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
 
     moduleSpecific = {
@@ -168,7 +162,7 @@ export function blobToSoongModule(
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
-  // Then special paths
+    // Then special paths
   } else if (pathParts[0] == 'bin') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
 
@@ -201,7 +195,7 @@ export function blobToSoongModule(
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
-  // Then other extension-based types
+    // Then other extension-based types
   } else if (ext == '.so') {
     // Extract architecture from lib dir
     let libDir = pathParts.at(0)!
@@ -234,12 +228,18 @@ export function blobToSoongModule(
     } as TargetSrcs
 
     // For multi-arch
-    let targetSrcs32 = (curArch == '32') ? targetSrcs : {
-      srcs: [otherSrcPath],
-    } as TargetSrcs
-    let targetSrcs64 = (curArch == '64') ? targetSrcs : {
-      srcs: [otherSrcPath],
-    } as TargetSrcs
+    let targetSrcs32 =
+      curArch == '32'
+        ? targetSrcs
+        : ({
+            srcs: [otherSrcPath],
+          } as TargetSrcs)
+    let targetSrcs64 =
+      curArch == '64'
+        ? targetSrcs
+        : ({
+            srcs: [otherSrcPath],
+          } as TargetSrcs)
 
     let origFileName = pathParts.at(-1)?.replace(/\.so$/, '')
     moduleSpecific = {
@@ -265,7 +265,7 @@ export function blobToSoongModule(
     moduleSpecific = {
       _type: 'android_app_import',
       apk: entry.srcPath,
-      ...(entry.isPresigned && { presigned: true } || { certificate: 'platform' }),
+      ...((entry.isPresigned && { presigned: true }) || { certificate: 'platform' }),
       ...(entry.path.startsWith('priv-app/') && { privileged: true }),
       dex_preopt: {
         enabled: false,
@@ -301,35 +301,35 @@ export function blobToSoongModule(
 }
 
 export function serializeModule(module: SoongModule) {
-    // Type is prepended to Soong module props, so remove it from the object
-    let type = module._type
-    delete module._type
+  // Type is prepended to Soong module props, so remove it from the object
+  let type = module._type
+  delete module._type
 
-    // Delete internal blob entry reference as well
-    delete module._entry
+  // Delete internal blob entry reference as well
+  delete module._entry
 
-    // Initial serialization pass. Node.js util.inspect happens to be very similar to Soong format.
-    let serialized = util.inspect(module, {
-      depth: Infinity,
-      maxArrayLength: Infinity,
-      maxStringLength: Infinity,
-      breakLength: 100,
-    })
+  // Initial serialization pass. Node.js util.inspect happens to be very similar to Soong format.
+  let serialized = util.inspect(module, {
+    depth: Infinity,
+    maxArrayLength: Infinity,
+    maxStringLength: Infinity,
+    breakLength: 100,
+  })
 
-    // ' -> "
-    serialized = serialized.replaceAll("'", '"')
-    // 4-space indentation
-    serialized = serialized.replaceAll('  ', '    ')
-    // Prepend type
-    serialized = `${type} ${serialized}`
-    // Add trailing comma to last prop
-    let serialLines = serialized.split('\n')
-    if (serialLines.length > 1) {
-      serialLines[serialLines.length - 2] = serialLines.at(-2) + ','
-      serialized = serialLines.join('\n')
-    }
+  // ' -> "
+  serialized = serialized.replaceAll("'", '"')
+  // 4-space indentation
+  serialized = serialized.replaceAll('  ', '    ')
+  // Prepend type
+  serialized = `${type} ${serialized}`
+  // Add trailing comma to last prop
+  let serialLines = serialized.split('\n')
+  if (serialLines.length > 1) {
+    serialLines[serialLines.length - 2] = serialLines.at(-2) + ','
+    serialized = serialLines.join('\n')
+  }
 
-    return serialized
+  return serialized
 }
 
 export function serializeBlueprint(bp: SoongBlueprint) {
@@ -337,9 +337,11 @@ export function serializeBlueprint(bp: SoongBlueprint) {
 
   // Declare namespace
   if (bp.namespace) {
-    serializedModules.push(serializeModule({
-      _type: 'soong_namespace',
-    }))
+    serializedModules.push(
+      serializeModule({
+        _type: 'soong_namespace',
+      }),
+    )
   }
 
   if (bp.modules != undefined) {

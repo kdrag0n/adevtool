@@ -11,8 +11,7 @@ const CONTEXT_FILENAMES = new Set([
   // Plain TYPE_contexts for AOSP sources
   ...CONTEXT_TYPES.map(type => `${type}_contexts`),
   // PART_TYPE_contexts for built systems
-  ...CONTEXT_TYPES.flatMap(type => Array.from(EXT_PARTITIONS.values())
-    .map(part => `${part}_${type}_contexts`)),
+  ...CONTEXT_TYPES.flatMap(type => Array.from(EXT_PARTITIONS.values()).map(part => `${part}_${type}_contexts`)),
   // Special case for vendor
   'vndservice_contexts',
 ])
@@ -60,8 +59,7 @@ export async function parsePartContexts(root: string) {
 }
 
 function diffContexts(ctxRef: SelinuxContexts, ctxNew: SelinuxContexts) {
-  return new Map(Array.from(ctxNew.entries())
-    .filter(([ctx]) => !ctxRef.has(ctx)))
+  return new Map(Array.from(ctxNew.entries()).filter(([ctx]) => !ctxRef.has(ctx)))
 }
 
 export function diffPartContexts(pctxRef: SelinuxPartContexts, pctxNew: SelinuxPartContexts) {

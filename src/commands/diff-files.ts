@@ -8,17 +8,24 @@ export default class DiffFiles extends Command {
   static description = 'find missing system files compared to a reference system'
 
   static flags = {
-    help: flags.help({char: 'h'}),
-    all: flags.boolean({char: 'a', description: 'show all differences, not only missing/removed files', default: false})
+    help: flags.help({ char: 'h' }),
+    all: flags.boolean({
+      char: 'a',
+      description: 'show all differences, not only missing/removed files',
+      default: false,
+    }),
   }
 
   static args = [
-    {name: 'sourceRef', description: 'path to root of reference system', required: true},
-    {name: 'sourceNew', description: 'path to root of new system', required: true},
+    { name: 'sourceRef', description: 'path to root of reference system', required: true },
+    { name: 'sourceNew', description: 'path to root of new system', required: true },
   ]
 
   async run() {
-    let {flags: {all}, args: {sourceRef, sourceNew}} = this.parse(DiffFiles)
+    let {
+      flags: { all },
+      args: { sourceRef, sourceNew },
+    } = this.parse(DiffFiles)
 
     for (let partition of ALL_SYS_PARTITIONS) {
       let filesRef = await listPart(partition, sourceRef)
@@ -26,7 +33,7 @@ export default class DiffFiles extends Command {
         continue
       }
 
-      let filesNew = await listPart(partition, sourceNew) ?? []
+      let filesNew = (await listPart(partition, sourceNew)) ?? []
 
       this.log(chalk.bold(partition))
 

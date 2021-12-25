@@ -1,4 +1,4 @@
-import chalk from "chalk"
+import chalk from 'chalk'
 
 export async function forEachDevice<Device>(
   devices: Device[],

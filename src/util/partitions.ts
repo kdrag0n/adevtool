@@ -21,30 +21,15 @@ export enum Partition {
 }
 
 // Android system partitions, excluding "system"
-export type ExtSysPartition = Partition.SystemExt |
-  Partition.Product |
-  Partition.Vendor |
-  Partition.Odm
-export const EXT_SYS_PARTITIONS = new Set([
-  'system_ext',
-  'product',
-  'vendor',
-  'odm',
-])
+export type ExtSysPartition = Partition.SystemExt | Partition.Product | Partition.Vendor | Partition.Odm
+export const EXT_SYS_PARTITIONS = new Set(['system_ext', 'product', 'vendor', 'odm'])
 
 // GKI DLKM partitions
-export type DlkmPartition = Partition.VendorDlkm |
-  Partition.OdmDlkm
-export const DLKM_PARTITIONS = new Set([
-  'vendor_dlkm',
-  'odm_dlkm',
-])
+export type DlkmPartition = Partition.VendorDlkm | Partition.OdmDlkm
+export const DLKM_PARTITIONS = new Set(['vendor_dlkm', 'odm_dlkm'])
 
 export type ExtPartition = ExtSysPartition | DlkmPartition
-export const EXT_PARTITIONS = new Set([
-  ...EXT_SYS_PARTITIONS,
-  ...DLKM_PARTITIONS,
-])
+export const EXT_PARTITIONS = new Set([...EXT_SYS_PARTITIONS, ...DLKM_PARTITIONS])
 
 // All system partitions
 export type SysPartition = Partition.System | ExtPartition

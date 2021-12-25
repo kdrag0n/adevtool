@@ -18,10 +18,7 @@ export function stopActionSpinner(spinner: ora.Ora) {
   spinner.stopAndPersist()
 }
 
-export async function withSpinner<Return>(
-  action: string,
-  callback: (spinner: ora.Ora) => Promise<Return>,
-) {
+export async function withSpinner<Return>(action: string, callback: (spinner: ora.Ora) => Promise<Return>) {
   let spinner = startActionSpinner(action)
   let ret = await callback(spinner)
   stopActionSpinner(spinner)

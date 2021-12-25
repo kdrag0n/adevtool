@@ -10,19 +10,31 @@ export default class CheckPresigned extends Command {
   static description = 'check for APKs that should be presigned'
 
   static flags = {
-    help: flags.help({char: 'h'}),
-    aapt2: flags.string({char: 'a', description: 'path to aapt2 executable', default: 'out/host/linux-x86/bin/aapt2'}),
-    sepolicy: flags.string({char: 'p', description: 'paths to device and vendor sepolicy dirs', required: true, multiple: true}),
-    outList: flags.string({char: 'o', description: 'output path for new proprietary-files.txt with PRESIGNED tags'}),
+    help: flags.help({ char: 'h' }),
+    aapt2: flags.string({
+      char: 'a',
+      description: 'path to aapt2 executable',
+      default: 'out/host/linux-x86/bin/aapt2',
+    }),
+    sepolicy: flags.string({
+      char: 'p',
+      description: 'paths to device and vendor sepolicy dirs',
+      required: true,
+      multiple: true,
+    }),
+    outList: flags.string({ char: 'o', description: 'output path for new proprietary-files.txt with PRESIGNED tags' }),
   }
 
   static args = [
-    {name: 'source', description: 'path to mounted factory images', required: true},
-    {name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list'},
+    { name: 'source', description: 'path to mounted factory images', required: true },
+    { name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list' },
   ]
 
   async run() {
-    let {flags: {aapt2: aapt2Path, sepolicy: sepolicyDirs, outList: outPath}, args: {source, listPath}} = this.parse(CheckPresigned)
+    let {
+      flags: { aapt2: aapt2Path, sepolicy: sepolicyDirs, outList: outPath },
+      args: { source, listPath },
+    } = this.parse(CheckPresigned)
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))

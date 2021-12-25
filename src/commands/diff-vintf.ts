@@ -9,18 +9,25 @@ export default class DiffVintf extends Command {
   static description = 'find missing vintf declarations compared to a reference system'
 
   static flags = {
-    help: flags.help({char: 'h'}),
-    all: flags.boolean({char: 'a', description: 'show all differences, not only missing/removed HALs', default: false})
+    help: flags.help({ char: 'h' }),
+    all: flags.boolean({
+      char: 'a',
+      description: 'show all differences, not only missing/removed HALs',
+      default: false,
+    }),
   }
 
   static args = [
-    {name: 'sourceRef', description: 'path to root of reference system', required: true},
-    {name: 'sourceNew', description: 'path to root of new system', required: true},
-    {name: 'outPath', description: 'output path for manifest fragment with missing HALs'},
+    { name: 'sourceRef', description: 'path to root of reference system', required: true },
+    { name: 'sourceNew', description: 'path to root of new system', required: true },
+    { name: 'outPath', description: 'output path for manifest fragment with missing HALs' },
   ]
 
   async run() {
-    let {flags: {all}, args: {sourceRef, sourceNew, outPath}} = this.parse(DiffVintf)
+    let {
+      flags: { all },
+      args: { sourceRef, sourceNew, outPath },
+    } = this.parse(DiffVintf)
 
     let vintfRef = await loadPartVintfInfo(sourceRef)
     let vintfNew = await loadPartVintfInfo(sourceNew)

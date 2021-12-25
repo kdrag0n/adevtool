@@ -55,17 +55,11 @@ class SourceResolver {
     }
   }
 
-  private async mountImg(
-    img: string,
-    dest: string,
-  ) {
+  private async mountImg(img: string, dest: string) {
     // Convert sparse image to raw
     if (await isSparseImage(img)) {
       this.spinner.text = `converting sparse image: ${img}`
-      let sparseTmp = await this.createDynamicTmp(
-        `sparse_img/${path.basename(path.dirname(img))}`,
-        path.dirname(img),
-      )
+      let sparseTmp = await this.createDynamicTmp(`sparse_img/${path.basename(path.dirname(img))}`, path.dirname(img))
 
       let rawImg = `${sparseTmp.dir}/${path.basename(img)}.raw`
       await run(`simg2img ${img} ${rawImg}`)
@@ -78,11 +72,7 @@ class SourceResolver {
     this.tmp.mounts.push(dest)
   }
 
-  private async mountParts(
-    src: string,
-    mountTmp: TempState,
-    suffix: string = '.img',
-  ) {
+  private async mountParts(src: string, mountTmp: TempState, suffix: string = '.img') {
     let mountRoot = mountTmp.dir
 
     for (let part of ALL_SYS_PARTITIONS) {
@@ -95,14 +85,8 @@ class SourceResolver {
     }
   }
 
-  private async wrapLeafFile(
-    file: string,
-    factoryPath: string | null,
-  ): Promise<WrappedSource> {
-    let imagesTmp = await this.createDynamicTmp(
-      `src_images/${path.basename(file)}`,
-      path.dirname(file),
-    )
+  private async wrapLeafFile(file: string, factoryPath: string | null): Promise<WrappedSource> {
+    let imagesTmp = await this.createDynamicTmp(`src_images/${path.basename(file)}`, path.dirname(file))
 
     // Extract images from OTA payload
     if (path.basename(file) == 'payload.bin') {
@@ -151,10 +135,7 @@ class SourceResolver {
     }
   }
 
-  private async searchLeafDir(
-    src: string,
-    factoryPath: string | null,
-  ): Promise<WrappedSource> {
+  private async searchLeafDir(src: string, factoryPath: string | null): Promise<WrappedSource> {
     if (!(await exists(src))) {
       return {
         src: null,
@@ -186,8 +167,7 @@ class SourceResolver {
         return await this.wrapLeafFile(imagesZip, factoryPath || src)
       }
 
-      let newFactoryPath = (await fs.readdir(src))
-        .find(f => f.startsWith(`${this.device}-${this.buildId}-factory-`))
+      let newFactoryPath = (await fs.readdir(src)).find(f => f.startsWith(`${this.device}-${this.buildId}-factory-`))
       if (newFactoryPath != undefined) {
         // Factory images zip
         return await this.wrapLeafFile(`${src}/${newFactoryPath}`, newFactoryPath)
@@ -206,21 +186,19 @@ class SourceResolver {
       // Directory
 
       let tryDirs = [
-        ...(this.buildId != null && [
+        ...((this.buildId != null && [
           `${src}/${this.buildId}`,
           `${src}/${this.device}/${this.buildId}`,
           `${src}/${this.buildId}/${this.device}`,
-        ] || []),
+        ]) ||
+          []),
         `${src}/${this.device}`,
         src,
       ]
 
       // Also try to find extracted factory images first: device-buildId
       if (this.buildId != null) {
-        tryDirs = [
-          ...tryDirs.map(p => `${p}/${this.device}-${this.buildId}`),
-          ...tryDirs,
-        ]
+        tryDirs = [...tryDirs.map(p => `${p}/${this.device}-${this.buildId}`), ...tryDirs]
       }
 
       for (let dir of tryDirs) {

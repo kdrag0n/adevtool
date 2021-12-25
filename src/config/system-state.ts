@@ -1,12 +1,12 @@
-import { listPart } from "../blobs/file-list"
-import { parsePartOverlayApks, PartResValues } from "../blobs/overlays"
-import { loadPartitionProps, PartitionProps } from "../blobs/props"
-import { loadPartVintfInfo, PartitionVintfInfo } from "../blobs/vintf"
-import { minimizeModules, parseModuleInfo, SoongModuleInfo } from "../build/soong-info"
-import { parsePartContexts, SelinuxPartContexts } from "../selinux/contexts"
-import { withSpinner } from "../util/cli"
-import { readFile } from "../util/fs"
-import { ALL_SYS_PARTITIONS } from "../util/partitions"
+import { listPart } from '../blobs/file-list'
+import { parsePartOverlayApks, PartResValues } from '../blobs/overlays'
+import { loadPartitionProps, PartitionProps } from '../blobs/props'
+import { loadPartVintfInfo, PartitionVintfInfo } from '../blobs/vintf'
+import { minimizeModules, parseModuleInfo, SoongModuleInfo } from '../build/soong-info'
+import { parsePartContexts, SelinuxPartContexts } from '../selinux/contexts'
+import { withSpinner } from '../util/cli'
+import { readFile } from '../util/fs'
+import { ALL_SYS_PARTITIONS } from '../util/partitions'
 
 const STATE_VERSION = 4
 
@@ -36,16 +36,20 @@ export function serializeSystemState(state: SystemState) {
     ...state,
   }
 
-  return JSON.stringify(diskState, (k, v) => {
-    if (v instanceof Map) {
-      return {
-        _type: 'Map',
-        data: Object.fromEntries(v.entries()),
+  return JSON.stringify(
+    diskState,
+    (k, v) => {
+      if (v instanceof Map) {
+        return {
+          _type: 'Map',
+          data: Object.fromEntries(v.entries()),
+        }
+      } else {
+        return v
       }
-    } else {
-      return v
-    }
-  }, 2)
+    },
+    2,
+  )
 }
 
 export function parseSystemState(json: string) {
@@ -75,7 +79,7 @@ export async function collectSystemState(device: string, outRoot: string, aapt2P
   } as SystemState
 
   // Files
-  await withSpinner('Enumerating files', async (spinner) => {
+  await withSpinner('Enumerating files', async spinner => {
     for (let partition of ALL_SYS_PARTITIONS) {
       spinner.text = partition
 
@@ -87,26 +91,25 @@ export async function collectSystemState(device: string, outRoot: string, aapt2P
   })
 
   // Props
-  state.partitionProps = await withSpinner('Extracting properties', () =>
-    loadPartitionProps(systemRoot))
+  state.partitionProps = await withSpinner('Extracting properties', () => loadPartitionProps(systemRoot))
 
   // SELinux contexts
-  state.partitionSecontexts = await withSpinner('Extracting SELinux contexts', () =>
-    parsePartContexts(systemRoot))
+  state.partitionSecontexts = await withSpinner('Extracting SELinux contexts', () => parsePartContexts(systemRoot))
 
   // Overlays
-  state.partitionOverlays = await withSpinner('Extracting overlays', (spinner) =>
+  state.partitionOverlays = await withSpinner('Extracting overlays', spinner =>
     parsePartOverlayApks(aapt2Path, systemRoot, path => {
       spinner.text = path
-    }))
+    }),
+  )
 
   // vintf info
-  state.partitionVintfInfo = await withSpinner('Extracting vintf manifests', () =>
-    loadPartVintfInfo(systemRoot))
+  state.partitionVintfInfo = await withSpinner('Extracting vintf manifests', () => loadPartVintfInfo(systemRoot))
 
   // Module info
   state.moduleInfo = await withSpinner('Parsing module info', async () =>
-    parseModuleInfo(await readFile(moduleInfoPath)))
+    parseModuleInfo(await readFile(moduleInfoPath)),
+  )
 
-  return state;
+  return state
 }

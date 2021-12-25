@@ -145,8 +145,9 @@ async function loadAndMergeConfig(configPath: string) {
   let merged = overlays.reduce((base, overlay) => mergeConfigs(base, overlay), base)
 
   // Parse filters
-  merged.filters = Object.fromEntries(Object.entries(merged.filters)
-    .map(([group, filters]) => [group, parseFilters(filters as SerializedFilters)]))
+  merged.filters = Object.fromEntries(
+    Object.entries(merged.filters).map(([group, filters]) => [group, parseFilters(filters as SerializedFilters)]),
+  )
 
   // Finally, cast it to the parsed config type
   delete merged.includes

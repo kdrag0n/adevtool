@@ -101,7 +101,7 @@ export function serializeVintfHals(hals: Array<VintfHal>) {
         type: 'device',
       },
       hal: hals,
-    }
+    },
   })
 }
 

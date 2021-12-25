@@ -16,7 +16,14 @@ import { DeviceConfig } from '../config/device'
 import { filterKeys, Filters, filterValue, filterValues } from '../config/filters'
 import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
 import { ANDROID_INFO, extractFactoryFirmware, generateAndroidInfo, writeFirmwareImages } from '../images/firmware'
-import { diffPartContexts, parseContextsRecursive, parsePartContexts, resolvePartContextDiffs, SelinuxContexts, SelinuxPartResolutions } from '../selinux/contexts'
+import {
+  diffPartContexts,
+  parseContextsRecursive,
+  parsePartContexts,
+  resolvePartContextDiffs,
+  SelinuxContexts,
+  SelinuxPartResolutions,
+} from '../selinux/contexts'
 import { generateFileContexts } from '../selinux/labels'
 import { exists, readFile, TempState } from '../util/fs'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
@@ -29,11 +36,7 @@ export interface PropResults {
   missingOtaParts: Array<string>
 }
 
-export async function loadCustomState(
-  config: DeviceConfig,
-  aapt2Path: string,
-  customSrc: string,
-) {
+export async function loadCustomState(config: DeviceConfig, aapt2Path: string, customSrc: string) {
   if ((await fs.stat(customSrc)).isFile()) {
     return parseSystemState(await readFile(customSrc))
   } else {
@@ -96,7 +99,7 @@ export async function resolveOverrides(
 
   let modulesMap = customState.moduleInfo
   removeSelfModules(modulesMap, dirs.proprietary)
-  let {modules: builtModules, builtPaths} = findOverrideModules(targetPaths, modulesMap)
+  let { modules: builtModules, builtPaths } = findOverrideModules(targetPaths, modulesMap)
 
   // Remove new modules from entries
   for (let path of builtPaths) {
@@ -114,9 +117,16 @@ export async function updatePresigned(
   stockSrc: string,
 ) {
   let presignedPkgs = await parsePresignedRecursive(config.platform.sepolicy_dirs)
-  await updatePresignedBlobs(aapt2Path, stockSrc, presignedPkgs, entries, entry => {
-    spinner.text = entry.srcPath
-  }, config.filters.presigned)
+  await updatePresignedBlobs(
+    aapt2Path,
+    stockSrc,
+    presignedPkgs,
+    entries,
+    entry => {
+      spinner.text = entry.srcPath
+    },
+    config.filters.presigned,
+  )
 }
 
 export async function flattenApexs(
@@ -126,7 +136,7 @@ export async function flattenApexs(
   tmp: TempState,
   stockSrc: string,
 ) {
-  let apex = await flattenAllApexs(entries, stockSrc, tmp, (progress) => {
+  let apex = await flattenAllApexs(entries, stockSrc, tmp, progress => {
     spinner.text = progress
   })
 
@@ -137,11 +147,7 @@ export async function flattenApexs(
   return apex.entries
 }
 
-export async function extractProps(
-  config: DeviceConfig,
-  customState: SystemState | null,
-  stockSrc: string,
-) {
+export async function extractProps(config: DeviceConfig, customState: SystemState | null, stockSrc: string) {
   let stockProps = await loadPartitionProps(stockSrc)
   let customProps = customState?.partitionProps ?? new Map<string, Map<string, string>>()
 
@@ -160,15 +166,13 @@ export async function extractProps(
   let missingProps: PartitionProps | undefined = undefined
   if (customProps != null) {
     let propChanges = diffPartitionProps(stockProps, customProps)
-    missingProps = new Map(Array.from(propChanges.entries())
-      .map(([part, props]) => [part, props.removed]))
+    missingProps = new Map(Array.from(propChanges.entries()).map(([part, props]) => [part, props.removed]))
   }
 
   // A/B OTA partitions
   let stockOtaParts = stockProps.get('product')!.get('ro.product.ab_ota_partitions')!.split(',')
   let customOtaParts = new Set(customProps.get('product')?.get('ro.product.ab_ota_partitions')?.split(',') ?? [])
-  let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p) &&
-    filterValue(config.filters.partitions, p))
+  let missingOtaParts = stockOtaParts.filter(p => !customOtaParts.has(p) && filterValue(config.filters.partitions, p))
 
   return {
     stockProps,
@@ -219,13 +223,22 @@ export async function extractOverlays(
   aapt2Path: string,
   stockSrc: string,
 ) {
-  let stockOverlays = await parsePartOverlayApks(aapt2Path, stockSrc, path => {
-    spinner.text = path
-  }, config.filters.overlay_files)
+  let stockOverlays = await parsePartOverlayApks(
+    aapt2Path,
+    stockSrc,
+    path => {
+      spinner.text = path
+    },
+    config.filters.overlay_files,
+  )
   let customOverlays = customState.partitionOverlays
 
-  let missingOverlays = diffPartOverlays(stockOverlays, customOverlays,
-    config.filters.overlay_keys, config.filters.overlay_values)
+  let missingOverlays = diffPartOverlays(
+    stockOverlays,
+    customOverlays,
+    config.filters.overlay_keys,
+    config.filters.overlay_values,
+  )
 
   // Generate RROs and get a list of modules to build
   let buildPkgs = await serializePartOverlays(missingOverlays, dirs.overlays)
@@ -243,11 +256,7 @@ export async function extractOverlays(
   return buildPkgs
 }
 
-export async function extractVintfManifests(
-  customState: SystemState,
-  dirs: VendorDirectories,
-  stockSrc: string,
-) {
+export async function extractVintfManifests(customState: SystemState, dirs: VendorDirectories, stockSrc: string) {
   let customVintf = customState.partitionVintfInfo
   let stockVintf = await loadPartVintfInfo(stockSrc)
   let missingHals = diffPartVintfManifests(customVintf, stockVintf)
@@ -305,8 +314,8 @@ export async function generateBuildFiles(
   // Add board parts
   build.boardMakefile = {
     ...(sepolicyResolutions != null && { sepolicyResolutions: sepolicyResolutions }),
-    ...(propResults != null && propResults.missingOtaParts.length > 0 &&
-      {
+    ...(propResults != null &&
+      propResults.missingOtaParts.length > 0 && {
         buildPartitions: propResults.missingOtaParts,
         ...(addAbOtaParts && { abOtaPartitions: propResults.missingOtaParts }),
       }),

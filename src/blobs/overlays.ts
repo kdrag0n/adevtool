@@ -45,17 +45,19 @@ export type PartResValues = { [part: string]: ResValues }
 
 function makeManifestRegex(attr: string) {
   return new RegExp(
-    (/^\s+A: http:\/\/schemas.android.com\/apk\/res\/android:/).source +
-    attr +
-    (/\(0x[a-z0-9]+\)="(.+)" \(Raw: ".*$/).source,
-    'm' // multiline flag
+    /^\s+A: http:\/\/schemas.android.com\/apk\/res\/android:/.source +
+      attr +
+      /\(0x[a-z0-9]+\)="(.+)" \(Raw: ".*$/.source,
+    'm', // multiline flag
   )
 }
 
 function encodeResKey(key: ResKey) {
   // pkg/name:type/key|flags
-  return `${key.targetPkg}${key.targetName?.length ? `/${key.targetName}` : ''}:` +
+  return (
+    `${key.targetPkg}${key.targetName?.length ? `/${key.targetName}` : ''}:` +
     `${key.type}/${key.key}${key.flags?.length ? `|${key.flags}` : ''}`
+  )
 }
 
 export function decodeResKey(encoded: string) {
@@ -66,7 +68,7 @@ export function decodeResKey(encoded: string) {
 
   return {
     targetPkg: targetPkg,
-    targetName: targetName != undefined ? targetName: null,
+    targetName: targetName != undefined ? targetName : null,
     type: type,
     key: key,
     flags: flags != undefined ? flags : null,
@@ -327,8 +329,7 @@ function filterValues(keyFilters: Filters, valueFilters: Filters, values: ResVal
   for (let [rawKey, value] of values.entries()) {
     let key = decodeResKey(rawKey)
 
-    if (shouldDeleteKey(keyFilters, rawKey, key) ||
-        (typeof value == 'string' && !filterValue(valueFilters, value))) {
+    if (shouldDeleteKey(keyFilters, rawKey, key) || (typeof value == 'string' && !filterValue(valueFilters, value))) {
       // Key/value filter
       values.delete(rawKey)
     } else if (DIFF_MAP_PACKAGES.has(key.targetPkg)) {
@@ -402,15 +403,17 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
       let rroName = `${genTarget}.auto_generated_rro_${partition}_adevtool__`
 
       let bp = serializeBlueprint({
-        modules: [{
-          _type: 'runtime_resource_overlay',
-          name: rroName,
+        modules: [
+          {
+            _type: 'runtime_resource_overlay',
+            name: rroName,
 
-          ...(partition == 'system_ext' && { system_ext_specific: true }),
-          ...(partition == 'product' && { product_specific: true }),
-          ...(partition == 'vendor' && { soc_specific: true }),
-          ...(partition == 'odm' && { device_specific: true }),
-        }],
+            ...(partition == 'system_ext' && { system_ext_specific: true }),
+            ...(partition == 'product' && { product_specific: true }),
+            ...(partition == 'vendor' && { soc_specific: true }),
+            ...(partition == 'odm' && { device_specific: true }),
+          },
+        ],
       })
 
       let manifest = serializeXmlObject({
@@ -429,12 +432,12 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
               },
             },
           ],
-          application: [ { $: { 'android:hasCode': 'false' } } ],
+          application: [{ $: { 'android:hasCode': 'false' } }],
         },
       })
 
-      let valuesObj = { resources: { } as { [type: string]: Array<any> } }
-      for (let [{type, key}, value] of values.entries()) {
+      let valuesObj = { resources: {} as { [type: string]: Array<any> } }
+      for (let [{ type, key }, value] of values.entries()) {
         let entry = {
           $: {
             name: key,

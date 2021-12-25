@@ -8,16 +8,22 @@ export default class ListFiles extends Command {
   static description = 'list system files and symlinks important for blobs'
 
   static flags = {
-    help: flags.help({char: 'h'}),
+    help: flags.help({ char: 'h' }),
   }
 
   static args = [
-    {name: 'systemRoot', description: 'path to root of mounted system images (./system_ext, ./product, etc.)', required: true},
-    {name: 'out', description: 'directory to write partition file lists to', required: true},
+    {
+      name: 'systemRoot',
+      description: 'path to root of mounted system images (./system_ext, ./product, etc.)',
+      required: true,
+    },
+    { name: 'out', description: 'directory to write partition file lists to', required: true },
   ]
 
   async run() {
-    let {args: {systemRoot, out}} = this.parse(ListFiles)
+    let {
+      args: { systemRoot, out },
+    } = this.parse(ListFiles)
 
     await fs.mkdir(out, { recursive: true })
 

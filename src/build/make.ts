@@ -95,10 +95,7 @@ export function blobToFileCopy(entry: BlobEntry, proprietaryDir: string) {
 
 export function serializeModulesMakefile(mk: ModulesMakefile) {
   let blocks = startBlocks()
-  blocks.push(
-    'LOCAL_PATH := $(call my-dir)',
-    `ifeq ($(TARGET_DEVICE),${mk.device})`,
-  )
+  blocks.push('LOCAL_PATH := $(call my-dir)', `ifeq ($(TARGET_DEVICE),${mk.device})`)
 
   if (mk.radioFiles != undefined) {
     blocks.push(mk.radioFiles.map(img => `$(call add-radio-file,${img})`).join('\n'))
@@ -169,15 +166,14 @@ TARGET_COPY_OUT_ODM_DLKM := odm_dlkm`)
   }
 
   if (mk.sepolicyResolutions != undefined) {
-    for (let [partition, {sepolicyDirs, missingContexts}] of mk.sepolicyResolutions.entries()) {
+    for (let [partition, { sepolicyDirs, missingContexts }] of mk.sepolicyResolutions.entries()) {
       let partVar = SEPOLICY_PARTITION_VARS[partition]
       if (sepolicyDirs.length > 0) {
         addContBlock(blocks, partVar, sepolicyDirs)
       }
 
       if (missingContexts.length > 0) {
-        blocks.push(missingContexts.map(c => `# Missing ${partition} SELinux context: ${c}`)
-          .join('\n'))
+        blocks.push(missingContexts.map(c => `# Missing ${partition} SELinux context: ${c}`).join('\n'))
       }
     }
   }
@@ -244,7 +240,11 @@ PRODUCT_MANUFACTURER := ${mk.manufacturer}`)
 export function serializeProductsMakefile(mk: ProductsMakefile) {
   let blocks = [MAKEFILE_HEADER]
 
-  addContBlock(blocks, 'PRODUCT_MAKEFILES', mk.products.map(p => `$(LOCAL_DIR)/${p}.mk`))
+  addContBlock(
+    blocks,
+    'PRODUCT_MAKEFILES',
+    mk.products.map(p => `$(LOCAL_DIR)/${p}.mk`),
+  )
 
   return finishBlocks(blocks)
 }

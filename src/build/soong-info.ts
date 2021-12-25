@@ -19,11 +19,7 @@ export interface TargetModuleInfo {
 
 export type SoongModuleInfo = Map<string, TargetModuleInfo>
 
-const EXCLUDE_MODULE_CLASSES = new Set([
-  "NATIVE_TESTS",
-  "FAKE",
-  "ROBOLECTRIC",
-])
+const EXCLUDE_MODULE_CLASSES = new Set(['NATIVE_TESTS', 'FAKE', 'ROBOLECTRIC'])
 
 export function parseModuleInfo(info: string) {
   return new Map(Object.entries(JSON.parse(info))) as SoongModuleInfo
