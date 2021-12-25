@@ -7,6 +7,9 @@
 /tmp
 node_modules
 
+# IDEA project
+/.idea/
+
 # Vendor output
 /vendor/
 
