@@ -68,10 +68,10 @@ export function decodeResKey(encoded: string) {
 
   return {
     targetPkg,
-    targetName: targetName !== undefined ? targetName : null,
+    targetName: targetName != undefined ? targetName : null,
     type,
     key,
-    flags: flags !== undefined ? flags : null,
+    flags: flags != undefined ? flags : null,
   } as ResKey
 }
 
@@ -113,7 +113,7 @@ function finishArray(
     type = 'string-array'
   } else if (typeof array[0] === 'number') {
     // Float arrays are just <array>, so check for integers
-    if (array.find(v => !Number.isInteger(v)) === undefined) {
+    if (array.find(v => !Number.isInteger(v)) == undefined) {
       type = 'integer-array'
     }
   }
@@ -147,7 +147,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | nu
     let resStart = line.match(/^resource 0x[a-z0-9]+ (.+)$/)
     if (resStart) {
       // Finish last array?
-      if (curArray !== null) {
+      if (curArray != null) {
         finishArray(values, targetPkg, targetName, curType, curKey, curFlags, curArray)
       }
 
@@ -163,7 +163,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | nu
     let arrayLine = line.match(/^\(([a-zA-Z0-9\-_+]*)\) \(array\) size=\d+$/)
     if (arrayLine) {
       // Finish last array?
-      if (curArray !== null) {
+      if (curArray != null) {
         finishArray(values, targetPkg, targetName, curType, curKey, curFlags, curArray)
       }
 
@@ -179,7 +179,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | nu
       curFlags = valueLine![1]
 
       // Exclude broken locales and styles for now
-      if (EXCLUDE_LOCALES.has(curFlags!) || curType === 'style') {
+      if (EXCLUDE_LOCALES.has(curFlags!) || curType == 'style') {
         continue
       }
 
@@ -188,10 +188,10 @@ function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | nu
       if (rawValue.startsWith('(file) ')) {
         // Return @[path]
         value = `@${rawValue.split(' ')[1]}`
-      } else if (curType === 'dimen') {
+      } else if (curType == 'dimen') {
         // Keep dimensions as strings to preserve unit
         value = rawValue
-      } else if (curType === 'color') {
+      } else if (curType == 'color') {
         // Raw hex code
         value = rawValue
       } else if (rawValue.startsWith('0x')) {
@@ -200,7 +200,7 @@ function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | nu
       } else if (rawValue.startsWith('(styled string) ')) {
         // Skip styled strings for now
         continue
-      } else if (curType === 'string') {
+      } else if (curType == 'string') {
         // Don't rely on quotes for simple strings
         value = rawValue.slice(1, -1)
       } else {
@@ -219,13 +219,13 @@ function parseRsrcLines(rsrc: string, targetPkg: string, targetName: string | nu
     }
 
     // Continuation of array?
-    if (curArray !== null) {
+    if (curArray != null) {
       curArray.push(line)
     }
   }
 
   // Finish remaining array?
-  if (curArray !== null) {
+  if (curArray != null) {
     finishArray(values, targetPkg, targetName, curType, curKey, curFlags, curArray)
   }
 
@@ -241,15 +241,15 @@ async function parseOverlayApksRecursive(
   let values: ResValues = new Map<string, ResValue>()
 
   for await (let apkPath of listFilesRecursive(overlaysDir)) {
-    if (path.extname(apkPath) !== '.apk') {
+    if (path.extname(apkPath) != '.apk') {
       continue
     }
 
-    if (pathCallback !== undefined) {
+    if (pathCallback != undefined) {
       pathCallback(apkPath)
     }
 
-    if (filters !== null && !filterValue(filters, path.relative(overlaysDir, apkPath))) {
+    if (filters != null && !filterValue(filters, path.relative(overlaysDir, apkPath))) {
       continue
     }
 
@@ -271,7 +271,7 @@ async function parseOverlayApksRecursive(
 
     // Get the target overlayable config name, if it exists
     match = manifest.match(TARGET_NAME_PATTERN)
-    let targetName = match === undefined ? null : match[1]
+    let targetName = match == undefined ? null : match[1]
 
     // Overlay is eligible, now read the resource table
     let rsrc = await aapt2(aapt2Path, 'dump', 'resources', apkPath)
@@ -313,7 +313,7 @@ function shouldDeleteKey(filters: Filters, rawKey: string, { targetPkg, type, ke
   }
 
   // Exclude localized values for now
-  if (flags !== null) {
+  if (flags != null) {
     return true
   }
 
@@ -408,10 +408,10 @@ export async function serializePartOverlays(partValues: PartResValues, overlaysD
             _type: 'runtime_resource_overlay',
             name: rroName,
 
-            ...(partition === 'system_ext' && { system_ext_specific: true }),
-            ...(partition === 'product' && { product_specific: true }),
-            ...(partition === 'vendor' && { soc_specific: true }),
-            ...(partition === 'odm' && { device_specific: true }),
+            ...(partition == 'system_ext' && { system_ext_specific: true }),
+            ...(partition == 'product' && { product_specific: true }),
+            ...(partition == 'vendor' && { soc_specific: true }),
+            ...(partition == 'odm' && { device_specific: true }),
           },
         ],
       })

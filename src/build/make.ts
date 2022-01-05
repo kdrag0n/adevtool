@@ -84,7 +84,7 @@ export function sanitizeBasename(path: string) {
 }
 
 function partPathToMakePath(partition: string, subpath: string) {
-  let copyPart = partition === 'system' ? 'PRODUCT_OUT' : `TARGET_COPY_OUT_${partition.toUpperCase()}`
+  let copyPart = partition == 'system' ? 'PRODUCT_OUT' : `TARGET_COPY_OUT_${partition.toUpperCase()}`
   return `$(${copyPart})/${subpath}`
 }
 
@@ -97,7 +97,7 @@ export function serializeModulesMakefile(mk: ModulesMakefile) {
   let blocks = startBlocks()
   blocks.push('LOCAL_PATH := $(call my-dir)', `ifeq ($(TARGET_DEVICE),${mk.device})`)
 
-  if (mk.radioFiles !== undefined) {
+  if (mk.radioFiles != undefined) {
     blocks.push(mk.radioFiles.map(img => `$(call add-radio-file,${img})`).join('\n'))
   }
 
@@ -130,7 +130,7 @@ include $(BUILD_PREBUILT)`)
 }
 
 function addContBlock(blocks: Array<string>, variable: string, items: Array<string> | undefined) {
-  if (items !== undefined && items.length > 0) {
+  if (items != undefined && items.length > 0) {
     blocks.push(`${variable} += \\
     ${items.join(CONT_SEPARATOR)}`)
   }
@@ -161,11 +161,11 @@ TARGET_COPY_OUT_ODM_DLKM := odm_dlkm`)
 
   addContBlock(blocks, 'AB_OTA_PARTITIONS', mk.abOtaPartitions)
 
-  if (mk.boardInfo !== undefined) {
+  if (mk.boardInfo != undefined) {
     blocks.push(`TARGET_BOARD_INFO_FILE := ${mk.boardInfo}`)
   }
 
-  if (mk.sepolicyResolutions !== undefined) {
+  if (mk.sepolicyResolutions != undefined) {
     for (let [partition, { sepolicyDirs, missingContexts }] of mk.sepolicyResolutions.entries()) {
       let partVar = SEPOLICY_PARTITION_VARS[partition]
       if (sepolicyDirs.length > 0) {
@@ -188,15 +188,15 @@ export function serializeDeviceMakefile(mk: DeviceMakefile) {
   addContBlock(blocks, 'PRODUCT_COPY_FILES', mk.copyFiles)
   addContBlock(blocks, 'PRODUCT_PACKAGES', mk.packages)
 
-  if (mk.vintfManifestPaths !== undefined) {
+  if (mk.vintfManifestPaths != undefined) {
     for (let [partition, manifestPath] of mk.vintfManifestPaths.entries()) {
       blocks.push(`${VINTF_MANIFEST_PARTITION_VARS[partition]} += ${manifestPath}`)
     }
   }
 
-  if (mk.props !== undefined) {
+  if (mk.props != undefined) {
     for (let [partition, props] of mk.props.entries()) {
-      if (props.size === 0) {
+      if (props.size == 0) {
         continue
       }
 
@@ -207,11 +207,11 @@ export function serializeDeviceMakefile(mk: DeviceMakefile) {
     }
   }
 
-  if (mk.fingerprint !== undefined) {
+  if (mk.fingerprint != undefined) {
     blocks.push(`PRODUCT_OVERRIDE_FINGERPRINT := ${mk.fingerprint}`)
   }
 
-  if (mk.enforceRros !== undefined) {
+  if (mk.enforceRros != undefined) {
     blocks.push(`PRODUCT_ENFORCE_RRO_TARGETS := ${mk.enforceRros}`)
   }
 
@@ -230,7 +230,7 @@ PRODUCT_MODEL := ${mk.model}
 PRODUCT_BRAND := ${mk.brand}
 PRODUCT_MANUFACTURER := ${mk.manufacturer}`)
 
-  if (mk.enforceRros !== undefined) {
+  if (mk.enforceRros != undefined) {
     blocks.push(`PRODUCT_ENFORCE_RRO_TARGETS := ${mk.enforceRros}`)
   }
 

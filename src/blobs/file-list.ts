@@ -49,7 +49,7 @@ export async function listPart(
   }
 
   // Unwrap system-as-root
-  if (partition === 'system' && (await exists(`${partRoot}/system`))) {
+  if (partition == 'system' && (await exists(`${partRoot}/system`))) {
     partRoot += '/system'
   }
   let refRoot = path.dirname(partRoot)
@@ -71,7 +71,7 @@ export async function listPart(
   }
 
   // Filter
-  if (filters !== null) {
+  if (filters != null) {
     files = filterValues(filters, files)
   }
 

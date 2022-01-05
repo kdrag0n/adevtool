@@ -63,7 +63,7 @@ export async function loadPartVintfInfo(root: string) {
   for (let partition of EXT_PARTITIONS) {
     let manifest = await loadVintfManifest(root, partition, 'manifest')
     let matrix = await loadVintfManifest(root, partition, 'compatibility_matrix')
-    if (manifest !== null || matrix !== null) {
+    if (manifest != null || matrix != null) {
       partInfo.set(partition, {
         manifest,
         matrix,
@@ -82,7 +82,7 @@ export function diffVintfHals(halsRef: Array<VintfHal>, halsNew: Array<VintfHal>
 export function diffPartVintfManifests(vintfRef: PartitionVintfInfo, vintfNew: PartitionVintfInfo) {
   let partDiffs: PartitionVintfManifests = new Map<string, Array<VintfHal>>()
   for (let [partition, { manifest: halsNew }] of vintfNew.entries()) {
-    if (halsNew === null) {
+    if (halsNew == null) {
       continue
     }
 

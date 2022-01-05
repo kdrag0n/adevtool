@@ -60,14 +60,14 @@ export async function enumerateFiles(
 ) {
   for (let partition of ALL_SYS_PARTITIONS) {
     let filesRef = await listPart(partition, stockSrc, filters)
-    if (filesRef === null) continue
+    if (filesRef == null) continue
     let filesNew = customState?.partitionFiles[partition] ?? []
-    if (filesNew === undefined) continue
+    if (filesNew == undefined) continue
 
     let missingFiles = diffLists(filesNew, filesRef)
 
     // Evaluate force-include filters and merge forced files from ref
-    if (forceIncludeFilters !== null) {
+    if (forceIncludeFilters != null) {
       let forcedFiles = filterValues(forceIncludeFilters, filesRef)
       missingFiles.push(...forcedFiles)
       // Re-sort
@@ -163,7 +163,7 @@ export async function extractProps(config: DeviceConfig, customState: SystemStat
 
   // Diff
   let missingProps: PartitionProps | undefined
-  if (customProps !== null) {
+  if (customProps != null) {
     let propChanges = diffPartitionProps(stockProps, customProps)
     missingProps = new Map(Array.from(propChanges.entries()).map(([part, props]) => [part, props.removed]))
   }
@@ -306,29 +306,29 @@ export async function generateBuildFiles(
   build.deviceMakefile = {
     props: propResults?.missingProps,
     fingerprint: propResults?.fingerprint,
-    ...(vintfManifestPaths !== null && { vintfManifestPaths }),
+    ...(vintfManifestPaths != null && { vintfManifestPaths }),
     ...build.deviceMakefile,
   }
 
   // Add board parts
   build.boardMakefile = {
-    ...(sepolicyResolutions !== null && { sepolicyResolutions }),
-    ...(propResults !== null &&
+    ...(sepolicyResolutions != null && { sepolicyResolutions }),
+    ...(propResults != null &&
       propResults.missingOtaParts.length > 0 && {
         buildPartitions: propResults.missingOtaParts,
         ...(addAbOtaParts && { abOtaPartitions: propResults.missingOtaParts }),
       }),
-    ...(fwPaths !== null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
+    ...(fwPaths != null && { boardInfo: `${dirs.firmware}/${ANDROID_INFO}` }),
   }
 
   // Add firmware
-  if (fwPaths !== null) {
+  if (fwPaths != null) {
     build.modulesMakefile!.radioFiles = fwPaths.map(p => path.relative(dirs.out, p))
   }
 
   // Create device
   if (config.generate.products) {
-    if (propResults === null) {
+    if (propResults == null) {
       throw new Error('Product generation depends on properties')
     }
 
@@ -350,7 +350,7 @@ export async function generateBuildFiles(
   // Enforce RROs?
   if (enforceAllRros) {
     build.deviceMakefile.enforceRros = '*'
-    if (build.productMakefile !== undefined) {
+    if (build.productMakefile != undefined) {
       build.productMakefile.enforceRros = '*'
     }
   }

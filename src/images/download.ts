@@ -41,7 +41,7 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
   let { indexPath, filePattern } = IMAGE_TYPES[type]
 
   let index = cache[type]
-  if (index === undefined) {
+  if (index == undefined) {
     let resp = await fetch(`${DEV_INDEX_URL}/${indexPath}`, {
       headers: {
         Cookie: DEV_COOKIE,
@@ -54,16 +54,16 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
 
   let filePrefix = filePattern
     .replace('DEVICE', device)
-    .replace('BUILDID', buildId === 'latest' ? '' : `${buildId.toLowerCase()}-`)
+    .replace('BUILDID', buildId == 'latest' ? '' : `${buildId.toLowerCase()}-`)
   let urlPrefix = DL_URL_PREFIX + filePrefix
 
   let pattern = new RegExp(`"(${_.escapeRegExp(urlPrefix)}.+?)"`, 'g')
   let matches = Array.from(index.matchAll(pattern))
-  if (matches.length === 0) {
+  if (matches.length == 0) {
     throw new Error(`Image not found: ${type}, ${buildId}, ${device}`)
   }
 
-  if (buildId === 'latest') {
+  if (buildId == 'latest') {
     return matches.map(m => m[1]).sort((a, b) => b.localeCompare(a))[0]
   }
   return matches[0][1]

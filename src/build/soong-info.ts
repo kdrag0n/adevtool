@@ -29,7 +29,7 @@ export function removeSelfModules(modulesMap: SoongModuleInfo, proprietaryDir: s
   // Remove modules provided by our generated vendor module, so we don't have to
   // save module-info.json in the system state
   for (let [moduleName, module] of modulesMap.entries()) {
-    if (module.path.find(p => p === proprietaryDir) !== undefined) {
+    if (module.path.find(p => p == proprietaryDir) != undefined) {
       modulesMap.delete(moduleName)
     }
   }

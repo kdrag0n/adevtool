@@ -159,10 +159,10 @@ export async function loadDeviceConfigs(configPath: string) {
   let { type } = merged
   delete merged.type
 
-  if (type === ConfigType.Device) {
+  if (type == ConfigType.Device) {
     return [merged as DeviceConfig]
   }
-  if (type === ConfigType.DeviceList) {
+  if (type == ConfigType.DeviceList) {
     // Load all the device configs
     let list = merged as DeviceListConfig
     let devices: DeviceConfig[] = []

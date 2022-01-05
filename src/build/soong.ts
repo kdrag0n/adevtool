@@ -124,12 +124,12 @@ export interface SoongBlueprint {
 }
 
 function getRelativeInstallPath(entry: BlobEntry, pathParts: Array<string>, installDir: string) {
-  if (pathParts[0] !== installDir) {
+  if (pathParts[0] != installDir) {
     throw new Error(`File ${entry.srcPath} is not in ${installDir}`)
   }
 
   let subpath = pathParts.slice(1, -1).join('/')
-  return subpath.length === 0 ? null : subpath
+  return subpath.length == 0 ? null : subpath
 }
 
 export function blobToSoongModule(
@@ -144,7 +144,7 @@ export function blobToSoongModule(
   // Type and info is based on file extension
   let moduleSpecific: SoongModuleSpecific
   // High-precedence extension-based types first
-  if (ext === '.sh') {
+  if (ext == '.sh') {
     // check before bin/ to catch .sh files in bin
     let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
 
@@ -153,7 +153,7 @@ export function blobToSoongModule(
       src: entry.srcPath,
       ...(relPath && { sub_dir: relPath }),
     }
-  } else if (ext === '.xml') {
+  } else if (ext == '.xml') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
 
     moduleSpecific = {
@@ -163,13 +163,13 @@ export function blobToSoongModule(
       ...(relPath && { sub_dir: relPath }),
     }
     // Then special paths
-  } else if (pathParts[0] === 'bin') {
+  } else if (pathParts[0] == 'bin') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'bin')
 
     moduleSpecific = {
       _type: 'cc_prebuilt_binary',
       srcs: [entry.srcPath],
-      ...(name !== pathParts.at(-1) && { stem: pathParts.at(-1) }),
+      ...(name != pathParts.at(-1) && { stem: pathParts.at(-1) }),
       ...(relPath && { relative_install_path: relPath }),
       check_elf_files: false,
       prefer: true,
@@ -177,7 +177,7 @@ export function blobToSoongModule(
         none: true,
       },
     }
-  } else if (pathParts[0] === 'dsp') {
+  } else if (pathParts[0] == 'dsp') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'dsp')
 
     moduleSpecific = {
@@ -186,7 +186,7 @@ export function blobToSoongModule(
       filename_from_src: true,
       ...(relPath && { sub_dir: relPath }),
     }
-  } else if (pathParts[0] === 'etc') {
+  } else if (pathParts[0] == 'etc') {
     let relPath = getRelativeInstallPath(entry, pathParts, 'etc')
 
     moduleSpecific = {
@@ -196,13 +196,13 @@ export function blobToSoongModule(
       ...(relPath && { sub_dir: relPath }),
     }
     // Then other extension-based types
-  } else if (ext === '.so') {
+  } else if (ext == '.so') {
     // Extract architecture from lib dir
     let libDir = pathParts.at(0)!
     let curArch: string
-    if (libDir === 'lib') {
+    if (libDir == 'lib') {
       curArch = '32'
-    } else if (libDir === 'lib64') {
+    } else if (libDir == 'lib64') {
       curArch = '64'
     } else {
       throw new Error(`File ${entry.srcPath} is in unknown lib dir ${libDir}`)
@@ -214,7 +214,7 @@ export function blobToSoongModule(
     let relPath = getRelativeInstallPath(entry, pathParts, libDir)
 
     // Check for the other arch
-    let otherLibDir = arch === '32' ? 'lib64' : 'lib'
+    let otherLibDir = arch == '32' ? 'lib64' : 'lib'
     let otherPartPath = [otherLibDir, ...pathParts.slice(1)].join('/')
     let otherSrcPath = partPathToSrcPath(entry.partition, otherPartPath)
     if (entrySrcPaths.has(otherSrcPath)) {
@@ -229,13 +229,13 @@ export function blobToSoongModule(
 
     // For multi-arch
     let targetSrcs32 =
-      curArch === '32'
+      curArch == '32'
         ? targetSrcs
         : ({
             srcs: [otherSrcPath],
           } as TargetSrcs)
     let targetSrcs64 =
-      curArch === '64'
+      curArch == '64'
         ? targetSrcs
         : ({
             srcs: [otherSrcPath],
@@ -244,12 +244,12 @@ export function blobToSoongModule(
     let origFileName = pathParts.at(-1)?.replace(/\.so$/, '')
     moduleSpecific = {
       _type: TYPE_SHARED_LIBRARY,
-      ...(name !== origFileName && { stem: origFileName }),
+      ...(name != origFileName && { stem: origFileName }),
       ...(relPath && { relative_install_path: relPath }),
       target: {
-        ...(arch === '32' && { android_arm: targetSrcs }),
-        ...(arch === '64' && { android_arm64: targetSrcs }),
-        ...(arch === 'both' && {
+        ...(arch == '32' && { android_arm: targetSrcs }),
+        ...(arch == '64' && { android_arm64: targetSrcs }),
+        ...(arch == 'both' && {
           android_arm: targetSrcs32,
           android_arm64: targetSrcs64,
         }),
@@ -261,7 +261,7 @@ export function blobToSoongModule(
         none: true,
       },
     }
-  } else if (ext === '.apk') {
+  } else if (ext == '.apk') {
     moduleSpecific = {
       _type: 'android_app_import',
       apk: entry.srcPath,
@@ -271,12 +271,12 @@ export function blobToSoongModule(
         enabled: false,
       },
     }
-  } else if (ext === '.jar') {
+  } else if (ext == '.jar') {
     moduleSpecific = {
       _type: 'dex_import',
       jars: [entry.srcPath],
     }
-  } else if (ext === '.apex') {
+  } else if (ext == '.apex') {
     moduleSpecific = {
       _type: 'prebuilt_apex',
       src: entry.srcPath,
@@ -293,10 +293,10 @@ export function blobToSoongModule(
     _entry: entry,
 
     // Partition flag
-    ...(entry.partition === 'system_ext' && { system_ext_specific: true }),
-    ...(entry.partition === 'product' && { product_specific: true }),
-    ...(entry.partition === 'vendor' && { soc_specific: true }),
-    ...(entry.partition === 'odm' && { device_specific: true }),
+    ...(entry.partition == 'system_ext' && { system_ext_specific: true }),
+    ...(entry.partition == 'product' && { product_specific: true }),
+    ...(entry.partition == 'vendor' && { soc_specific: true }),
+    ...(entry.partition == 'odm' && { device_specific: true }),
   } as SoongModule
 }
 
@@ -344,7 +344,7 @@ export function serializeBlueprint(bp: SoongBlueprint) {
     )
   }
 
-  if (bp.modules !== undefined) {
+  if (bp.modules != undefined) {
     for (let module of bp.modules) {
       let serialized = serializeModule(module)
       serializedModules.push(serialized)

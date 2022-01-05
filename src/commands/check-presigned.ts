@@ -38,18 +38,18 @@ export default class CheckPresigned extends Command {
 
     // Parse list
     this.log(chalk.bold(chalk.greenBright('Parsing list')))
-    let list = listPath !== null ? await readFile(listPath) : null
-    let entries = list !== null ? parseFileList(list) : null
+    let list = listPath != null ? await readFile(listPath) : null
+    let entries = list != null ? parseFileList(list) : null
 
     // Find and parse sepolicy seapp_contexts
     let presignedPkgs = await parsePresignedRecursive(sepolicyDirs)
 
-    if (entries !== null) {
+    if (entries != null) {
       // Get APKs from blob entries
       let presignedEntries = await updatePresignedBlobs(aapt2Path, source, presignedPkgs, entries)
       presignedEntries.forEach(e => this.log(e.srcPath))
 
-      if (outPath !== undefined) {
+      if (outPath != undefined) {
         let newList = serializeBlobList(presignedEntries)
         await fs.writeFile(outPath, newList)
       }

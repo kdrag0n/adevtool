@@ -30,7 +30,7 @@ export async function loadPartitionProps(sourceRoot: string) {
 
   for (let partition of ALL_SYS_PARTITIONS) {
     let propPath = `${sourceRoot}/${partition}/build.prop`
-    if (partition === 'system' && !(await exists(propPath))) {
+    if (partition == 'system' && !(await exists(propPath))) {
       // System-as-root
       propPath = `${sourceRoot}/system/system/build.prop`
     }
@@ -63,7 +63,7 @@ export function diffPartitionProps(partPropsRef: PartitionProps, partPropsNew: P
     for (let [newKey, newValue] of propsNew.entries()) {
       if (propsRef?.has(newKey)) {
         let refValue = propsRef.get(newKey)!
-        if (newValue !== refValue) {
+        if (newValue != refValue) {
           changes.modified.set(newKey, [refValue, newValue])
         }
       } else {
@@ -72,7 +72,7 @@ export function diffPartitionProps(partPropsRef: PartitionProps, partPropsNew: P
     }
 
     // Removed
-    if (propsRef !== null) {
+    if (propsRef != null) {
       for (let [refKey, refValue] of propsRef.entries()) {
         if (!propsNew.has(refKey)) {
           changes.removed.set(refKey, refValue)
@@ -89,7 +89,7 @@ export function diffPartitionProps(partPropsRef: PartitionProps, partPropsNew: P
 export function filterPropKeys(props: Map<string, string>, filters: PropFilters) {
   let excludeKeys = new Set(filters.keys)
   for (let key of props.keys()) {
-    if (excludeKeys.has(key) || filters.prefixes?.find(p => key.startsWith(p)) !== undefined) {
+    if (excludeKeys.has(key) || filters.prefixes?.find(p => key.startsWith(p)) != undefined) {
       props.delete(key)
     }
   }

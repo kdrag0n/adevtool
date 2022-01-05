@@ -29,7 +29,7 @@ export default class ListFiles extends Command {
 
     for (let partition of ALL_SYS_PARTITIONS) {
       let files = await listPart(partition, systemRoot, null, true)
-      if (files === null) {
+      if (files == null) {
         continue
       }
 

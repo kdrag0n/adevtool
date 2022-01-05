@@ -53,13 +53,13 @@ export function serializeSystemState(state: SystemState) {
 
 export function parseSystemState(json: string) {
   let diskState = JSON.parse(json, (k, v) => {
-    if (v?.hasOwnProperty('_type') && v?._type === 'Map') {
+    if (v?.hasOwnProperty('_type') && v?._type == 'Map') {
       return new Map(Object.entries(v.data))
     }
     return v
   }) as SerializedSystemState
 
-  if (diskState.version !== STATE_VERSION) {
+  if (diskState.version != STATE_VERSION) {
     throw new Error(`Outdated state v${diskState.version}; expected v${STATE_VERSION}`)
   }
 
@@ -82,7 +82,7 @@ export async function collectSystemState(device: string, outRoot: string, aapt2P
       spinner.text = partition
 
       let files = await listPart(partition, systemRoot)
-      if (files === null) continue
+      if (files == null) continue
 
       state.partitionFiles[partition] = files
     }

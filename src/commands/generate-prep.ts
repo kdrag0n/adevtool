@@ -19,7 +19,7 @@ const doDevice = (
 ) =>
   withTempDir(async tmp => {
     // Prepare stock system source
-    let wrapBuildId = buildId === undefined ? null : buildId
+    let wrapBuildId = buildId == undefined ? null : buildId
     let wrapped = await withSpinner('Extracting stock system source', spinner =>
       wrapSystemSrc(stockSrc, config.device.name, wrapBuildId, useTemp, tmp, spinner),
     )

@@ -46,7 +46,7 @@ export function findOverrideModules(overridePaths: Iterable<string>, modulesMap:
   let multilib64 = new Set<string>()
   for (let path of overridePaths) {
     let value = pathMap.get(path)
-    if (value !== null) {
+    if (value != null) {
       let [key, module] = value
 
       if (multilibs.has(module)) {

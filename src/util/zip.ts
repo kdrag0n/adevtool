@@ -17,7 +17,7 @@ export class NodeFileReader {
   }
 
   async getLength() {
-    if (this.length === undefined) {
+    if (this.length == undefined) {
       let fh = await this.file
       let stat = await fh.stat()
       this.length = stat.size

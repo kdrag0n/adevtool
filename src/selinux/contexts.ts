@@ -66,9 +66,9 @@ export function diffPartContexts(pctxRef: SelinuxPartContexts, pctxNew: SelinuxP
   let partDiffs: SelinuxPartContexts = {}
   for (let partition of EXT_PARTITIONS) {
     let ctxRef = pctxRef[partition]
-    if (ctxRef === undefined) continue
+    if (ctxRef == undefined) continue
     let ctxNew = pctxNew[partition]
-    if (ctxNew === undefined) continue
+    if (ctxNew == undefined) continue
 
     partDiffs[partition] = diffContexts(ctxRef, ctxNew)
   }
@@ -91,7 +91,7 @@ export function resolvePartContextDiffs(
         let sourceFile = sourceContexts.get(context)!
         let sourceDir = sourceFile.split('/').slice(0, -1).join('/')
 
-        if (filters !== null && filterValue(filters, sourceDir)) {
+        if (filters != null && filterValue(filters, sourceDir)) {
           buildDirs.add(sourceDir)
         }
       } else {

@@ -39,7 +39,7 @@ async function listPayload(
   let apexRoot = `${partition}/apex/${apexName}`
   let entries: Array<BlobEntry> = []
   for await (let file of listFilesRecursive(mountpoint)) {
-    if (progressCallback !== undefined) {
+    if (progressCallback != undefined) {
       progressCallback(file)
     }
 
@@ -81,7 +81,7 @@ export async function flattenApex(
     let { entries: zipEntries } = await unzipit.unzip(reader)
 
     for (let [name, zipEntry] of Object.entries(zipEntries)) {
-      if (name === 'apex_pubkey') {
+      if (name == 'apex_pubkey') {
         // Extract public key file to tmp
         let pubkeyPath = `${tmp.dir}/apex_pubkey`
         await fs.writeFile(pubkeyPath, new DataView(await zipEntry.arrayBuffer()))
@@ -90,7 +90,7 @@ export async function flattenApex(
         let entry = combinedPartPathToEntry(partition, `${partition}/apex/${apexName}/apex_pubkey`)
         entry.diskSrcPath = pubkeyPath
         entries.push(entry)
-      } else if (name === 'apex_payload.img') {
+      } else if (name == 'apex_payload.img') {
         // Mount and add payload files as entries
         let img = await zipEntry.arrayBuffer()
         let payload = await listPayload(partition, apexName, img, tmp, progressCallback)
@@ -117,7 +117,7 @@ export async function flattenAllApexs(
   let entries = new Set(rawEntries)
   let labels = new Map<string, string>()
   for (let entry of rawEntries) {
-    if (path.extname(entry.path) !== '.apex') {
+    if (path.extname(entry.path) != '.apex') {
       continue
     }
 

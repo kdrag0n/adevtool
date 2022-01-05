@@ -40,7 +40,7 @@ export default class ResolveOverrides extends Command {
     })
 
     let missing =
-      missingPaths.length === 0 ? '' : `\n\n# Missing paths:\n${missingPaths.map(path => `# ${path}`).join('\n')}`
+      missingPaths.length == 0 ? '' : `\n\n# Missing paths:\n${missingPaths.map(path => `# ${path}`).join('\n')}`
 
     this.log(makefile + missing)
   }
