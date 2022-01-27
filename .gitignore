@@ -21,3 +21,4 @@ node_modules
 /dl/
 *.img
 android-info.txt
+/mount/
