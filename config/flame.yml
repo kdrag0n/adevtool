@@ -1,0 +1,10 @@
+device:
+  name: flame
+
+platform:
+  product_makefile: device/google/coral/aosp_flame.mk
+  sepolicy_dirs:
+    - device/google/coral-sepolicy
+
+includes:
+  - common/gen4pixel.yml

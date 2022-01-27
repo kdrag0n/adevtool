@@ -1,0 +1,13 @@
+includes:
+  - pixel.yml
+
+filters:
+  dep_files:
+    match:
+      # Required by libOmxSwVencMpeg4
+      - vendor/lib/libMpeg4SwEncoder.so
+      - vendor/lib64/libMpeg4SwEncoder.so
+
+      # Required by chre
+      - vendor/lib/libsdsprpc.so
+      - vendor/lib64/libsdsprpc.so

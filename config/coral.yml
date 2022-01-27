@@ -1,0 +1,10 @@
+device:
+  name: coral
+
+platform:
+  product_makefile: device/google/coral/aosp_coral.mk
+  sepolicy_dirs:
+    - device/google/coral-sepolicy
+
+includes:
+  - common/gen4pixel.yml

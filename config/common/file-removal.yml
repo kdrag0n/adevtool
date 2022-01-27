@@ -1,0 +1,212 @@
+filters:
+  files:
+    match:
+      # Google stuff we dont want/need/cant use
+      - system/etc/permissions/privapp-permissions-google.xml
+      - product/etc/sysconfig/adaptivecharging.xml
+      - product/etc/sysconfig/dreamliner.xml
+      - product/etc/sysconfig/game_overlay.xml
+      # Boot animation
+      - product/media/bootanimation.zip
+      - product/media/bootanimation-dark.zip
+      # Fonts
+      - product/etc/fonts_customization.xml
+      # Irrelevant OTA updater
+      - system_ext/etc/init/init.sota.rc
+      - system_ext/etc/permissions/com.google.android.factoryota.xml
+      # Unused Google Dialer jar
+      - product/framework/com.google.android.dialer.support.jar
+      # Unused hardware info jar
+      - product/framework/libhwinfo.jar
+      # Unused ok google blobs
+      - system_ext/etc/permissions/com.android.hotwordenrollment.common.util.xml
+      - system_ext/framework/com.android.hotwordenrollment.common.util.jar
+      # Unwanted OMA-DM // carrier trash
+      - system_ext/etc/permissions/com.android.omadm.radioconfig.xml
+      - system_ext/framework/RadioConfigLib.jar
+      - product/etc/permissions/com.android.omadm.service.xml
+      - product/etc/permissions/com.google.omadm.trigger.xml
+      - product/etc/sysconfig/allowlist_com.android.omadm.service.xml
+      - product/etc/sysconfig/allowlist_com.android.omadm.service.xml
+      - product/etc/permissions/com.verizon.apn.xml
+      - product/etc/permissions/com.verizon.services.xml
+      - product/etc/permissions/com.customermobile.preload.vzw.xml
+      - system_ext/etc/permissions/com.verizon.llkagent.xml
+      - system_ext/etc/permissions/vzw_mvs_permissions.xml
+      # Unused Google RIL
+      - system_ext/etc/permissions/google-ril.xml
+      - system_ext/framework/google-ril.jar
+      # APEX allowlist
+      - product/etc/sysconfig/vendor-apex-allowlist.xml
+      # ssrestart files
+      - vendor/etc/init/init.sscoredump.rc
+      - vendor/bin/sscoredump
+    suffix:
+      # Precompiled content
+      - .art
+      - .odex
+      - .vdex
+      - .prof
+      # Sound files
+      - .ogg
+
+    prefix:
+      # APEX
+      - system/apex/
+      # Fonts
+      - system/fonts/
+      - system_ext/fonts/
+      - product/fonts/
+      - vendor/fonts/
+      # Overlay apps
+      - system/overlay/
+      - system_ext/overlay/
+      - product/overlay/
+      - vendor/overlay/
+      # Kernel modules
+      - vendor/lib/modules
+      - vendor_dlkm/
+      - odm/lib/modules
+      - odm_dlkm/
+      # Irrelevant charging animations
+      - product/etc/res/images/charger
+      - product/etc/res/values/charger
+      # CarrierSettings
+      - product/etc/CarrierSettings/
+      # Irrelevant AVB keys
+      - product/etc/security/avb/
+      # Irrelevant wallpaper stuff
+      - product/wallpaper/image/
+      # Irrelevant Google Assistant stuff // on-device AI
+      - product/usr/srec/
+      - product/etc/ambient
+      - product/etc/firmware/music_detector
+      # Irrelevant Google keyboard localization
+      - product/usr/share/ime/google/d3_lms
+      # Preferred apps
+      - product/etc/preferred-apps/
+      # Pixel NFC
+      - system_ext/priv-app/PixelNfc/
+      # Apps
+      - system_ext/priv-app/RilConfigService/
+      - product/app/DevicePolicyPrebuilt/
+      - product/app/DeviceStatisticsService/
+      - product/app/DiagnosticsToolPrebuilt/
+      - product/app/MarkupGoogle/
+      - product/app/MicropaperPrebuilt/
+      - product/app/NgaResources/
+      - product/app/PixelThemesStub/
+      - product/app/PrebuiltGoogleTelemetryTvp/
+      - product/app/SafetyRegulatoryInfo/
+      - product/app/SoundAmplifierPrebuilt/
+      - product/app/SoundPickerPrebuilt/
+      - product/priv-app/AmbientSensePrebuilt/
+      - product/priv-app/BetterBug/
+      - product/priv-app/CarrierMetrics/
+      - product/priv-app/HardwareInfo/
+      - product/priv-app/HelpRtcPrebuilt/
+      - product/priv-app/MaestroPrebuilt/
+      - product/priv-app/OdadPrebuilt/
+      - product/priv-app/OTAConfigNoZeroTouchPrebuilt/
+      - product/priv-app/PixelLiveWallpaperPrebuilt/
+      - product/priv-app/SafetyHubPrebuilt/
+      - product/priv-app/SCONE/
+      - product/priv-app/ScribePrebuilt/
+      - product/priv-app/SecurityHubPrebuilt/
+      - product/priv-app/SettingsIntelligenceGooglePrebuilt/
+      - product/priv-app/Showcase/
+      - product/priv-app/TipsPrebuilt/
+      - system_ext/app/EmergencyInfoGoogleNoUi/
+      - system_ext/priv-app/GoogleFeedback/
+      - system_ext/priv-app/NexusLauncherRelease/
+      - system_ext/priv-app/PixelSetupWizard/
+      - system_ext/priv-app/QuickAccessWallet/
+      - system_ext/priv-app/SettingsGoogle/
+      - system_ext/priv-app/StorageManagerGoogle/
+      - system_ext/priv-app/SystemUIGoogle/
+      - system_ext/priv-app/UvExposureReporter/
+      - system_ext/priv-app/WallpaperPickerGoogleRelease/
+      - product/app/arcore/
+      - product/app/CalculatorGooglePrebuilt/
+      - product/app/CalendarGooglePrebuilt/
+      - product/app/Chrome-Stub/
+      - product/app/Drive/
+      - product/app/GoogleContacts/
+      - product/app/GoogleContactsSyncAdapter/
+      - product/app/GoogleTTS/
+      - product/app/LatinIMEGooglePrebuilt/
+      - product/app/LocationHistoryPrebuilt/
+      - product/app/Maps/
+      - product/app/ModuleMetadataGoogle/
+      - product/app/Photos/
+      - product/app/PlayAutoInstallConfig/
+      - product/app/PrebuiltDeskClockGoogle/
+      - product/app/PrebuiltGmail/
+      - product/app/talkback/
+      - product/app/TrichromeLibrary-Stub/
+      - product/app/Tycho/
+      - product/app/Videos/
+      - product/app/WebViewGoogle-Stub/
+      - product/app/YouTube/
+      - product/app/YouTubeMusicPrebuilt/
+      - product/priv-app/AndroidAutoStubPrebuilt/
+      - product/priv-app/ConfigUpdater/
+      - product/priv-app/FilesPrebuilt/
+      - product/priv-app/GCS/
+      - product/priv-app/GoogleDialer/
+      - product/priv-app/GoogleOneTimeInitializer/
+      - product/priv-app/GoogleRestorePrebuilt/
+      - product/priv-app/PartnerSetupPrebuilt/
+      - product/priv-app/Phonesky/
+      - product/priv-app/PrebuiltBugle/
+      - product/priv-app/RecorderPrebuilt/
+      - product/priv-app/SetupWizardPrebuilt/
+      - product/priv-app/Velvet/
+      - product/priv-app/WellbeingPrebuilt/
+      - system_ext/priv-app/GoogleServicesFramework/
+      - system_ext/priv-app/OsloFeedback/
+      - product/app/VoiceAccessPrebuilt/
+      - product/app/Chrome/
+      - product/app/PixelCameraServices
+      - product/app/PixelWallpapers
+      - product/app/SSRestartDetector
+      - product/app/TrichromeLibrary
+      - product/app/VZWAPNLib
+      - product/app/WebViewGoogle
+      - product/priv-app/AppDirectedSMSService
+      - product/priv-app/CarrierLocation
+      - product/priv-app/CarrierServices
+      - product/priv-app/CarrierSettings
+      - product/priv-app/CarrierWifi
+      - system_ext/priv-app/CarrierSetup
+      - system_ext/priv-app/ConnectivityThermalPowerManager
+      - system_ext/priv-app/FactoryOta
+      - system_ext/priv-app/grilservice
+      - system_ext/priv-app/HbmSVManager
+      - system_ext/priv-app/LLKAgent
+      - system_ext/priv-app/MyVerizonServices
+      - system_ext/priv-app/TurboAdapter
+      - product/priv-app/CbrsNetworkMonitor/
+      - product/priv-app/ConnMO/
+      - product/priv-app/DCMO/
+      - product/priv-app/DeviceIntelligenceNetworkPrebuilt/
+      - product/priv-app/DevicePersonalizationPrebuiltPixel
+      - product/priv-app/DiagMon/
+      - product/priv-app/DMService/
+      - product/priv-app/Dreamliner
+      - product/priv-app/GoogleCamera/
+      - product/priv-app/HotwordEnrollment
+      - product/priv-app/OemDmTrigger/
+      - product/priv-app/PrebuiltGmsCore
+      - product/priv-app/TetheringEntitlement/
+      - product/priv-app/TurboPrebuilt/
+      - product/priv-app/WfcActivation/
+      - system_ext/app/Flipendo/
+      - system/app/CaptivePortalLoginGoogle/
+      - system/app/GoogleExtShared/
+      - system/app/GooglePrintRecommendationService/
+      - system/priv-app/DocumentsUIGoogle/
+      - system/priv-app/GooglePackageInstaller/
+      - system/priv-app/NetworkPermissionConfigGoogle/
+      - system/priv-app/NetworkStackGoogle/
+      - system/priv-app/TagGoogle/

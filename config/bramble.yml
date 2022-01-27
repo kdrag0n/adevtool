@@ -1,0 +1,8 @@
+device:
+  name: bramble
+
+platform:
+  product_makefile: device/google/bramble/aosp_bramble.mk
+
+includes:
+  - common/gen5pixel.yml

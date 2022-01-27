@@ -1,0 +1,10 @@
+device:
+  name: sunfish
+
+platform:
+  product_makefile: device/google/sunfish/aosp_sunfish.mk
+  sepolicy_dirs:
+    - device/google/sunfish-sepolicy
+
+includes:
+  - common/gen4pixel.yml

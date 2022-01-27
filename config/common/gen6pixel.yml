@@ -1,0 +1,52 @@
+platform:
+  sepolicy_dirs:
+    - device/google/gs101-sepolicy
+
+includes:
+  - pixel.yml
+
+filters:
+  dep_files:
+    match:
+      # Required for building ARM NN HAL
+      - vendor/lib/libOpenCL.so
+      - vendor/lib64/libOpenCL.so
+  files:
+    match:
+      - product/etc/permissions/com.android.sdm.plugins.connmo.xml
+      - product/etc/permissions/com.android.sdm.plugins.dcmo.xml
+      - product/etc/permissions/com.android.sdm.plugins.diagmon.xml
+      - product/etc/permissions/com.google.android.apps.dreamliner.xml
+      - product/etc/permissions/com.google.android.dialer.support.xml
+      - product/etc/permissions/com.google.android.hardwareinfo.xml
+      - product/etc/permissions/com.google.android.odad.xml
+      - product/etc/permissions/privapp-permissions-google-p.xml
+      - product/etc/permissions/split-permissions-google.xml
+      - product/etc/sysconfig/google-hiddenapi-package-whitelist.xml
+      - product/etc/sysconfig/google-staged-installer-whitelist.xml
+      - product/etc/sysconfig/google.xml
+      - product/etc/sysconfig/GoogleCamera_6gb_or_more_ram.xml
+      - product/etc/sysconfig/nexus.xml
+      - product/etc/sysconfig/pixel_experience_2017.xml
+      - product/etc/sysconfig/pixel_experience_2018.xml
+      - product/etc/sysconfig/pixel_experience_2019_midyear.xml
+      - product/etc/sysconfig/pixel_experience_2019.xml
+      - product/etc/sysconfig/pixel_experience_2020_midyear.xml
+      - product/etc/sysconfig/pixel_experience_2020.xml
+      - product/etc/sysconfig/pixel_experience_2021_midyear.xml
+      - product/etc/sysconfig/pixel_experience_2021.xml
+      - product/etc/sysconfig/nga.xml
+      - product/etc/sysconfig/google_build.xml
+      - product/etc/sysconfig/preinstalled-packages-product-pixel-2017-and-newer.xml
+      - product/etc/sysconfig/quick_tap.xml
+      - system_ext/etc/permissions/privapp-permissions-google-se.xml
+      - vendor/etc/fstab.gs101-fips
+      # eSIM
+      - system_ext/etc/permissions/com.google.euiccpixel.permissions.xml
+      - system_ext/etc/permissions/com.google.euiccpixel.xml
+      - system_ext/priv-app/EuiccSupportPixel/DKA_RC4_DVT.up
+      - system_ext/priv-app/EuiccSupportPixel/DKA_RC4_EVT.up
+      - system_ext/priv-app/EuiccSupportPixel/esim-full-v1.img
+      - system_ext/priv-app/EuiccSupportPixel/EuiccSupportPixel.apk
+      - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
+      - product/priv-app/EuiccGoogle/EuiccGoogle.apk

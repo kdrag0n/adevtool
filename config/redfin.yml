@@ -1,0 +1,8 @@
+device:
+  name: redfin
+
+platform:
+  product_makefile: device/google/redfin/aosp_redfin.mk
+
+includes:
+  - common/gen5pixel.yml
