@@ -1,8 +1,0 @@
-device:
-  name: flame
-
-platform:
-  product_makefile: device/google/coral/aosp_flame.mk
-
-includes:
-  - snippets/2019.yml

@@ -1,9 +1,0 @@
-# Pixel Stand integration
-filters:
-  files:
-    match:
-      - product/etc/permissions/com.google.android.apps.dreamliner.xml
-      - product/etc/sysconfig/dreamliner.xml
-
-    prefix:
-      - product/priv-app/Dreamliner

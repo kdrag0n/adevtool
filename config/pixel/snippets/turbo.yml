@@ -1,8 +1,0 @@
-# Enhanced battery prediction & history, adaptive charging, etc.
-filters:
-  files:
-    match:
-      - product/priv-app/TurboPrebuilt/TurboPrebuilt.apk
-
-    prefix:
-      - system_ext/priv-app/TurboAdapter/

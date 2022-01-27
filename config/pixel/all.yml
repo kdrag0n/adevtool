@@ -1,6 +1,0 @@
-type: device-list
-
-includes:
-  - 2019.yml
-  - 2020.yml
-  - 2021.yml

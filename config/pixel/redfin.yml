@@ -1,8 +1,0 @@
-device:
-  name: redfin
-
-platform:
-  product_makefile: device/google/redfin/aosp_redfin.mk
-
-includes:
-  - snippets/2020.yml

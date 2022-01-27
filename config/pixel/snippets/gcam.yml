@@ -1,9 +1,0 @@
-# Google Camera privileged app
-filters:
-  files:
-    match:
-      - product/app/GoogleCamera/GoogleCamera.apk
-      - product/priv-app/GoogleCamera/GoogleCamera.apk
-
-      # Pixel 2021: camera HAL APEX updates
-      - product/etc/sysconfig/vendor-apex-allowlist.xml
