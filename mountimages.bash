@@ -53,7 +53,7 @@ function download_factory() {
 
 (
     msg "Downloading $DEVICE $BUILD images"
-    dl_dir="$DL_ROOT/$BUILD"
+    dl_dir="$DL_ROOT"
     mkdir -p "$dl_dir"
     if [[ "$(ls "$dl_dir" | grep -e "$DEVICE-$BUILD" | wc -l)" -ge 1 ]]; then
         echo "Skipping download, already present"
@@ -63,9 +63,9 @@ function download_factory() {
 ) &
 wait
 
-dl_dir="$DL_ROOT/$BUILD"
+dl_dir="$DL_ROOT"
 msg "Extracting images for $DEVICE $BUILD"
-dev_mount="$MOUNT_ROOT/$DEVICE/$BUILD"
+dev_mount="$MOUNT_ROOT"
 
 # Extract zip (and delete if necessary)
 if [[ ! -d "$dl_dir/$DEVICE-$BUILD" ]]; then
