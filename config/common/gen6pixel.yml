@@ -50,3 +50,6 @@ filters:
       - system_ext/priv-app/EuiccSupportPixel/EuiccSupportPixel.apk
       - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
       - product/priv-app/EuiccGoogle/EuiccGoogle.apk
+      # UCI
+      - vendor/bin/uci_daemon
+      - vendor/etc/init/usb-cdc.rc
