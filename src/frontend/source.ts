@@ -1,12 +1,32 @@
 import { promises as fs } from 'fs'
 import ora from 'ora'
 import path from 'path'
+import { flags } from '@oclif/command'
 
-import { createSubTmp, exists, mount, TempState } from '../util/fs'
+import { createSubTmp, exists, mount, TempState, withTempDir } from '../util/fs'
 import { ALL_SYS_PARTITIONS } from '../util/partitions'
 import { run } from '../util/process'
 import { isSparseImage } from '../util/sparse'
 import { listZipFiles } from '../util/zip'
+import { withSpinner } from '../util/cli'
+
+export const WRAPPED_SOURCE_FLAGS = {
+  stockSrc: flags.string({
+    char: 's',
+    description:
+      'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)',
+    required: true,
+  }),
+  buildId: flags.string({
+    char: 'b',
+    description: 'build ID of the stock images (optional, only used for locating factory images)',
+  }),
+  useTemp: flags.boolean({
+    char: 't',
+    description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)',
+    default: false,
+  }),
+}
 
 export interface WrappedSource {
   src: string | null
@@ -238,4 +258,23 @@ export async function wrapSystemSrc(
 ): Promise<WrappedSource> {
   let resolver = new SourceResolver(device, buildId, useTemp, tmp, spinner)
   return await resolver.wrapSystemSrc(src)
+}
+
+export async function withWrappedSrc<Return>(
+  stockSrc: string,
+  device: string,
+  buildId: string | undefined,
+  useTemp: boolean,
+  callback: (stockSrc: string) => Promise<Return>,
+) {
+  return await withTempDir(async tmp => {
+    // Prepare stock system source
+    let wrapBuildId = buildId == undefined ? null : buildId
+    let wrapped = await withSpinner('Extracting stock system source', spinner =>
+      wrapSystemSrc(stockSrc, device, wrapBuildId, useTemp, tmp, spinner),
+    )
+    let wrappedSrc = wrapped.src!
+
+    return await callback(wrappedSrc)
+  })
 }

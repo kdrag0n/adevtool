@@ -19,7 +19,7 @@ import {
   resolveSepolicyDirs,
   updatePresigned,
 } from '../frontend/generate'
-import { wrapSystemSrc } from '../frontend/source'
+import { WRAPPED_SOURCE_FLAGS, wrapSystemSrc } from '../frontend/source'
 import { SelinuxPartResolutions } from '../selinux/contexts'
 import { withSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
@@ -158,13 +158,6 @@ export default class GenerateFull extends Command {
       description: 'path to aapt2 executable',
       default: 'out/host/linux-x86/bin/aapt2',
     }),
-    buildId: flags.string({ char: 'b', description: 'build ID of the stock images' }),
-    stockSrc: flags.string({
-      char: 's',
-      description:
-        'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)',
-      required: true,
-    }),
     customSrc: flags.string({
       char: 'c',
       description: 'path to AOSP build output directory (out/) or (directory containing) JSON state file',
@@ -179,16 +172,13 @@ export default class GenerateFull extends Command {
       description: 'skip file copying and only generate build files',
       default: false,
     }),
-    useTemp: flags.boolean({
-      char: 't',
-      description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)',
-      default: false,
-    }),
     parallel: flags.boolean({
       char: 'p',
       description: 'generate devices in parallel (causes buggy progress spinners)',
       default: false,
     }),
+
+    ...WRAPPED_SOURCE_FLAGS,
   }
 
   static args = [{ name: 'config', description: 'path to device-specific YAML config', required: true }]

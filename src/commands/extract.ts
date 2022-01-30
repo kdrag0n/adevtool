@@ -5,8 +5,7 @@ import { parseFileList } from '../blobs/file-list'
 import { copyBlobs } from '../blobs/copy'
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
 import { readFile, withTempDir } from '../util/fs'
-import { withSpinner } from '../util/cli'
-import { wrapSystemSrc } from '../frontend/source'
+import { withWrappedSrc, WRAPPED_SOURCE_FLAGS, wrapSystemSrc } from '../frontend/source'
 
 export default class Extract extends Command {
   static description = 'extract proprietary files'
@@ -17,22 +16,7 @@ export default class Extract extends Command {
     device: flags.string({ char: 'd', description: 'device codename', required: true }),
     skipCopy: flags.boolean({ char: 'k', description: 'skip file copying and only generate build files' }),
 
-    // Wrapped source
-    stockSrc: flags.string({
-      char: 's',
-      description:
-        'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)',
-      required: true,
-    }),
-    buildId: flags.string({
-      char: 'b',
-      description: 'build ID of the stock images (optional, only used for locating factory images)',
-    }),
-    useTemp: flags.boolean({
-      char: 't',
-      description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)',
-      default: false,
-    }),
+    ...WRAPPED_SOURCE_FLAGS,
   }
 
   static args = [
@@ -45,14 +29,7 @@ export default class Extract extends Command {
       flags: { vendor, device, skipCopy, stockSrc, buildId, useTemp },
     } = this.parse(Extract)
 
-    await withTempDir(async tmp => {
-      // Prepare stock system source
-      let wrapBuildId = buildId == undefined ? null : buildId
-      let wrapped = await withSpinner('Extracting stock system source', spinner =>
-        wrapSystemSrc(stockSrc, device, wrapBuildId, useTemp, tmp, spinner),
-      )
-      stockSrc = wrapped.src!
-
+    await withWrappedSrc(stockSrc, device, buildId, useTemp, async stockSrc => {
       // Parse list
       this.log(chalk.bold(chalk.greenBright('Parsing list')))
       let list = await readFile(listPath)

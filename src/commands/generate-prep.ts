@@ -6,7 +6,7 @@ import { BlobEntry } from '../blobs/entry'
 import { DeviceConfig, loadDeviceConfigs } from '../config/device'
 import { forEachDevice } from '../frontend/devices'
 import { enumerateFiles, extractProps, generateBuildFiles, PropResults } from '../frontend/generate'
-import { wrapSystemSrc } from '../frontend/source'
+import { WRAPPED_SOURCE_FLAGS, wrapSystemSrc } from '../frontend/source'
 import { withSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
 
@@ -64,21 +64,9 @@ export default class GeneratePrep extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    buildId: flags.string({ char: 'b', description: 'build ID of the stock images' }),
-    stockSrc: flags.string({
-      char: 's',
-      description:
-        'path to (extracted) factory images, (mounted) images, (extracted) OTA package, OTA payload, or directory containing any such files (optionally under device and/or build ID directory)',
-      required: true,
-    }),
     skipCopy: flags.boolean({
       char: 'k',
       description: 'skip file copying and only generate build files',
-      default: false,
-    }),
-    useTemp: flags.boolean({
-      char: 't',
-      description: 'use a temporary directory for all extraction (prevents reusing extracted files across runs)',
       default: false,
     }),
     parallel: flags.boolean({
@@ -86,6 +74,8 @@ export default class GeneratePrep extends Command {
       description: 'generate devices in parallel (causes buggy progress spinners)',
       default: false,
     }),
+
+    ...WRAPPED_SOURCE_FLAGS,
   }
 
   static args = [{ name: 'config', description: 'path to device-specific YAML config', required: true }]

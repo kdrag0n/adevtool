@@ -26,7 +26,6 @@ export default class CheckPresigned extends Command {
   }
 
   static args = [
-    { name: 'source', description: 'path to mounted factory images', required: true },
     { name: 'listPath', description: 'path to LineageOS-compatible proprietary-files.txt list' },
   ]
 
