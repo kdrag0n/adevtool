@@ -1,3 +1,7 @@
+// Breaks build with import, needed for structuredClone definition
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+///<reference path="../util/jstypes.d.ts" />
+
 import _ from 'lodash'
 import path from 'path'
 import YAML from 'yaml'
@@ -133,7 +137,6 @@ async function loadOverlaysRecursive(overlays: any[], rootDir: string, root: any
 // No dedicated parse function as this requires loading includes and overlaying
 // them in the correct order
 async function loadAndMergeConfig(configPath: string) {
-  // TODO: type definition for structuredClone
   let base = structuredClone(DEFAULT_CONFIG_BASE) // deep copy to avoid mutating base
 
   let rootOverlay = YAML.parse(await readFile(configPath))
