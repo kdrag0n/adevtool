@@ -7,17 +7,17 @@ Android device support and bringup tool, designed for maximum automation and spe
 This tool automates the following tasks for devices that mostly run AOSP out-of-the-box (e.g. Google Pixel):
 
 - Downloading factory images and full OTA packages
-- Generating a list of proprietary files
-- Resolving overridden build rules and building modules from source (when possible)
-- Extracting, converting, and mounting factory images
+- Generating a list of **proprietary files**
+- Resolving overridden build rules and **building modules from source** (when possible)
+- Extracting, converting, and mounting **factory images**
 - Extracting proprietary files
-- Extracting bootloader and radio firmware
-- Finding and adding missing system properties
-- Overriding build fingerprint to help pass SafetyNet
-- Adding missing SELinux policies
-- Adding missing HALs to vendor interface manifests
-- Generating resource overlays for device configs
-- Fixing privileged app signing certificates referenced in SELinux policies
+- Extracting bootloader and radio **firmware**
+- Finding and adding missing system **properties**
+- Overriding build **fingerprint** to help pass SafetyNet
+- Adding missing **SELinux policies**
+- Adding missing HALs to **vendor interface** manifests
+- Generating resource **overlays** for device configs
+- Fixing privileged app signing **certificates** referenced in SELinux policies
 
 This typically results in better device support with fewer bugs and issues, and makes it possible to quickly add support for new devices.
 
@@ -25,11 +25,11 @@ This typically results in better device support with fewer bugs and issues, and 
 
 Pixel devices will benefit from the most automation, but several features can still be used to ease manual bringup on other devices:
 
-- Extract files from proprietary-files.txt **up to 10x faster than LineageOS extract-utils**
-- Compare a built system against stock images to find missing files, properties, and vendor interface declarations
-- List system files relevant to bringup (in all partitions)
-- Resolve overridden build rules from build warnings
-- Check SELinux policies to identify apps that should be presigned
+- **Extract** files from proprietary-files.txt **up to 10x faster than LineageOS extract-utils**
+- **Compare** a built system against stock images to find missing files, properties, and vendor interface declarations
+- **List** system files relevant to bringup (in all partitions)
+- **Resolve overridden** build rules from build warnings
+- Check SELinux policies to identify apps that should be **presigned**
 
 ## Installation
 
