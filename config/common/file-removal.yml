@@ -6,6 +6,7 @@ filters:
       - product/etc/sysconfig/adaptivecharging.xml
       - product/etc/sysconfig/dreamliner.xml
       - product/etc/sysconfig/game_overlay.xml
+      - product/etc/sysconfig/quick_tap.xml
       # Boot animation
       - product/media/bootanimation.zip
       - product/media/bootanimation-dark.zip
@@ -15,19 +16,22 @@ filters:
       - system_ext/etc/init/init.sota.rc
       - system_ext/etc/permissions/com.google.android.factoryota.xml
       # Unused Google Dialer jar
+      - product/etc/permissions/com.google.android.dialer.support.xml
       - product/framework/com.google.android.dialer.support.jar
       # Unused hardware info jar
+      - product/etc/permissions/com.google.android.hardwareinfo.xml
       - product/framework/libhwinfo.jar
-      # Unused ok google blobs
+      # Unused ok google jar
       - system_ext/etc/permissions/com.android.hotwordenrollment.common.util.xml
       - system_ext/framework/com.android.hotwordenrollment.common.util.jar
-      # Unwanted OMA-DM // carrier trash
+      # Unused RadioConfigLib.jar
       - system_ext/etc/permissions/com.android.omadm.radioconfig.xml
       - system_ext/framework/RadioConfigLib.jar
+      # Unwanted OMA-DM permissions
       - product/etc/permissions/com.android.omadm.service.xml
       - product/etc/permissions/com.google.omadm.trigger.xml
       - product/etc/sysconfig/allowlist_com.android.omadm.service.xml
-      - product/etc/sysconfig/allowlist_com.android.omadm.service.xml
+      #  verizon carrier trash
       - product/etc/permissions/com.verizon.apn.xml
       - product/etc/permissions/com.verizon.services.xml
       - product/etc/permissions/com.customermobile.preload.vzw.xml
@@ -51,6 +55,8 @@ filters:
       - .ogg
 
     prefix:
+      # fs-verity certs for play store
+      - product/etc/security/fsverity
       # APEX
       - system/apex/
       # Fonts

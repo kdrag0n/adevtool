@@ -17,8 +17,6 @@ filters:
       - product/etc/permissions/com.android.sdm.plugins.dcmo.xml
       - product/etc/permissions/com.android.sdm.plugins.diagmon.xml
       - product/etc/permissions/com.google.android.apps.dreamliner.xml
-      - product/etc/permissions/com.google.android.dialer.support.xml
-      - product/etc/permissions/com.google.android.hardwareinfo.xml
       - product/etc/permissions/com.google.android.odad.xml
       - product/etc/permissions/privapp-permissions-google-p.xml
       - product/etc/permissions/split-permissions-google.xml
@@ -38,7 +36,6 @@ filters:
       - product/etc/sysconfig/nga.xml
       - product/etc/sysconfig/google_build.xml
       - product/etc/sysconfig/preinstalled-packages-product-pixel-2017-and-newer.xml
-      - product/etc/sysconfig/quick_tap.xml
       - system_ext/etc/permissions/privapp-permissions-google-se.xml
       - vendor/etc/fstab.gs101-fips
       # eSIM
