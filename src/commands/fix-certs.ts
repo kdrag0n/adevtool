@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command'
 
-import { withWrappedSrc, WRAPPED_SOURCE_FLAGS, wrapSystemSrc } from '../frontend/source'
+import { withWrappedSrc, WRAPPED_SOURCE_FLAGS } from '../frontend/source'
 import {
   KeyInfo,
   MacSigner,
@@ -10,8 +10,6 @@ import {
   resolveKeys,
   writeMappedKeys,
 } from '../selinux/keys'
-import { withSpinner } from '../util/cli'
-import { withTempDir } from '../util/fs'
 
 export default class FixCerts extends Command {
   static description = 'fix SELinux presigned app certificates'

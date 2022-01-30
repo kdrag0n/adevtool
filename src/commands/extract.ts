@@ -4,8 +4,8 @@ import chalk from 'chalk'
 import { parseFileList } from '../blobs/file-list'
 import { copyBlobs } from '../blobs/copy'
 import { createVendorDirs, generateBuild, writeBuildFiles } from '../blobs/build'
-import { readFile, withTempDir } from '../util/fs'
-import { withWrappedSrc, WRAPPED_SOURCE_FLAGS, wrapSystemSrc } from '../frontend/source'
+import { readFile } from '../util/fs'
+import { withWrappedSrc, WRAPPED_SOURCE_FLAGS } from '../frontend/source'
 
 export default class Extract extends Command {
   static description = 'extract proprietary files'

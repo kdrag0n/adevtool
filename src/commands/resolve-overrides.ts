@@ -15,7 +15,7 @@ export default class ResolveOverrides extends Command {
   static args = [
     {
       name: 'overrideList',
-      description: 'path to root of mounted system images (./system_ext, ./product, etc.)',
+      description: 'path to file containing build output with override warnings',
       required: true,
     },
     {

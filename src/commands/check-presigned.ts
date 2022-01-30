@@ -5,6 +5,7 @@ import chalk from 'chalk'
 import { parseFileList, serializeBlobList } from '../blobs/file-list'
 import { enumeratePresignedBlobs, parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigned'
 import { readFile } from '../util/fs'
+import { withWrappedSrc, WRAPPED_SOURCE_FLAGS } from '../frontend/source'
 
 export default class CheckPresigned extends Command {
   static description = 'check for APKs that should be presigned'
@@ -23,6 +24,9 @@ export default class CheckPresigned extends Command {
       multiple: true,
     }),
     outList: flags.string({ char: 'o', description: 'output path for new proprietary-files.txt with PRESIGNED tags' }),
+
+    device: flags.string({ char: 'd', description: 'device codename', required: true }),
+    ...WRAPPED_SOURCE_FLAGS,
   }
 
   static args = [
@@ -31,8 +35,8 @@ export default class CheckPresigned extends Command {
 
   async run() {
     let {
-      flags: { aapt2: aapt2Path, sepolicy: sepolicyDirs, outList: outPath },
-      args: { source, listPath },
+      flags: { aapt2: aapt2Path, sepolicy: sepolicyDirs, outList: outPath, device, stockSrc, buildId, useTemp },
+      args: { listPath },
     } = this.parse(CheckPresigned)
 
     // Parse list
@@ -43,19 +47,21 @@ export default class CheckPresigned extends Command {
     // Find and parse sepolicy seapp_contexts
     let presignedPkgs = await parsePresignedRecursive(sepolicyDirs)
 
-    if (entries != null) {
-      // Get APKs from blob entries
-      let presignedEntries = await updatePresignedBlobs(aapt2Path, source, presignedPkgs, entries)
-      presignedEntries.forEach(e => this.log(e.srcPath))
+    await withWrappedSrc(stockSrc, device, buildId, useTemp, async stockSrc => {
+      if (entries != null) {
+        // Get APKs from blob entries
+        let presignedEntries = await updatePresignedBlobs(aapt2Path, stockSrc, presignedPkgs, entries)
+        presignedEntries.forEach(e => this.log(e.srcPath))
 
-      if (outPath != undefined) {
-        let newList = serializeBlobList(presignedEntries)
-        await fs.writeFile(outPath, newList)
+        if (outPath != undefined) {
+          let newList = serializeBlobList(presignedEntries)
+          await fs.writeFile(outPath, newList)
+        }
+      } else {
+        // Find APKs
+        let presignedPaths = await enumeratePresignedBlobs(aapt2Path, stockSrc, presignedPkgs)
+        presignedPaths.forEach(p => this.log(p))
       }
-    } else {
-      // Find APKs
-      let presignedPaths = await enumeratePresignedBlobs(aapt2Path, source, presignedPkgs)
-      presignedPaths.forEach(p => this.log(p))
-    }
+    })
   }
 }
