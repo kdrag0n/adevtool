@@ -55,8 +55,6 @@ filters:
       - .ogg
 
     prefix:
-      # fs-verity certs for play store
-      - product/etc/security/fsverity
       # APEX
       - system/apex/
       # Fonts
