@@ -2,6 +2,8 @@
 
 Android ROM device support and bringup tool, designed for maximum automation and speed.
 
+[![Demo video on asciinema](https://asciinema.org/a/kCWUN6XcyaDEU6bcoE65rVQrv.svg)](https://asciinema.org/a/kCWUN6XcyaDEU6bcoE65rVQrv)
+
 ## Features
 
 This tool automates the following tasks for devices that mostly run AOSP out-of-the-box (e.g. Google Pixel):
