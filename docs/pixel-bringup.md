@@ -2,7 +2,7 @@
 
 This guide assumes basic familiarity with Android platform development. You must already have adevtool [installed](../README.md#installation).
 
-While the focus of this guide is on a single device, examples are also shown for working on multiple devices at the same time. If you're working on multiple devices, many commands can be sped up by adding the `-p` argument to do the work for each device in parallel.
+This guide is only for initial bringup; see [Generating or updating an existing device](pixel-generate.md) for subsequent updates.
 
 ## 1. Download factory images
 
@@ -10,25 +10,42 @@ In order to extract proprietary files and other data, you need a copy of the sto
 
 ```bash
 adevtool download ~/stock_images -d raven
-
-# For multiple devices
-adevtool download ~/stock_images -d raven oriole
 ```
 
 The factory images ZIP will be saved in `~/stock_images`. Full OTA packages are not currently supported.
 
-## 2. Collect state from a reference build
+## 2. Create a config
+
+Create a simple YAML config file to get started with your device. The [example config](../config/examples/device.yml) has detailed documentation for all possible config values, but this is the bare minimum you need to start:
+
+```yaml
+device:
+  name: raven
+  vendor: google_devices
+
+platform:
+  product_makefile: device/google/raviole/aosp_raven.mk
+
+  sepolicy_dirs:
+    - hardware/google/pixel-sepolicy
+    - device/google/gs101-sepolicy
+```
+
+Replace `product_makefile` with the path to your device's product makefile (including the `aosp_` prefix). All Pixel devices use `hardware/google/pixel-sepolicy`, but check your device tree for the device-specific SELinux policies and replace the path accordingly. Most Qualcomm Pixel devices follow a format similar to `device/google/redbull-sepolicy`.
+
+You can optionally follow the modular format of existing configs in config/pixel to reuse common Pixel configs as much as possible. This vastly simplifies making all features work, as most parts are the same across all Pixel devices.
+
+## 3. Prepare for reference build
 
 To find missing files, properties, and overlays automatically, adevtool needs a reference build of AOSP to compare with the stock ROM. Navigate to the root of your AOSP tree and generate a vendor module to prepare for this:
 
 ```bash
 adevtool generate-prep -s ~/stock_images -b sq1d.211205.017 tools/adevtool/config/pixel/raven.yml
-
-# For multiple devices
-adevtool generate-prep -s ~/stock_images -b sq1d.211205.017 tools/adevtool/config/pixel/2021.yml
 ```
 
 Replace `~/stock_images` with the directory containing your factory images package, `sq1d.211205.017` with the build ID, and `raven` with your device's codename. We recommend keeping a copy of adevtool at `tools/adevtool` so the config is easy to find, but you should also adjust the path if your configs are located somewhere else.
+
+## 4. Attempt to build
 
 After generating the vendor module, build the ROM to get a reference build. Make sure to do a `user` build using the device codename as it appears on the stock ROM (i.e. no `aosp_` prefix; you can build with a different device name and variant later if you want, but the reference build has strict requirements):
 
@@ -38,34 +55,52 @@ m installclean
 m
 ```
 
-Then use the reference build to create a state file, which contains all necessary information from the build:
+**The first build is expected to fail — don't panic.** Read the errors to determine which dependencies are missing and add the missing files to the `filters: dep_files` section of the config accordingly. See the [Pixel 2020](../config/pixel/snippets/2020.yml#L26) config for reference.
+
+After adding the missing files, generate the vendor module again (step 2) and attempt another build. Repeat until the build completes successfully.
+
+Even when successful, the reference build **will not boot.** That's normal; this build is only for adevtool's reference purposes.
+
+## 5. Collect state
+
+Use the reference build to create a state file, which contains all necessary information from the build:
 
 ```bash
 adevtool collect-state ~/raven.json -d raven
-
-# For multiple devices (device_states is a directory)
-adevtool collect-state ~/device_states -d raven oriole
 ```
 
 Once you have a state file, the reference build is no longer necessary, so you can safely discard it.
 
-### For future updates
+## 6. Generate vendor module
 
-This step is only necessary across major Android version upgrades (e.g. Android 12 to 13), or occasionally quarterly feature drops for the latest Pixel generation of Pixel devices. It's also necessary when the format of the state file changes, but we try to keep the format stable when possible.
-
-In all other cases, you can reuse the same state file for future updates without needing to do reference builds again. You can also share the file, so other people building for the same device don't need to do their own reference builds.
-
-## 3. Generate vendor module
-
-Now that you have a reference state file, generating the actual vendor module is easy:
+Now that you have a reference state file, generate the actual vendor module:
 
 ```bash
 adevtool generate-all -s ~/stock_images -c ~/raven.json -b sq1d.211205.017 tools/adevtool/config/pixel/raven.yml
-
-# For multiple devices
-adevtool generate-all -s ~/stock_images -c ~/device_states -b sq1d.211205.017 tools/adevtool/config/pixel/2021.yml
 ```
 
-Replace `~/raven.json` with the path to your state file if you're building for a single device, or the directory containing your state files if you have multiple devices. Other arguments are the same as in previous steps.
+## 7. Build the actual ROM
 
-You should now have everything you need to do a full custom ROM build!
+You can now do an actual ROM build. We recommend doing an engineering build (`eng`) for easier debugging:
+
+```bash
+lunch raven-user
+m installclean
+m
+```
+
+This build will likely boot, but some features may be broken.
+
+## 8. Refine the config
+
+To fix features and improve the quality of your bringup, review the following generated files/folders in `vendor/google_devices/raven` to make sure they look reasonable:
+
+- Resource overlays: `overlays/[partition].txt` (e.g. product.txt, vendor.txt)
+- List of extracted proprietary files: `proprietary-files.txt`
+- Generated vendor interface manifest: `vintf/adevtool_manifest_vendor.xml`
+- SELinux policies and partitions: `proprietary/BoardConfigVendor.mk`
+- System properties and built packages: `proprietary/device-vendor.mk`
+
+Add filters and regenerate the module until everything looks good. It will be helpful to use [existing Pixel configs](../config/pixel) as references.
+
+If you get a new Pixel device working with no apparent bugs, congrats! Please consider contributing official support for the device [by making a pull request](https://github.com/kdrag0n/adevtool/compare).
