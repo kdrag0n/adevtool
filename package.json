@@ -1,7 +1,7 @@
 {
   "name": "adevtool",
   "description": "Android device support and bringup tool.",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "Danny Lin @kdrag0n",
   "bin": {
     "adevtool": "./bin/run"
