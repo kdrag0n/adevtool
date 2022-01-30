@@ -4,6 +4,8 @@ This guide assumes basic familiarity with Android platform development. You must
 
 This guide is only for initial bringup; see [Generating or updating an existing device](pixel-generate.md) for subsequent updates.
 
+Most commands should be run at the root of your ROM tree, so `aapt2` and other files can be discovered automatically.
+
 ## 1. Download factory images
 
 In order to extract proprietary files and other data, you need a copy of the stock ROM for your device. Download the latest factory images package for your device, replacing `raven` with your device's codename:
@@ -71,7 +73,19 @@ adevtool collect-state ~/raven.json -d raven
 
 Once you have a state file, the reference build is no longer necessary, so you can safely discard it.
 
-## 6. Generate vendor module
+## 6. Fix app signing certificates
+
+Some privileged apps have special SELinux domains assigned by signing certificate, and the default AOSP certificates don't match. Update the certificates:
+
+```bash
+adevtool fix-certs -d raven -s ~/stock_images -b sq1d.211205.017 -p hardware/google/pixel-sepolicy device/google/gs101-sepolicy
+```
+
+Pass the list of `sepolicy_dirs` in your config as arguments after `-p`.
+
+This only needs to be done once as it modifies SELinux policies to update certificates as necessary. You may want to fork the modified repositories.
+
+## 7. Generate vendor module
 
 Now that you have a reference state file, generate the actual vendor module:
 
@@ -79,7 +93,7 @@ Now that you have a reference state file, generate the actual vendor module:
 adevtool generate-all -s ~/stock_images -c ~/raven.json -b sq1d.211205.017 tools/adevtool/config/pixel/raven.yml
 ```
 
-## 7. Build the actual ROM
+## 8. Build the actual ROM
 
 You can now do an actual ROM build. We recommend doing an engineering build (`eng`) for easier debugging:
 
@@ -91,7 +105,7 @@ m
 
 This build will likely boot, but some features may be broken.
 
-## 8. Refine the config
+## 9. Refine the config
 
 To fix features and improve the quality of your bringup, review the following generated files/folders in `vendor/google_devices/raven` to make sure they look reasonable:
 

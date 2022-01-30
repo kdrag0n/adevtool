@@ -4,6 +4,8 @@ This guide assumes basic familiarity with Android platform development. You must
 
 While the focus of this guide is on a single device, examples are also shown for working on multiple devices at the same time. If you're working on multiple devices, many commands can be sped up by adding the `-p` argument to do the work for each device in parallel.
 
+Most commands should be run at the root of your ROM tree, so `aapt2` and other files can be discovered automatically.
+
 ## 1. Download factory images
 
 In order to extract proprietary files and other data, you need a copy of the stock ROM for your device. Download the latest factory images package for your device, replacing `raven` with your device's codename:
