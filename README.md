@@ -27,7 +27,10 @@ This typically results in better device support with fewer bugs and issues, and 
 
 Pixel devices will benefit from the most automation, but several features can still be used to ease manual bringup on other devices:
 
-- **Extract** files from proprietary-files.txt **up to 10x faster than LineageOS extract-utils**
+- **Extract** files from proprietary-files.txt **[up to 2000% faster than LineageOS extract-utils (speed comparison)](https://asciinema.org/a/eUMNIrKtBrln1CwE1zCUnJO8w)**
+  - LineageOS extract-utils: 1 min 27 sec
+  - **adevtool: 4 sec**
+  - Tested with Pixel 5 (redfin), cache cleared before testing
 - **Compare** a built system against stock images to find missing files, properties, and vendor interface declarations
 - **List** system files relevant to bringup (in all partitions)
 - **Resolve overridden** build rules from build warnings
