@@ -23,6 +23,8 @@ This tool automates the following tasks for devices that mostly run AOSP out-of-
 
 This typically results in better device support with fewer bugs and issues, and makes it possible to quickly add support for new devices.
 
+[Example generated vendor modules for Pixel devices](https://github.com/NeutronBlobs/android_vendor_google_devices)
+
 ### Non-AOSP devices
 
 Pixel devices will benefit from the most automation, but several features can still be used to ease manual bringup on other devices:
