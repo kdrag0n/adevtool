@@ -1,6 +1,6 @@
 # adevtool
 
-Android device support and bringup tool, designed for maximum automation and speed.
+Android ROM device support and bringup tool, designed for maximum automation and speed.
 
 ## Features
 
