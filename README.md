@@ -11,7 +11,7 @@ This tool automates the following tasks for devices that mostly run AOSP out-of-
 - Downloading factory images and full OTA packages
 - Generating a list of **proprietary files**
 - Resolving overridden build rules and **building modules from source** (when possible)
-- Extracting, converting, and mounting **factory images**
+- Extracting, converting, and mounting **factory images** [(supported source formats)](docs/system-source.md)
 - Extracting proprietary files
 - Extracting bootloader and radio **firmware**
 - Finding and adding missing system **properties**
@@ -70,6 +70,7 @@ yarn global add adevtool
 - [Bringing up a new Pixel device](docs/pixel-bringup.md)
 - [Generating or updating an existing device](docs/pixel-generate.md)
 - [Using individual helper commands](docs/commands.md)
+- [Supported system source formats](docs/system-source.md)
 
 ## License
 

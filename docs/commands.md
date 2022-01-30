@@ -2,6 +2,8 @@
 
 This documents individual adevtool commands, most of which can be used independently without a config or full device bringup.
 
+All commands that accept stock system images, with the exception of comparison commands (diff-files, diff-props, diff-vintf), support [the source formats listed here](system-source.md).
+
 ## Extract proprietary files
 
 Given a device codename, vendor name, stock system source, and LineageOS proprietary-files.txt list, extract proprietary files and generate build files.

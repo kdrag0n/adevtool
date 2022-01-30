@@ -6,6 +6,8 @@ This guide is only for initial bringup; see [Generating or updating an existing 
 
 Most commands should be run at the root of your ROM tree, so `aapt2` and other files can be discovered automatically.
 
+All commands that accept stock system images, with the exception of comparison commands (diff-files, diff-props, diff-vintf), support [the source formats listed here](system-source.md).
+
 ## 1. Download factory images
 
 In order to extract proprietary files and other data, you need a copy of the stock ROM for your device. Download the latest factory images package for your device, replacing `raven` with your device's codename:
