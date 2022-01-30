@@ -1,0 +1,20 @@
+# This is a "device-list" config, which is a list of individual device configs
+# that can be used to run commands for multiple devices at once. Commands that
+# accept config files can use it in place of a single-device config.
+type: device-list
+
+# Similar to device configs, snippets can be included and merged. Items from all
+# included configs will be combined.
+includes:
+  # For example, this can be used to consolidate groups of devices by generation.
+  - pixel2019.yml
+  - pixel2020.yml
+  - pixel2021.yml
+
+# List of individual device configs to group. Config paths are relative to this
+# file, similar to includes.
+devices:
+  # Path to Pixel 6 Pro config
+  - raven.yml
+  # Path to Pixel 6 config
+  - oriole.yml
