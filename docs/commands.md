@@ -6,6 +6,8 @@ This documents individual adevtool commands, most of which can be used independe
 
 Given a device codename, vendor name, stock system source, and LineageOS proprietary-files.txt list, extract proprietary files and generate build files.
 
+Speed comparison with LineageOS extract-utils:
+
 [![Speed comparison with LineageOS extract-utils](https://asciinema.org/a/eUMNIrKtBrln1CwE1zCUnJO8w.svg)](https://asciinema.org/a/eUMNIrKtBrln1CwE1zCUnJO8w)
 
 <details>
