@@ -23,6 +23,7 @@ import { WRAPPED_SOURCE_FLAGS, wrapSystemSrc } from '../frontend/source'
 import { SelinuxPartResolutions } from '../selinux/contexts'
 import { withSpinner } from '../util/cli'
 import { withTempDir } from '../util/fs'
+import { writeReadme } from '../frontend/readme'
 
 const doDevice = (
   config: DeviceConfig,
@@ -146,6 +147,9 @@ const doDevice = (
         stockSrc,
       ),
     )
+
+    // 12. Readme
+    await writeReadme(config, dirs, propResults)
   })
 
 export default class GenerateFull extends Command {
