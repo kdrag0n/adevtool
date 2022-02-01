@@ -74,6 +74,23 @@ yarn global add adevtool
 - [Using individual helper commands](docs/commands.md)
 - [Supported system source formats](docs/system-source.md)
 
+## Why TypeScript?
+
+TypeScript is not a common language for Android-related tools, but I picked it for several reasons:
+
+- Fast (enough) and easily parallelizable
+- Good static type system (for developer experience: fewer bugs and better editor code intelligence)
+- Good libraries for friendly CLI interfaces with pretty output
+- Relatively lightweight
+
+### Why not...
+
+- Python: May not meet speed/parallelization goals easily, types aren't as nice
+- Kotlin: Requires big+heavy JVM to run, CLI libraries aren't as good
+- Go: Good choice overall, but error checking can be overly verbose
+
+Overall, TypeScript is a decent compromise on all of these points.
+
 ## License
 
 This tool is licensed under the [MIT license](LICENSE), ensuring that anyone is free to use it for any purpose in compliance with the license. Contributions are welcome!
