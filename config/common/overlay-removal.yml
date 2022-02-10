@@ -141,6 +141,7 @@ filters:
       - android:integer/config_longPressOnPowerBehavior
       - android:integer/config_storageManagerDaystoRetainDefault
       - android:integer/config_defaultNightMode
+      - android:integer/config_keyChordPowerVolumeUp
       - com.android.networkstack/NetworkStackConfig:bool/config_dhcp_client_hostname
       - com.android.phone:string-array/thermal_mitigation_allowlisted_packages
       - com.android.phone:string/dialer_default_class
