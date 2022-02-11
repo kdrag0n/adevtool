@@ -72,7 +72,12 @@ export async function generateBuild(
   let copyFiles = []
   let symlinks = []
   let namedModules = new Map<string, SoongModule>()
+
+  // Conflict resolution: all candidate modules with the same name, plus counters
+  let conflictModules = new Map<string, SoongModule[]>()
   let conflictCounters = new Map<string, number>()
+
+  entryLoop:
   for (let entry of entries) {
     let ext = path.extname(entry.path)
     let pathParts = entry.path.split('/')
@@ -99,37 +104,43 @@ export async function generateBuild(
       // Module name = file name, excluding extension if it was used
       let baseExt = SPECIAL_FILE_EXTENSIONS.has(ext) ? ext : undefined
       let name = path.basename(entry.path, baseExt)
+      let resolvedName = name
 
       // If already exists: skip if it's the other arch variant of a library in
       // the same partition AND has the same name (incl. ext), otherwise rename the
       // module to avoid conflict
       let needsMakeFallback = false
       if (namedModules.has(name)) {
-        let conflictModule = namedModules.get(name)!
-        if (
-          conflictModule._type == TYPE_SHARED_LIBRARY &&
-          (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
-          conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)
-        ) {
-          // Same partition = skip arch variant
-          if (conflictModule._entry?.partition == entry.partition) {
-            continue
-          } else {
-            // Fall back to PRODUCT_COPY_FILES for cross-partition conflicts.
-            // TODO: resolve cross-platform conflicts without overrides
-            needsMakeFallback = true
+        for (let conflictModule of conflictModules.get(name)!) {
+          if (
+            conflictModule._type == TYPE_SHARED_LIBRARY &&
+            (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&
+            conflictModule._entry?.path.split('/').at(-1) == pathParts.at(-1)
+          ) {
+            // Same partition = skip arch variant
+            if (conflictModule._entry?.partition == entry.partition) {
+              continue entryLoop
+            } else {
+              // Fall back to PRODUCT_COPY_FILES for cross-partition conflicts.
+              // TODO: resolve cross-platform conflicts without overrides
+              needsMakeFallback = true
+            }
           }
         }
 
         // Increment conflict counter and append to name
         let conflictNum = (conflictCounters.get(name) ?? 1) + 1
         conflictCounters.set(name, conflictNum)
-        name += `__${conflictNum}`
+        resolvedName += `__${conflictNum}`
       }
 
       if (!needsMakeFallback) {
-        let module = blobToSoongModule(name, ext, vendor, entry, entrySrcPaths)
-        namedModules.set(name, module)
+        let module = blobToSoongModule(resolvedName, ext, vendor, entry, entrySrcPaths)
+        namedModules.set(resolvedName, module)
+
+        // Save all conflicting modules for conflict resolution
+        conflictModules.get(name)?.push(module) ??
+          conflictModules.set(name, [module])
         continue
       }
     }
