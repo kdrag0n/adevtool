@@ -38,14 +38,7 @@ filters:
       - product/etc/sysconfig/preinstalled-packages-product-pixel-2017-and-newer.xml
       - system_ext/etc/permissions/privapp-permissions-google-se.xml
       - vendor/etc/fstab.gs101-fips
-      # eSIM
-      - system_ext/etc/permissions/com.google.euiccpixel.permissions.xml
-      - system_ext/etc/permissions/com.google.euiccpixel.xml
-      - system_ext/priv-app/EuiccSupportPixel/DKA_RC4_DVT.up
-      - system_ext/priv-app/EuiccSupportPixel/DKA_RC4_EVT.up
-      - system_ext/priv-app/EuiccSupportPixel/esim-full-v1.img
-      - system_ext/priv-app/EuiccSupportPixel/EuiccSupportPixel.apk
-      - system_ext/priv-app/EuiccSupportPixelPermissions/EuiccSupportPixelPermissions.apk
+      # Generic Google eSIM app
       - product/priv-app/EuiccGoogle/EuiccGoogle.apk
       # UCI
       - vendor/bin/uci_daemon
