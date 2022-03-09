@@ -192,6 +192,9 @@ filters:
       # P19: face unlock debugging
       - android:string-array/config_restrictedImagesServices
 
+      # Cast volume adjustment
+      - android:bool/config_volumeAdjustmentForRemoteGroupSessions
+
       # Misc
       - android:bool/config_enableGeolocationTimeZoneDetection
       - android:bool/config_enablePrimaryLocationTimeZoneProvider
