@@ -6,6 +6,10 @@ includes:
   - pixel.yml
 
 filters:
+  overlay_keys:
+    prefix:
+      # esim app (in gs101 repo)
+      - com.google.euiccpixel
   dep_files:
     match:
       # Required for building ARM NN HAL

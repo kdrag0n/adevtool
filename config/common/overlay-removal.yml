@@ -24,6 +24,8 @@ filters:
       - com.google.android.cellbroadcastreceiver/CellBroadcastCustomization
       - com.google.android.cellbroadcastservice/CellBroadcastServiceCustomization
       - com.google.android.documentsui/DocumentsUICustomization
+      # scone
+      - com.google.android.apps.scone
     regex:
       - branded_vpn
     match:

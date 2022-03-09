@@ -37,6 +37,7 @@ filters:
       - product/etc/permissions/com.customermobile.preload.vzw.xml
       - system_ext/etc/permissions/com.verizon.llkagent.xml
       - system_ext/etc/permissions/vzw_mvs_permissions.xml
+      - product/etc/permissions/com.android.sdm.plugins.usccdm.xml
       # Unused Google RIL
       - system_ext/etc/permissions/google-ril.xml
       - system_ext/framework/google-ril.jar
@@ -216,3 +217,6 @@ filters:
       - system/priv-app/NetworkPermissionConfigGoogle/
       - system/priv-app/NetworkStackGoogle/
       - system/priv-app/TagGoogle/
+      - product/priv-app/BetaFeedback
+      - product/priv-app/USCCDM
+      - system_ext/priv-app/YadaYada
