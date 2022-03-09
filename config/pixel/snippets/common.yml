@@ -164,6 +164,10 @@ filters:
       - product/app/VoiceAccessPrebuilt/VoiceAccessPrebuilt.apk
       - product/etc/permissions/com.google.android.odad.xml
 
+      # Beta
+      - system_ext/priv-app/YadaYada/YadaYada.apk
+      - product/priv-app/BetaFeedback/BetaFeedback.apk
+
     prefix:
       # (Live) wallpapers
       - product/app/WallpapersBReel
