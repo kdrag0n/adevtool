@@ -64,7 +64,7 @@ async function getUrl(type: ImageType, buildId: string, device: string, cache: I
   }
 
   if (buildId == 'latest') {
-    return matches.map(m => m[1]).sort((a, b) => b.localeCompare(a))[0]
+    return matches[matches.length - 1][1]
   }
   return matches[0][1]
 }
