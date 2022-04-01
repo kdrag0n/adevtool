@@ -129,7 +129,7 @@ class SourceResolver {
       // Extract nested images zip
       this.spinner.text = `extracting factory images: ${file}`
       let imagesFile = `${imagesTmp.dir}/${imagesEntry}`
-      await run(`unzip -d ${imagesTmp.dir} ${file}`)
+      await run(`unzip -od ${imagesTmp.dir} ${file}`)
       return await this.wrapLeafFile(imagesFile, file)
     }
     if (files.find(f => f == 'payload.bin') != undefined) {
@@ -138,7 +138,7 @@ class SourceResolver {
       // Extract update_engine payload
       this.spinner.text = `extracting OTA payload: ${file}`
       let payloadFile = `${imagesTmp.dir}/payload.bin`
-      await run(`unzip -d ${imagesTmp.dir} ${file} payload.bin`)
+      await run(`unzip -od ${imagesTmp.dir} ${file} payload.bin`)
       return await this.wrapLeafFile(payloadFile, factoryPath)
     }
     if (files.find(f => f.endsWith('.img') && ALL_SYS_PARTITIONS.has(f.replace('.img', '')))) {
@@ -146,7 +146,7 @@ class SourceResolver {
 
       // Extract image files
       this.spinner.text = `extracting images: ${file}`
-      await run(`unzip -d ${imagesTmp.dir} ${file}`)
+      await run(`unzip -od ${imagesTmp.dir} ${file}`)
       if (file.startsWith(this.tmp.dir)) {
         await fs.rm(file)
       }
