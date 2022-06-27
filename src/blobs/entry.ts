@@ -25,7 +25,7 @@ export function partPathToSrcPath(partition: string, path: string) {
     return `${partition}/${path}`
   }
   // system
-  return path
+  return `${partition}/${partition}/${path}`
 }
 
 export function srcPathToPartPath(srcPath: string) {
