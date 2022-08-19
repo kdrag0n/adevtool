@@ -42,7 +42,7 @@ Pixel devices will benefit from the most automation, but several features can st
 
 Pre-requisites:
 
-- [Node.js](https://nodejs.org/)
+- [Node.js](https://nodejs.org/) v18 or newer (**older versions will not work**)
 - Optional:
   - For converting sparse factory images: [simg2img](https://github.com/anestisb/android-simg2img)
   - For extracting OTA packages: [payload-dumper-go](https://github.com/ssut/payload-dumper-go)
