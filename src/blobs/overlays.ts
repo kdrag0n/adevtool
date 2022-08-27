@@ -354,7 +354,7 @@ export function diffPartOverlays(
 ) {
   let missingPartValues: PartResValues = {}
   for (let [partition, valuesNew] of Object.entries(pvNew)) {
-    let valuesRef = pvRef[partition]
+    let valuesRef = pvRef[partition] ?? new Map<string, ResValue>()
     let missingValues: ResValues = new Map<string, ResValue>()
 
     // Filter values first
