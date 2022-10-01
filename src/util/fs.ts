@@ -74,5 +74,5 @@ export async function readFile(path: string) {
 }
 
 export async function mount(imgPath: string, mountpoint: string) {
-  await run(`mount -t ext4 -o ro ${imgPath} ${mountpoint}`)
+  await run(`mount -o ro ${imgPath} ${mountpoint}`)
 }
