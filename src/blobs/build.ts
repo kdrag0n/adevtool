@@ -26,6 +26,7 @@ import {
   TYPE_SHARED_LIBRARY,
 } from '../build/soong'
 import { BlobEntry, blobNeedsSoong } from './entry'
+import { SoongModuleInfo } from '../build/soong-info'
 
 export interface BuildFiles {
   rootBlueprint?: SoongBlueprint
@@ -59,6 +60,7 @@ export async function generateBuild(
   vendor: string,
   source: string,
   dirs: VendorDirectories,
+  existingModules?: SoongModuleInfo,
 ) {
   // Re-sort entries to give priority to explicit named dependencies in name
   // conflict resolution. XMLs are also de-prioritized because they have
@@ -110,8 +112,8 @@ export async function generateBuild(
       // the same partition AND has the same name (incl. ext), otherwise rename the
       // module to avoid conflict
       let needsMakeFallback = false
-      if (namedModules.has(name)) {
-        for (let conflictModule of conflictModules.get(name)!) {
+      if (namedModules.has(name) || existingModules?.has(name)) {
+        for (let conflictModule of conflictModules.get(name) ?? []) {
           if (
             conflictModule._type == TYPE_SHARED_LIBRARY &&
             (conflictModule as SharedLibraryModule).compile_multilib == 'both' &&

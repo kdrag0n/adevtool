@@ -145,6 +145,9 @@ const doDevice = (
         vintfManifestPaths,
         sepolicyResolutions,
         stockSrc,
+        true,
+        false,
+        customState.moduleInfo,
       ),
     )
 
