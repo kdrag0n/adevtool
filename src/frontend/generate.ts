@@ -11,7 +11,7 @@ import { parsePresignedRecursive, updatePresignedBlobs } from '../blobs/presigne
 import { diffPartitionProps, loadPartitionProps, PartitionProps } from '../blobs/props'
 import { diffPartVintfManifests, loadPartVintfInfo, writePartVintfManifests } from '../blobs/vintf'
 import { findOverrideModules } from '../build/overrides'
-import { removeSelfModules } from '../build/soong-info'
+import { removeSelfModules, SoongModuleInfo } from '../build/soong-info'
 import { DeviceConfig } from '../config/device'
 import { filterKeys, Filters, filterValue, filterValues } from '../config/filters'
 import { collectSystemState, parseSystemState, SystemState } from '../config/system-state'
@@ -295,8 +295,9 @@ export async function generateBuildFiles(
   stockSrc: string,
   addAbOtaParts = true,
   enforceAllRros = false,
+  customModuleInfo?: SoongModuleInfo,
 ) {
-  let build = await generateBuild(entries, config.device.name, config.device.vendor, stockSrc, dirs)
+  let build = await generateBuild(entries, config.device.name, config.device.vendor, stockSrc, dirs, customModuleInfo)
 
   // Add rules to build overridden modules and overlays, then re-sort
   build.deviceMakefile!.packages!.push(...buildPkgs)
